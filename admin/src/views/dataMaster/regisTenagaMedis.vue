@@ -47,11 +47,7 @@
                   <tbody>
                      <tr v-for="(data, index) in list_data" :key="data.id + '-' + index">
                         <td class="text-center">{{ indexing(index + 1) }}</td>
-                        <!-- <td>{{ data.nama }}
-                  <div class="h_nip text-blue cursor-pointer" @click="lihatPIC(data.users_id)">
-                    Lihat PIC
-                  </div>
-                </td> -->
+                   
                         <td>{{ data.nama_lengkap }}</td>
                         <td>{{ data.no_str }}</td>
                         <td>{{ data.jabatan_fungsional }}</td>
@@ -59,14 +55,6 @@
                         <td>{{ data.phone }}</td>
                         <td>{{ data.username }}</td>
                         <td class="text-center">
-                           <!-- <q-btn-group flat>
-                    <q-btn icon="edit" color="orange" @click="editModal(data)" round>
-                      <q-tooltip>Edit</q-tooltip>
-                    </q-btn>
-                    <q-btn icon="visibility" color="primary" @click="lihatModal(data)" round>
-                      <q-tooltip>Lihat</q-tooltip>
-                    </q-btn>
-                  </q-btn-group> -->
                            <q-btn-group>
                               <q-btn @click="mdl_password = true, selectData(data)" glossy color="blue" icon="vpn_key"
                                  class="tbl_btn">
@@ -191,7 +179,7 @@
             </form>
          </q-card>
       </q-dialog>
-      <!-- ===================== MODAL ADD KEGIATAN CSR ===================== -->
+      <!-- ===================== MODAL ADD ===================== -->
 
       <!-- ================= MODAL EDIT ================= -->
       <q-dialog v-model="mdl_edit" persistent>
@@ -421,7 +409,6 @@ export default {
             page_limit: this.page_limit,
             data_ke: (this.page_first - 1) * this.page_limit,
             cari_value: this.cari_value,
-            // master_bidang_usaha: this.filterku.master_bidang_usaha // hapus jika tidak dipakai
          };
 
          fetch(this.$store.state.url.REGIS + "getview", {
@@ -448,7 +435,6 @@ export default {
 
       async addData() {
          try {
-            // Validasi password
             if (this.dataku.password !== this.dataku.confirmPassword) {
                this.$q.notify({
                   type: 'negative',
@@ -456,8 +442,6 @@ export default {
                });
                return;
             }
-
-            // Validasi minimal password (opsional)
             if (this.dataku.password.length < 6) {
                this.$q.notify({
                   type: 'negative',
@@ -466,13 +450,10 @@ export default {
                return;
             }
 
-            // Set loading state
             this.btn_add = true;
 
-            // Prepare FormData untuk handle file upload
             const formData = new FormData();
 
-            // Append data dari form utama
             formData.append('nama_lengkap', this.form.nama_lengkap);
             formData.append('nip', this.form.nip);
             formData.append('nomor_induk_profesi', this.form.nomor_induk_profesi);
