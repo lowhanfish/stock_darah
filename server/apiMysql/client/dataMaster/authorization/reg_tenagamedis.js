@@ -8,19 +8,16 @@ const path = require('path');
 router.post("/getview", (req, res) => {
     const { page_limit, data_ke, cari_value } = req.body;
   
-    // Default nilai jika tidak ada
     const limit = parseInt(page_limit) || 10;
     const offset = parseInt(data_ke) || 0;
     const search = cari_value ? `%${cari_value}%` : '%';
   
-    // Query untuk total data dengan filter pencarian
     const countSql = `
       SELECT COUNT(*) AS total FROM tenaga_medis tm
       JOIN users u ON tm.users_id = u.id
       WHERE tm.nama_lengkap LIKE ? OR u.username LIKE ? OR tm.no_str LIKE ? OR tm.jabatan_fungsional LIKE ?
     `;
-  
-    // Query untuk data paginasi dengan filter pencarian
+
     const dataSql = `
       SELECT 
         tm.id,
