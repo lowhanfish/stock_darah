@@ -181,77 +181,69 @@
       </q-dialog>
       <!-- ===================== MODAL ADD ===================== -->
 
-      <!-- ================= MODAL EDIT ================= -->
-      <q-dialog v-model="mdl_edit" persistent>
-         <q-card class="mdl-md">
-            <q-card-section class="bg-orange">
-               <div class="text-h6 h_modalhead">Edit Data Perusahaan</div>
-            </q-card-section>
+      <!-- ================= MODAL EDIT TENAGA MEDIS ================= -->
+<q-dialog v-model="mdl_edit" persistent>
+  <q-card class="mdl-md">
+    <q-card-section class="bg-orange">
+      <div class="text-h6 h_modalhead">Edit Data Tenaga Medis</div>
+    </q-card-section>
 
-            <form @submit.prevent="editData">
-               <q-card-section>
+    <form @submit.prevent="editData">
+      <q-card-section>
 
-                  <!-- ===== Data Perusahaan ===== -->
-                  <div class="col-12 col-md-12 frame_cari">
-                     <span class="h_lable ">Nama</span>
-                     <q-input v-model="form.nama" outlined square :dense="true" class="bg-white margin_btn" />
-                  </div>
+        <span class="h_lable">Nama Lengkap</span>
+        <q-input v-model="form.nama_lengkap" outlined square required :dense="true" class="bg-white margin_btn" />
 
-                  <div class="col-12 col-md-12 frame_cari">
-                     <span class="h_lable">Bidang Usaha</span>
-                     <select v-model="form.bidang_usaha_id" class="bg-white">
-                        <option value="" disabled>Pilih Bidang Usaha</option>
-                        <option v-for="item in list_bidang" :key="item.id" :value="item.id">
-                           {{ item.uraian }}
-                        </option>
-                     </select>
-                  </div>
+        <span class="h_lable">NIP</span>
+        <q-input v-model="form.nip" type="number" outlined required square :dense="true" class="bg-white margin_btn" />
 
-                  <div class="col-12 col-md-12 frame_cari">
-                     <span class="h_lable ">No Hp</span>
-                     <q-input v-model="form.hp" outlined square :dense="true" class="bg-white margin_btn" />
-                  </div>
+        <span class="h_lable">Nomor Induk Profesi</span>
+        <q-input v-model="form.nomor_induk_profesi" type="number" outlined required square :dense="true" class="bg-white margin_btn" />
 
-                  <div class="col-12 col-md-12 frame_cari">
-                     <span class="h_lable ">Alamat</span>
-                     <q-input v-model="form.alamat" outlined square :dense="true" class="bg-white margin_btn" />
-                  </div>
+        <span class="h_lable">Jabatan Fungsional</span>
+        <q-input v-model="form.jabatan_fungsional" outlined required square :dense="true" class="bg-white margin_btn" />
 
-                  <!-- ===== Separator ===== -->
-                  <hr class="hrpagin2 q-my-md">
+        <div class="row q-col-gutter-md">
+          <div class="col-6">
+            <span class="h_lable">No STR</span>
+            <q-input v-model="form.no_str" outlined required square :dense="true" class="bg-white margin_btn" />
+          </div>
+          <div class="col-6">
+            <span class="h_lable">Masa Berlaku STR</span>
+            <q-input v-model="form.masa_berlaku_str" type="date" outlined required square :dense="true" class="bg-white margin_btn" />
+          </div>
+          <div class="col-12">
+            <span class="h_lable">FILE STR (biarkan kosong jika tidak ingin ganti)</span>
+            <q-file v-model="form.file_str" label="Pilih PDF" accept=".pdf,application/pdf" outlined square dense class="bg-white margin_btn" />
+          </div>
+        </div>
 
-                  <!-- ===== Data PIC ===== -->
-                  <div class="col-12 col-md-12 frame_cari">
-                     <span class="h_lable ">Nama PIC</span>
-                     <q-input v-model="form.pic_nama" outlined square :dense="true" class="bg-white margin_btn" />
-                  </div>
+        <span class="h_lable">Email Aktif</span>
+        <q-input v-model="form.email" type="email" outlined square :dense="true" class="bg-white margin_btn" />
 
-                  <div class="col-12 col-md-12 frame_cari">
-                     <span class="h_lable ">Jabatan PIC</span>
-                     <q-input v-model="form.pic_jabatan" outlined square :dense="true" class="bg-white margin_btn" />
-                  </div>
+        <span class="h_lable">No HP Aktif</span>
+        <q-input v-model="form.phone" type="number" outlined square :dense="true" class="bg-white margin_btn" />
 
-                  <div class="col-12 col-md-12 frame_cari">
-                     <span class="h_lable ">Email PIC</span>
-                     <q-input v-model="form.pic_email" type="email" outlined square :dense="true"
-                        class="bg-white margin_btn" />
-                  </div>
+        <span class="h_lable">Tempat Kerja</span>
+        <q-input v-model="form.tempat_kerja" outlined square :dense="true" class="bg-white margin_btn" />
 
-                  <div class="col-12 col-md-12 frame_cari">
-                     <span class="h_lable ">No HP PIC</span>
-                     <q-input v-model="form.pic_hp" type="tel" outlined square :dense="true"
-                        class="bg-white margin_btn" />
-                  </div>
+        <span class="h_lable">Alamat Praktik</span>
+        <q-input v-model="form.alamat_praktik" type="textarea" outlined square :dense="true" class="bg-white margin_btn" />
 
-               </q-card-section>
+        <hr class="hrpagin2" />
 
-               <q-card-actions align="right" class="bg-grey-4 mdl-footer">
-                  <q-btn label="Simpan" type="submit" color="primary" :loading="btn_edit" />
-                  <q-btn label="Batal" color="negative" v-close-popup />
-               </q-card-actions>
-            </form>
-         </q-card>
-      </q-dialog>
+        <span class="h_lable">Username</span>
+        <q-input v-model="dataku.username" outlined square :dense="true" class="bg-white margin_btn" />
+
+      </q-card-section>
+
+      <q-card-actions align="right" class="bg-grey-4 mdl-footer">
+        <q-btn label="Simpan" type="submit" color="primary" :loading="btn_edit" />
+        <q-btn label="Batal" color="negative" v-close-popup />
+      </q-card-actions>
+    </form>
+  </q-card>
+</q-dialog>
 
 
       <!-- ================= MODAL Lihat PIC ================= -->
@@ -363,17 +355,19 @@ export default {
 
 
          form: {
-            nama_lengkap: 'das',
-            nip: '123',
-            nomor_induk_profesi: '123',
-            jabatan_fungsional: 'asd',
-            no_str: 'asd',
-            masa_berlaku_str: '',
-            file_str: null,
-            email: 'asd@gmail.com',
-            phone: '231',
-            tempat_kerja: 'asd',
-            alamat_praktik: 'adsad',
+            id: null,
+      users_id: null,
+      nama_lengkap: '',
+      nip: '',
+      nomor_induk_profesi: '',
+      jabatan_fungsional: '',
+      no_str: '',
+      masa_berlaku_str: '',
+      file_str: null,
+      email: '',
+      phone: '',
+      tempat_kerja: '',
+      alamat_praktik: '',
          },
 
          mdl_add: false,
@@ -533,19 +527,94 @@ export default {
             confirmPassword: ''
          };
       },
-      editData() {
-         this.btn_edit = true;
-         fetch("/api/perusahaan/edit", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify(this.form)
-         })
-            .then(() => {
-               this.btn_edit = false;
-               this.mdl_edit = false;
-               this.getView();
-            });
-      },
+
+      async editData() {
+  this.btn_edit = true;
+  try {
+    // Siapkan data yang akan dikirim ke backend
+    const payload = {
+      id: this.form.id, // id tenaga medis
+      users_id: this.form.users_id,
+      nama_lengkap: this.form.nama_lengkap,
+      nip: this.form.nip,
+      nomor_induk_profesi: this.form.nomor_induk_profesi,
+      jabatan_fungsional: this.form.jabatan_fungsional,
+      no_str: this.form.no_str,
+      masa_berlaku_str: this.form.masa_berlaku_str,
+      email: this.form.email,
+      phone: this.form.phone,
+      tempat_kerja: this.form.tempat_kerja,
+      alamat_praktik: this.form.alamat_praktik,
+      username: this.dataku.username || '', // jika username bisa diedit
+      // Jika ingin update password di sini, bisa ditambahkan
+      // password: this.dataku.password || undefined,
+    };
+
+    // Jika ada file baru yang diupload, gunakan FormData
+    let response, result;
+    if (this.form.file_str && this.form.file_str instanceof File) {
+      const formData = new FormData();
+      for (const key in payload) {
+        formData.append(key, payload[key]);
+      }
+      formData.append('file_str', this.form.file_str);
+
+      response = await fetch(this.$store.state.url.REGIS + "EditTenagaMedis", {
+        method: "POST",
+        headers: {
+          authorization: "kikensbatara " + localStorage.token
+        },
+        body: formData
+      });
+      result = await response.json();
+    } else {
+      // Jika tidak ada file baru, kirim JSON biasa
+      response = await fetch(this.$store.state.url.REGIS + "EditTenagaMedis", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: "kikensbatara " + localStorage.token
+        },
+        body: JSON.stringify(payload)
+      });
+      result = await response.json();
+    }
+
+    if (response.ok && result.success) {
+      this.$q.notify({ type: "positive", message: result.message || "Data berhasil diupdate" });
+      this.mdl_edit = false;
+      this.getView();
+    } else {
+      throw new Error(result.message || "Gagal mengupdate data");
+    }
+  } catch (error) {
+    console.error("Error edit data:", error);
+    this.$q.notify({ type: "negative", message: error.message || "Terjadi kesalahan saat update data" });
+  } finally {
+    this.btn_edit = false;
+  }
+},
+
+editModal(data) {
+  this.form = {
+    id: data.id,
+    users_id: data.users_id,
+    nama_lengkap: data.nama_lengkap || '',
+    nip: data.nip || '',
+    nomor_induk_profesi: data.nomor_induk_profesi || '',
+    jabatan_fungsional: data.jabatan_fungsional || '',
+    no_str: data.no_str || '',
+    masa_berlaku_str: data.masa_berlaku_str || '',
+    file_str: null, // reset file input, user harus upload ulang jika ingin ganti
+    email: data.email || '',
+    phone: data.phone || '',
+    tempat_kerja: data.tempat_kerja || '',
+    alamat_praktik: data.alamat_praktik || '',
+  };
+  this.dataku.username = data.username || '';
+  this.mdl_edit = true;
+},
+      
 
       selectData(data) {
          this.dataku = {
@@ -612,45 +681,7 @@ export default {
          }
       },
 
-      editData() {
-         this.btn_edit = true;
-         fetch(this.$store.state.url.DATA_MITRA + "EditMitra", {
-            method: "POST",
-            headers: {
-               "Content-Type": "application/json",
-               authorization: "kikensbatara " + localStorage.token
-            },
-            body: JSON.stringify({
-               users_id: this.form.users_id,
-               perusahaan_id: this.form.id,
-               password: this.form.password || "", // optional
-               nama: this.form.pic_nama,
-               jabatan: this.form.pic_jabatan,
-               pic_email: this.form.pic_email,
-               pic_hp: this.form.pic_hp,
-               perusahaan_nama: this.form.nama,
-               bidang_usaha_id: this.form.bidang_usaha_id,
-               perusahaan_email: this.form.email,
-               perusahaan_hp: this.form.hp,
-               alamat: this.form.alamat
-            })
-         })
-            .then(res => res.json())
-            .then(res_data => {
-               this.btn_edit = false;
-               if (res_data.success) {
-                  this.mdl_edit = false;
-                  this.getView();
-                  this.$q.notify({ type: 'positive', message: res_data.message });
-               } else {
-                  this.$q.notify({ type: 'negative', message: res_data.error || 'Gagal update' });
-               }
-            })
-            .catch(err => {
-               this.btn_edit = false;
-               this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan' });
-            });
-      },
+      
       indexing(idx) {
          return ((this.page_first - 1) * this.page_limit) + idx;
       },
