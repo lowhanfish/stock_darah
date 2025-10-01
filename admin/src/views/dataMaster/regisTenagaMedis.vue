@@ -47,7 +47,7 @@
                   <tbody>
                      <tr v-for="(data, index) in list_data" :key="data.id + '-' + index">
                         <td class="text-center">{{ indexing(index + 1) }}</td>
-                   
+
                         <td>{{ data.nama_lengkap }}</td>
                         <td>{{ data.no_str }}</td>
                         <td>{{ data.jabatan_fungsional }}</td>
@@ -487,23 +487,16 @@ export default {
             const result = await response.json();
 
             if (response.ok && result.success) {
-               // Success
                this.$q.notify({
                   type: 'positive',
                   message: result.message || 'Data tenaga medis berhasil ditambahkan!'
                });
 
-               // Reset form
                this.resetForm();
-
-               // Tutup modal
                this.mdl_add = false;
-
-               // Refresh data atau emit event jika perlu
                this.$emit('data-added');
 
             } else {
-               // Error dari server
                throw new Error(result.message || 'Terjadi kesalahan saat menambah data');
             }
 
@@ -520,7 +513,6 @@ export default {
       },
 
       resetForm() {
-         // Reset form utama
          this.form = {
             nama_lengkap: '',
             nip: '',
@@ -535,7 +527,6 @@ export default {
             alamat_praktik: '',
          };
 
-         // Reset data akun
          this.dataku = {
             username: '',
             password: '',
@@ -556,9 +547,7 @@ export default {
             });
       },
 
-      // ... method lain sudah ada
       selectData(data) {
-         // ambil data user saat klik tombol edit password
          this.dataku = {
             users_id: data.users_id,
             password: '',
@@ -705,9 +694,7 @@ export default {
                this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan' });
             });
       },
-      lihatModal(data) {
-         this.lihatPIC(data.users_id);
-      },
+
       cari_data() { this.page_first = 1; this.getView(); }
    },
    mounted() {
