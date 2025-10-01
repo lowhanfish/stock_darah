@@ -4,14 +4,15 @@ const db = require('../../../../db/MySql/umum');
 const bcrypt = require('bcryptjs');
 var upload = require('../../../../db/multer/image');
 const path = require('path');
+const fs = require('fs');
 
 router.post("/getview", (req, res) => {
     const { page_limit, data_ke, cari_value } = req.body;
-  
+
     const limit = parseInt(page_limit) || 10;
     const offset = parseInt(data_ke) || 0;
     const search = cari_value ? `%${cari_value}%` : '%';
-  
+
     const countSql = `
       SELECT COUNT(*) AS total FROM tenaga_medis tm
       JOIN users u ON tm.users_id = u.id
@@ -40,104 +41,112 @@ router.post("/getview", (req, res) => {
       ORDER BY tm.created_at DESC
       LIMIT ? OFFSET ?
     `;
-  
+
     db.query(countSql, [search, search, search, search], (err, countResult) => {
-      if (err) {
-        console.error("❌ Error count tenaga medis:", err);
-        return res.status(500).json({ success: false, error: err.message });
-      }
-  
-      const total_data = countResult[0].total;
-  
-      db.query(dataSql, [search, search, search, search, limit, offset], (err2, dataResult) => {
-        if (err2) {
-          console.error("❌ Error get tenaga medis:", err2);
-          return res.status(500).json({ success: false, error: err2.message });
+        if (err) {
+            console.error("❌ Error count tenaga medis:", err);
+            return res.status(500).json({ success: false, error: err.message });
         }
-  
-        res.json({
-          success: true,
-          data: dataResult,
-          jml_data: dataResult.length,
-          total_data
+
+        const total_data = countResult[0].total;
+
+        db.query(dataSql, [search, search, search, search, limit, offset], (err2, dataResult) => {
+            if (err2) {
+                console.error("❌ Error get tenaga medis:", err2);
+                return res.status(500).json({ success: false, error: err2.message });
+            }
+
+            res.json({
+                success: true,
+                data: dataResult,
+                jml_data: dataResult.length,
+                total_data
+            });
         });
-      });
     });
-  });
-  
+});
+
 
 router.post("/addTenagaMedis", upload.single('file_str'), async (req, res) => {
-  try {
-    const {
-      username,
-      password,
-      nama_lengkap,
-      nip,
-      nomor_induk_profesi,
-      jabatan_fungsional,
-      no_str,
-      masa_berlaku_str,
-      email,
-      phone,
-      tempat_kerja,
-      alamat_praktik
-    } = req.body;
+    try {
+        const {
+            username,
+            password,
+            nama_lengkap,
+            nip,
+            nomor_induk_profesi,
+            jabatan_fungsional,
+            no_str,
+            masa_berlaku_str,
+            email,
+            phone,
+            tempat_kerja,
+            alamat_praktik
+        } = req.body;
 
 
-    // Validasi required fields
-    if (!username || !password || !nama_lengkap || !nip || !nomor_induk_profesi || 
-        !jabatan_fungsional || !no_str || !masa_berlaku_str) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Semua field wajib harus diisi!" 
-      });
-    }
+        // Validasi required fields
+        if (!username || !password || !nama_lengkap || !nip || !nomor_induk_profesi ||
+            !jabatan_fungsional || !no_str || !masa_berlaku_str) {
+            return res.status(400).json({
+                success: false,
+                message: "Semua field wajib harus diisi!"
+            });
+        }
 
-    // Validasi file STR
-    if (!req.file) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "File STR wajib diupload!" 
-      });
-    }
+        // Validasi username minimal 6 karakter jika diisi
+        if (username && username.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'Username harus minimal 6 karakter'
+            });
+        }
 
-    const checkUserSql = `SELECT id FROM users WHERE username = ?`;
-    db.query(checkUserSql, [username], async (err, results) => {
-      if (err) {
-        console.error("❌ Error cek username:", err);
-        return res.status(500).json({ success: false, error: err.message });
-      }
+        // Validasi file STR
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "File STR wajib diupload!"
+            });
+        }
 
-      if (results.length > 0) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Username sudah digunakan!" 
-        });
-      }
+        const checkUserSql = `SELECT id FROM users WHERE username = ?`;
+        db.query(checkUserSql, [username], async (err, results) => {
+            if (err) {
+                console.error("❌ Error cek username:", err);
+                return res.status(500).json({ success: false, error: err.message });
+            }
 
-      const hashedPassword = await bcrypt.hash(password.trim(), 12);
+            if (results.length > 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Username sudah digunakan!"
+                });
+            }
 
-      const sqlUser = `
+            const hashedPassword = await bcrypt.hash(password.trim(), 12);
+
+            const sqlUser = `
         INSERT INTO users (username, password, email, hp, nama, jabatan, stokdarah_konut, createdAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
       `;
 
-      db.query(
-        sqlUser,
-        [username, hashedPassword, email, phone, nama_lengkap, jabatan_fungsional, 2],
-        (err, resultUser) => {
-          if (err) {
-            console.error("❌ Insert user error:", err);
-            return res.status(500).json({ success: false, error: err.message });
-          }
+            db.query(
+                sqlUser,
+                [username, hashedPassword, email, phone, nama_lengkap, jabatan_fungsional, 2],
+                (err, resultUser) => {
+                    if (err) {
+                        console.error("❌ Insert user error:", err);
+                        return res.status(500).json({ success: false, error: err.message });
+                    }
 
-          const users_id = resultUser.insertId;
+                    const users_id = resultUser.insertId;
 
-          // PERBAIKAN: Simpan hanya filename, bukan full path
-          const file_str = req.file.filename; // Gunakan filename bukan path
+                    // PERBAIKAN: Simpan hanya filename, bukan full path
+                    const file_str = req.file.filename; // Gunakan filename bukan path
 
-          // Insert ke tabel tenaga_medis
-          const sqlTenagaMedis = `
+                    // Insert ke tabel tenaga_medis
+                    const sqlTenagaMedis = `
             INSERT INTO tenaga_medis (
               users_id, 
               nama_lengkap, 
@@ -155,109 +164,117 @@ router.post("/addTenagaMedis", upload.single('file_str'), async (req, res) => {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
           `;
 
-          db.query(
-            sqlTenagaMedis,
-            [
-              users_id,
-              nama_lengkap,
-              nip,
-              nomor_induk_profesi,
-              jabatan_fungsional,
-              no_str,
-              masa_berlaku_str,
-              file_str, 
-              email,
-              phone,
-              tempat_kerja,
-              alamat_praktik
-            ],
-            (err2, resultTenagaMedis) => {
-              if (err2) {
-                console.error("❌ Insert tenaga medis error:", err2);
-                
-                const deleteUserSql = `DELETE FROM users WHERE id = ?`;
-                db.query(deleteUserSql, [users_id]);
-                
-                return res.status(500).json({ success: false, error: err2.message });
-              }
+                    db.query(
+                        sqlTenagaMedis,
+                        [
+                            users_id,
+                            nama_lengkap,
+                            nip,
+                            nomor_induk_profesi,
+                            jabatan_fungsional,
+                            no_str,
+                            masa_berlaku_str,
+                            file_str,
+                            email,
+                            phone,
+                            tempat_kerja,
+                            alamat_praktik
+                        ],
+                        (err2, resultTenagaMedis) => {
+                            if (err2) {
+                                console.error("❌ Insert tenaga medis error:", err2);
 
-            //   console.log("✅ Tenaga medis berhasil ditambahkan");
-              res.json({
-                success: true,
-                message: "Tenaga medis berhasil ditambahkan 🎉",
-                users_id,
-                tenaga_medis_id: resultTenagaMedis.insertId,
-                data: {
-                  nama_lengkap,
-                  nip,
-                  username,
-                  file_str: file_str // Sekarang hanya filename
+                                const deleteUserSql = `DELETE FROM users WHERE id = ?`;
+                                db.query(deleteUserSql, [users_id]);
+
+                                return res.status(500).json({ success: false, error: err2.message });
+                            }
+
+                            //   console.log("✅ Tenaga medis berhasil ditambahkan");
+                            res.json({
+                                success: true,
+                                message: "Tenaga medis berhasil ditambahkan 🎉",
+                                users_id,
+                                tenaga_medis_id: resultTenagaMedis.insertId,
+                                data: {
+                                    nama_lengkap,
+                                    nip,
+                                    username,
+                                    file_str: file_str // Sekarang hanya filename
+                                }
+                            });
+                        }
+                    );
                 }
-              });
-            }
-          );
-        }
-      );
-    });
+            );
+        });
 
-  } catch (error) {
-    console.error("🔥 Error tambah tenaga medis:", error);
-    res.status(500).json({ success: false, error: error.message });
-  }
+    } catch (error) {
+        console.error("🔥 Error tambah tenaga medis:", error);
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 
 router.post('/EditTenagaMedis', upload.single('file_str'), (req, res) => {
     const {
-      id,
-      users_id,
-      nama_lengkap,
-      nip,
-      nomor_induk_profesi,
-      jabatan_fungsional,
-      no_str,
-      masa_berlaku_str,
-      email,
-      phone,
-      tempat_kerja,
-      alamat_praktik,
-      username
+        id,
+        users_id,
+        nama_lengkap,
+        nip,
+        nomor_induk_profesi,
+        jabatan_fungsional,
+        no_str,
+        masa_berlaku_str,
+        email,
+        phone,
+        tempat_kerja,
+        alamat_praktik,
+        username
     } = req.body;
-  
+
     if (!id || !users_id) {
-      return res.status(400).json({ success: false, message: 'ID tenaga medis dan users_id wajib diisi' });
+        return res.status(400).json({ success: false, message: 'ID tenaga medis dan users_id wajib diisi' });
     }
-  
+
+    // Validasi username minimal 6 karakter jika diisi
+    if (username && username.length < 6) {
+        return res.status(400).json({
+            success: false,
+            message: 'Username harus minimal 6 karakter'
+        });
+    }
+
     // Ambil data lama file_str
     const getOldDataSql = 'SELECT file_str FROM tenaga_medis WHERE id = ?';
     db.query(getOldDataSql, [id], (err, results) => {
-      if (err) {
-        console.error('Error fetching old data:', err);
-        return res.status(500).json({ success: false, message: 'Database error' });
-      }
-      if (results.length === 0) {
-        return res.status(404).json({ success: false, message: 'Data tenaga medis tidak ditemukan' });
-      }
-  
-      let oldFile = results[0].file_str;
-      let newFile = oldFile;
-  
-      if (req.file) {
-        newFile = req.file.filename;
-  
-        // Hapus file lama jika ada dan berbeda
-        if (oldFile && oldFile !== newFile) {
-          const oldFilePath = path.join(__dirname, '../../../../uploads', oldFile);
-          fs.unlink(oldFilePath, (unlinkErr) => {
-            if (unlinkErr) {
-              console.warn('Gagal hapus file lama:', unlinkErr);
-            }
-          });
+        if (err) {
+            console.error('Error fetching old data:', err);
+            return res.status(500).json({ success: false, message: 'Database error' });
         }
-      }
-  
-      // Update data tenaga medis
-      const updateSql = `
+        if (results.length === 0) {
+            return res.status(404).json({ success: false, message: 'Data tenaga medis tidak ditemukan' });
+        }
+
+        let oldFile = results[0].file_str;
+        let newFile = oldFile;
+
+        if (req.file) {
+            newFile = req.file.filename;
+
+            // Hapus file lama jika ada dan berbeda
+            if (oldFile && oldFile !== newFile) {
+                const oldFilePath = path.join(__dirname, '../../../../uploads', oldFile);
+                fs.unlink(oldFilePath, (unlinkErr) => {
+                    if (unlinkErr) {
+                        console.warn('Gagal hapus file lama:', unlinkErr);
+                    }
+                });
+            }
+        }
+
+        // Update data tenaga medis
+        const updateSql = `
         UPDATE tenaga_medis SET
           nama_lengkap = ?,
           nip = ?,
@@ -272,44 +289,122 @@ router.post('/EditTenagaMedis', upload.single('file_str'), (req, res) => {
           alamat_praktik = ?
         WHERE id = ?
       `;
-  
-      const updateValues = [
-        nama_lengkap,
-        nip,
-        nomor_induk_profesi,
-        jabatan_fungsional,
-        no_str,
-        masa_berlaku_str,
-        newFile,
-        email,
-        phone,
-        tempat_kerja,
-        alamat_praktik,
-        id
-      ];
-  
-      db.query(updateSql, updateValues, (updateErr) => {
-        if (updateErr) {
-          console.error('Error updating tenaga medis:', updateErr);
-          return res.status(500).json({ success: false, message: 'Gagal update data tenaga medis' });
+
+        const updateValues = [
+            nama_lengkap,
+            nip,
+            nomor_induk_profesi,
+            jabatan_fungsional,
+            no_str,
+            masa_berlaku_str,
+            newFile,
+            email,
+            phone,
+            tempat_kerja,
+            alamat_praktik,
+            id
+        ];
+
+        db.query(updateSql, updateValues, (updateErr) => {
+            if (updateErr) {
+                console.error('Error updating tenaga medis:', updateErr);
+                return res.status(500).json({ success: false, message: 'Gagal update data tenaga medis' });
+            }
+
+            if (username) {
+                const updateUserSql = 'UPDATE users SET username = ? WHERE id = ?';
+                db.query(updateUserSql, [username, users_id], (userErr) => {
+                    if (userErr) {
+                        console.error('Error updating username:', userErr);
+                        // Tidak fatal, tetap sukses update tenaga medis
+                    }
+                    return res.json({ success: true, message: 'Data tenaga medis berhasil diupdate' });
+                });
+            } else {
+                return res.json({ success: true, message: 'Data tenaga medis berhasil diupdate' });
+            }
+        });
+    });
+});
+
+router.post('/removeTenagaMedis', (req, res) => {
+  const { id, users_id } = req.body;
+
+  if (!id || !users_id) {
+    return res.status(400).json({ success: false, message: 'ID tenaga medis dan users_id wajib diisi' });
+  }
+
+  // Ambil data lama untuk file_str
+  const getOldDataSql = 'SELECT file_str FROM tenaga_medis WHERE id = ?';
+  db.query(getOldDataSql, [id], (err, results) => {
+    if (err) {
+      console.error('Error fetching old data:', err);
+      return res.status(500).json({ success: false, message: 'Database error' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, message: 'Data tenaga medis tidak ditemukan' });
+    }
+
+    const oldFile = results[0].file_str;
+
+    // Hapus data tenaga medis
+    const deleteTenagaMedisSql = 'DELETE FROM tenaga_medis WHERE id = ?';
+    db.query(deleteTenagaMedisSql, [id], (delErr) => {
+      if (delErr) {
+        console.error('Error deleting tenaga medis:', delErr);
+        return res.status(500).json({ success: false, message: 'Gagal menghapus data tenaga medis' });
+      }
+
+      // Hapus user terkait
+      const deleteUserSql = 'DELETE FROM users WHERE id = ?';
+      db.query(deleteUserSql, [users_id], (userErr) => {
+        if (userErr) {
+          console.error('Error deleting user:', userErr);
+          // Tidak fatal, lanjutkan
         }
-  
-        if (username) {
-            const updateUserSql = 'UPDATE users SET username = ? WHERE id = ?';
-            db.query(updateUserSql, [username, users_id], (userErr) => {
-              if (userErr) {
-                console.error('Error updating username:', userErr);
-                // Tidak fatal, tetap sukses update tenaga medis
-              }
-              return res.json({ success: true, message: 'Data tenaga medis berhasil diupdate' });
-            });
-          } else {
-            return res.json({ success: true, message: 'Data tenaga medis berhasil diupdate' });
-          }
+
+        // Hapus file STR jika ada
+        if (oldFile) {
+          const filePath = path.join(__dirname, '../../../../uploads', oldFile);
+          fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.warn('Gagal hapus file STR:', unlinkErr);
+            }
+            // Kirim response sukses setelah semua proses
+            return res.json({ success: true, message: 'Data tenaga medis berhasil dihapus' });
+          });
+        } else {
+          // Tidak ada file, langsung kirim response sukses
+          return res.json({ success: true, message: 'Data tenaga medis berhasil dihapus' });
+        }
       });
     });
   });
-  
+});
+
+router.post('/editPasswordTenagaMedis', async (req, res) => {
+  const { users_id, password } = req.body;
+  if (!users_id || !password) {
+    return res.status(400).json({ success: false, message: 'users_id dan password wajib diisi' });
+  }
+  try {
+    // Hash password baru
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    // Update password di tabel users
+    const updateSql = 'UPDATE users SET password = ? WHERE id = ?';
+    db.query(updateSql, [hashedPassword, users_id], (err, result) => {
+      if (err) {
+        console.error('Error updating password:', err);
+        return res.status(500).json({ success: false, message: 'Gagal mengubah password' });
+      }
+      return res.json({ success: true, message: 'Password berhasil diubah' });
+    });
+  } catch (error) {
+    console.error('Error hashing password:', error);
+    return res.status(500).json({ success: false, message: 'Terjadi kesalahan server' });
+  }
+});
 
 
 
