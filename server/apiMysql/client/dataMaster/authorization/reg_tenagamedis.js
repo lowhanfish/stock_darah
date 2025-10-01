@@ -206,4 +206,111 @@ router.post("/addTenagaMedis", upload.single('file_str'), async (req, res) => {
   }
 });
 
+
+router.post('/EditTenagaMedis', upload.single('file_str'), (req, res) => {
+    const {
+      id,
+      users_id,
+      nama_lengkap,
+      nip,
+      nomor_induk_profesi,
+      jabatan_fungsional,
+      no_str,
+      masa_berlaku_str,
+      email,
+      phone,
+      tempat_kerja,
+      alamat_praktik,
+      username
+    } = req.body;
+  
+    if (!id || !users_id) {
+      return res.status(400).json({ success: false, message: 'ID tenaga medis dan users_id wajib diisi' });
+    }
+  
+    // Ambil data lama file_str
+    const getOldDataSql = 'SELECT file_str FROM tenaga_medis WHERE id = ?';
+    db.query(getOldDataSql, [id], (err, results) => {
+      if (err) {
+        console.error('Error fetching old data:', err);
+        return res.status(500).json({ success: false, message: 'Database error' });
+      }
+      if (results.length === 0) {
+        return res.status(404).json({ success: false, message: 'Data tenaga medis tidak ditemukan' });
+      }
+  
+      let oldFile = results[0].file_str;
+      let newFile = oldFile;
+  
+      if (req.file) {
+        newFile = req.file.filename;
+  
+        // Hapus file lama jika ada dan berbeda
+        if (oldFile && oldFile !== newFile) {
+          const oldFilePath = path.join(__dirname, '../../../../uploads', oldFile);
+          fs.unlink(oldFilePath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.warn('Gagal hapus file lama:', unlinkErr);
+            }
+          });
+        }
+      }
+  
+      // Update data tenaga medis
+      const updateSql = `
+        UPDATE tenaga_medis SET
+          nama_lengkap = ?,
+          nip = ?,
+          nomor_induk_profesi = ?,
+          jabatan_fungsional = ?,
+          no_str = ?,
+          masa_berlaku_str = ?,
+          file_str = ?,
+          email = ?,
+          phone = ?,
+          tempat_kerja = ?,
+          alamat_praktik = ?
+        WHERE id = ?
+      `;
+  
+      const updateValues = [
+        nama_lengkap,
+        nip,
+        nomor_induk_profesi,
+        jabatan_fungsional,
+        no_str,
+        masa_berlaku_str,
+        newFile,
+        email,
+        phone,
+        tempat_kerja,
+        alamat_praktik,
+        id
+      ];
+  
+      db.query(updateSql, updateValues, (updateErr) => {
+        if (updateErr) {
+          console.error('Error updating tenaga medis:', updateErr);
+          return res.status(500).json({ success: false, message: 'Gagal update data tenaga medis' });
+        }
+  
+        if (username) {
+            const updateUserSql = 'UPDATE users SET username = ? WHERE id = ?';
+            db.query(updateUserSql, [username, users_id], (userErr) => {
+              if (userErr) {
+                console.error('Error updating username:', userErr);
+                // Tidak fatal, tetap sukses update tenaga medis
+              }
+              return res.json({ success: true, message: 'Data tenaga medis berhasil diupdate' });
+            });
+          } else {
+            return res.json({ success: true, message: 'Data tenaga medis berhasil diupdate' });
+          }
+      });
+    });
+  });
+  
+
+
+
 module.exports = router;
