@@ -44,47 +44,45 @@ function isLoggedIn(req, res, next){
      }
 }
 
-
-
-
 function sideMenuMidleware(req, res, next){
-     console.log(req.body);
-
-     var profile = req.user.profile
-
-
-          // req.menu = 'SOOOOIMAAAH INI REQ MENUUUU'
-
-
-          var query = `
-               SELECT 
+     try {
+ 
+         const profile = (req.user && req.user.profile) ? req.user.profile : {};
+         const menuKlpId = parseInt(profile.stokdarah_konut, 10);
+ 
+     
+ 
+         if (!Number.isFinite(menuKlpId) || menuKlpId <= 0) {
+             // validasi gagal: jangan error, kasih empty menu agar UI tetap jalan
+             req.menu_akses = [];
+             return next();
+         }
+ 
+         const sql = `
+             SELECT
                menu_klp_list.*,
                menu.route
-               FROM menu_klp_list
-               JOIN menu
-               ON menu_klp_list.menu_id = menu.id
-
-               WHERE menu_klp_list.menu_klp_id = `+parseInt(profile.db_csrkonsel)+`
-
-          `;
-
-
-
-          dbUmum.query(query, (err, rows) => {
-               if (err) {
-                    console.log(err);
-               } else {
-                    req.menu_akses = rows
-                    next();
-
-               }
-          })
-
-
-
-          // console.log(profile.absensi);
-}
-
+             FROM menu_klp_list
+             JOIN menu ON menu_klp_list.menu_id = menu.id
+             WHERE menu_klp_list.menu_klp_id = ?
+         `;
+ 
+         dbUmum.query(sql, [menuKlpId], (err, rows) => {
+             if (err) {
+                 console.error('sideMenuMidleware - DB ERROR:', err);
+                 req.menu_akses = [];
+                 return next();
+             }
+             req.menu_akses = Array.isArray(rows) ? rows : [];
+             next();
+         });
+     } catch (err) {
+         console.error('sideMenuMidleware - CATCH ERROR:', err);
+         req.menu_akses = [];
+         next();
+     }
+ }
+ 
 module.exports = {
      checkTokenSeetUser,
      isLoggedIn,

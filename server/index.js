@@ -40,38 +40,24 @@ app.use('/uploads', express.static(path.join(__dirname, './uploads')))
     
     // =================== SERVER =====================
 
-
-
-
-    const dm_menuList = require('./apiMysql/main/server/dataMaster/authorization/menuList');
+    const dm_menuList = require('./apiMysql/client/dataMaster/authorization/menuList');
     app.use('/api/v1/dm_menuList', middleware.isLoggedIn, middleware.sideMenuMidleware, dm_menuList);
 
-    const dm_kelompokUsers = require('./apiMysql/main/server/dataMaster/authorization/kelompokUsers');
+    const dm_kelompokUsers = require('./apiMysql/client/dataMaster/authorization/kelompokUsers');
     app.use('/api/v1/dm_kelompokUsers', middleware.isLoggedIn, middleware.sideMenuMidleware, dm_kelompokUsers);
 
-    const dm_registrasi = require('./apiMysql/main/server/dataMaster/authorization/registrasi');
-    app.use('/api/v1/dm_registrasi', middleware.isLoggedIn, middleware.sideMenuMidleware, dm_registrasi);
-
-    const dm_bid = require('./apiMysql/main/server/dataMaster/authorization/dm_bid');
+    const dm_bid = require('./apiMysql/client/dataMaster/dm_bid');
     app.use('/api/v1/dm_bid', middleware.isLoggedIn, middleware.sideMenuMidleware, dm_bid);
 
-
-    const data_mitra = require('./apiMysql/main/server/dataMaster/data_mitra');
+    const data_mitra = require('./apiMysql/client/dataMaster/data_mitra');
     app.use('/api/v1/data_mitra', middleware.isLoggedIn, middleware.sideMenuMidleware, data_mitra);
 
 
     const checkAuth = require('./apiMysql/checkAuth');
     app.use('/api/v1/checkAuth', middleware.isLoggedIn, checkAuth);
-
-
-
     // =================== SERVER =====================
 
     // =================== CLIENT =====================
-
-      const client_lampiranImg = require('./apiMysql/main/client/Lampiran/lampiranImg');
-      app.use('/api/v1/client_lampiranImg', middleware.isLoggedIn, client_lampiranImg);
-
       const berita = require('./apiMysql/client/berita');
       app.use('/api/v1/berita', middleware.isLoggedIn, berita);
       const kegiatan_csr = require('./apiMysql/client/kegiatan_csr');
@@ -88,7 +74,18 @@ app.use('/uploads', express.static(path.join(__dirname, './uploads')))
       app.use('/api/v1/dashboard', middleware.isLoggedIn, dashboard);
 
 
+      const reg_tenagamedis = require('./apiMysql/client/dataMaster/authorization/reg_tenagamedis');
+      app.use('/api/v1/reg_tenagamedis', reg_tenagamedis);
+
+
+
+
+
+
+
     // =================== CLIENT =====================
+
+
 
 
     // =================== PUBLISH =====================
@@ -110,19 +107,9 @@ app.use('/uploads', express.static(path.join(__dirname, './uploads')))
     const beritaCSR = require('./apiMysql/publish/beritaCSR');
     app.use('/api/v1/publish/beritaCSR', beritaCSR);
 
-
-
     // =================== ENDPUBLISH =====================
 
 
-
-
-
-
-
-
-    
-    
     
     // ================================== BATAS =====================================================
     

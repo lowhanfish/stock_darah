@@ -1,5 +1,5 @@
 const express = require('express');
-var db = require('../../../../../db/MySql/umum');
+var db = require('../../../../db/MySql/umum');
 
 
 
