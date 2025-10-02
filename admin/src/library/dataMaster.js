@@ -43,58 +43,9 @@ const getPendidikanAkhir = () => {
     })
   }
 
-const getJK = () => {
-  fetch(store.state.url.URL_simpeg_simpeg_jenisKelamin + "list", {
-      method : 'POST',
-      headers : {
-        "content-type": "application/json",
-        authorization: "kikensbatara " + localStorage.token
-      },
-      body : JSON.stringify({
-        unit_kerja : 'unit_kerja'
-
-      })
-  }).then((res) => res.json()).then((res_data) => {
-    store.state.list_jenis_kelamin = res_data
-    // console.log(res_data)
-  })
-}
 
 
-const getStatusKeluarga = () => {
-  fetch(store.state.url.URL_simpeg_simpeg_statusKeluarga + "list", {
-      method : 'POST',
-      headers : {
-        "content-type": "application/json",
-        authorization: "kikensbatara " + localStorage.token
-      },
-      body : JSON.stringify({
-        unit_kerja : 'unit_kerja'
 
-      })
-  }).then((res) => res.json()).then((res_data) => {
-    store.state.list_status_keluarga = res_data
-    // console.log(res_data)
-  })
-}
-
-
-const getAgama = () => {
-  fetch(store.state.url.URL_simpeg_agama + "list", {
-      method : 'POST',
-      headers : {
-        "content-type": "application/json",
-        authorization: "kikensbatara " + localStorage.token
-      },
-      body : JSON.stringify({
-        unit_kerja : 'unit_kerja'
-
-      })
-  }).then((res) => res.json()).then((res_data) => {
-    store.state.list_agama = res_data
-    // console.log(res_data)
-  })
-}
 
 const getStrataIjazah = () => {
   fetch(store.state.url.URL_simpeg_strata_ijazah + "list", {

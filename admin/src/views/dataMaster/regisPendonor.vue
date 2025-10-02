@@ -48,7 +48,7 @@
                         <td class="text-center">{{ indexing(index + 1) }}</td>
 
                         <td>{{ data.nama_lengkap }}</td>
-                        <td>{{ data.tanggal_lahir }}</td>
+                        <td>{{ UMUM.tglConvert(data.tanggal_lahir) }}</td>
                         <td>{{ data.golongan_darah }}</td>
                         <td>{{ data.no_hp }}</td>
                         <td>{{ data.username }}</td>
@@ -114,7 +114,7 @@
                         <q-select v-model="form.jenis_kelamin" :options="[
                         { label: 'Laki-laki', value: 'L' },
                         { label: 'Perempuan', value: 'P' }
-                     ]" outlined required square :dense="true" class="bg-white margin_btn" />
+                     ]" outlined emit-value map-options required square :dense="true" class="bg-white margin_btn" />
                      </div>
                   </div>
 
@@ -140,7 +140,7 @@
                         { label: 'B', value: 'B' },
                         { label: 'AB', value: 'AB' },
                         { label: 'O', value: 'O' }
-                     ]" outlined required square :dense="true" class="bg-white margin_btn" />
+                     ]" outlined required square emit-value map-options :dense="true" class="bg-white margin_btn" />
                      </div>
 
                      <div class="col-6">
@@ -148,7 +148,7 @@
                         <q-select v-model="form.rhesus" :options="[
                         { label: '+', value: '+' },
                         { label: '-', value: '-' }
-                     ]" outlined square :dense="true" class="bg-white margin_btn" />
+                     ]" outlined square emit-value map-options :dense="true" class="bg-white margin_btn" />
 
                      </div>
                   </div>
@@ -199,6 +199,20 @@
                   <span class="h_lable">Dokumen Pendukung (Optional)</span>
                   <q-file v-model="form.dokumen_pendukung" label="Pilih Dokumen" accept=".pdf,application/pdf" outlined
                      square dense class="bg-white margin_btn" />
+
+                  <hr class="hrpagin2">
+
+                  <span class="h_lable ">Username</span>
+                  <q-input v-model="dataku.username" outlined square :dense="true" class="bg-white margin_btn" />
+
+
+                  <span class="h_lable ">Password</span>
+                  <q-input type="password" v-model="dataku.password" outlined square :dense="true"
+                     class="bg-white margin_btn" />
+
+                  <span class="h_lable ">Confirm Password</span>
+                  <q-input type="password" v-model="dataku.confirmPassword" outlined square :dense="true"
+                     class="bg-white margin_btn" />
 
                   <hr class="hrpagin2">
 
@@ -408,28 +422,32 @@
 
 
 <script>
+import UMUM from "../../library/umum.js";
 export default {
    data() {
       return {
-
+         UMUM: UMUM,
 
          form: {
             id: null,
             users_id: null,
             nama_lengkap: '',
-            nip: '',
-            nomor_induk_profesi: '',
-            jabatan_fungsional: '',
-            no_str: '',
-            masa_berlaku_str: '',
-            file_str: null,
-            email: '',
-            no_hp: '',
-            tempat_kerja: '',
-            alamat_praktik: '',
+            tanggal_lahir: '',
+            jenis_kelamin: '',
+            golongan_darah: '',
+            rhesus: '',
             kabupaten_id: null,
             kecamatan_id: null,
             des_kel_id: null,
+            alamat: '',
+            email: '',
+            no_hp: '',
+            riwayat_penyakit: null,
+            terakhir_donor: null,
+            foto_profil: null,
+            dokumen_pendukung: null,
+            stokdarah_konut: 4,
+            bersedia_dipublikasikan: true,
          },
          kabupatenOptions: [],
          kecamatanOptions: [],
@@ -462,7 +480,6 @@ export default {
       }
    },
    watch: {
-      // Ketika kabupaten_id berubah, load kecamatan terkait dan reset kecamatan & desa
       'form.kabupaten_id'(newVal) {
          this.form.kecamatan_id = null;
          this.form.des_kel_id = null;
@@ -472,7 +489,6 @@ export default {
             this.loadKecamatan(newVal);
          }
       },
-      // Ketika kecamatan_id berubah, load desa terkait dan reset desa
       'form.kecamatan_id'(newVal) {
          this.form.des_kel_id = null;
          this.deskelOptions = [];
@@ -535,6 +551,7 @@ export default {
       },
 
 
+      // ========== GET VIEW DATA ==========
       getView() {
          const body = {
             page_limit: this.page_limit,
@@ -542,7 +559,7 @@ export default {
             cari_value: this.cari_value,
          };
 
-         fetch(this.$store.state.url.REGIS + "getview", {
+         fetch(this.$store.state.url.REGIS_DONOR + "getview", {
             method: "POST",
             headers: {
                "content-type": "application/json",
@@ -552,20 +569,24 @@ export default {
          })
             .then(res => res.json())
             .then(res_data => {
-               this.list_data = res_data.data;
-               this.jml_data = res_data.jml_data;
-               this.total_data = res_data.total_data;
-               this.page_last = Math.ceil(this.total_data / this.page_limit);
+               if (res_data.success) {
+                  this.list_data = res_data.data;
+                  this.jml_data = res_data.jml_data;
+                  this.total_data = res_data.total_data;
+                  this.page_last = Math.ceil(this.total_data / this.page_limit);
+               } else {
+                  this.$q.notify({ type: "negative", message: res_data.message || "Gagal mengambil data" });
+               }
             })
             .catch(err => {
                console.error("Error fetching data:", err);
-               this.$q.notify({ type: "negative", message: "Gagal mengambil data tenaga medis" });
+               this.$q.notify({ type: "negative", message: "Gagal mengambil data pendonor" });
             });
       },
 
-
       async addData() {
          try {
+            // Validasi confirm password
             if (this.dataku.password !== this.dataku.confirmPassword) {
                this.$q.notify({
                   type: 'negative',
@@ -580,39 +601,53 @@ export default {
                });
                return;
             }
+            if (!this.dataku.username) {
+               this.$q.notify({
+                  type: 'negative',
+                  message: 'Username wajib diisi!'
+               });
+               return;
+            }
 
             this.btn_add = true;
 
             const formData = new FormData();
 
+            // Append field pendonor
             formData.append('nama_lengkap', this.form.nama_lengkap);
-            formData.append('nip', this.form.nip);
-            formData.append('nomor_induk_profesi', this.form.nomor_induk_profesi);
-            formData.append('jabatan_fungsional', this.form.jabatan_fungsional);
-            formData.append('no_str', this.form.no_str);
-            formData.append('masa_berlaku_str', this.form.masa_berlaku_str);
-            formData.append('email', this.form.email);
-            formData.append('no_hp', this.form.no_hp);
-            formData.append('tempat_kerja', this.form.tempat_kerja);
-            formData.append('alamat_praktik', this.form.alamat_praktik);
+            formData.append('tanggal_lahir', this.form.tanggal_lahir);
+            formData.append('jenis_kelamin', this.form.jenis_kelamin);
+            formData.append('golongan_darah', this.form.golongan_darah);
+            formData.append('rhesus', this.form.rhesus || '');
+            formData.append('kabupaten_id', this.form.kabupaten_id || '');
+            formData.append('kecamatan_id', this.form.kecamatan_id || '');
+            formData.append('des_kel_id', this.form.des_kel_id || '');
+            formData.append('alamat', this.form.alamat || '');
+            formData.append('email', this.form.email || '');
+            formData.append('no_hp', this.form.no_hp || '');
+            formData.append('riwayat_penyakit', this.form.riwayat_penyakit || '');
+            formData.append('terakhir_donor', this.form.terakhir_donor || '');
+            formData.append('stokdarah_konut', this.form.stokdarah_konut || 4);
+            formData.append('bersedia_dipublikasikan', 1); // Otomatis 1
 
-            // Append data akun
+            // Append username dan password
             formData.append('username', this.dataku.username);
             formData.append('password', this.dataku.password);
 
-            // Append file jika ada
-            if (this.form.file_str) {
-               formData.append('file_str', this.form.file_str);
+            // Append file
+            if (this.form.foto_profil && this.form.foto_profil instanceof File) {
+               formData.append('foto_profil', this.form.foto_profil);
+            }
+            if (this.form.dokumen_pendukung && this.form.dokumen_pendukung instanceof File) {
+               formData.append('dokumen_pendukung', this.form.dokumen_pendukung);
             }
 
-            const response = await fetch(this.$store.state.url.REGIS + "addTenagaMedis", {
+            const response = await fetch(this.$store.state.url.REGIS_DONOR + "addData", {
                method: 'POST',
-               body: formData,
-               //          headers: {
-               //     "content-type": "application/json",
-               //     authorization: "kikensbatara " + localStorage.token
-               //   },
-
+               headers: {
+                  authorization: "kikensbatara " + localStorage.token
+               },
+               body: formData
             });
 
             const result = await response.json();
@@ -620,50 +655,60 @@ export default {
             if (response.ok && result.success) {
                this.$q.notify({
                   type: 'positive',
-                  message: result.message || 'Data tenaga medis berhasil ditambahkan!'
+                  message: result.message || 'Data pendonor berhasil ditambahkan!'
                });
 
                this.resetForm();
                this.mdl_add = false;
                this.getView();
-               this.$emit('data-added');
-
             } else {
                throw new Error(result.message || 'Terjadi kesalahan saat menambah data');
             }
-
          } catch (error) {
             console.error('Error adding data:', error);
             this.$q.notify({
                type: 'negative',
-               message: error.message || 'Gagal menambah data tenaga medis!'
+               message: error.message || 'Gagal menambah data pendonor!'
             });
          } finally {
-            // Reset loading state
             this.btn_add = false;
          }
       },
 
+
       resetForm() {
          this.form = {
+            id: null,
+            users_id: null,
             nama_lengkap: '',
-            nip: '',
-            nomor_induk_profesi: '',
-            jabatan_fungsional: '',
-            no_str: '',
-            masa_berlaku_str: '',
-            file_str: null,
+            tanggal_lahir: '',
+            jenis_kelamin: '',
+            golongan_darah: '',
+            rhesus: '',
+            kabupaten_id: null,
+            kecamatan_id: null,
+            des_kel_id: null,
+            alamat: '',
             email: '',
             no_hp: '',
-            tempat_kerja: '',
-            alamat_praktik: '',
+            riwayat_penyakit: '',
+            terakhir_donor: '',
+            bersedia_dipublikasikan: false,
+            foto_profil: null,
+            dokumen_pendukung: null,
+            stokdarah_konut: 4,
+            status_verifikasi: 'active',
          };
-
          this.dataku = {
             username: '',
             password: '',
             confirmPassword: ''
          };
+         this.form.kabupaten_id = null;
+         this.form.kecamatan_id = null;
+         this.form.des_kel_id = null;
+         this.kecamatanOptions = [];
+         this.deskelOptions = [];
       },
 
       async editData() {

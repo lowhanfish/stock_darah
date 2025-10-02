@@ -286,7 +286,7 @@
                         <div class="text-subtitle1">{{ lihatData.no_str }}</div>
 
                         <div class="text-caption text-grey-7">Masa Berlaku STR</div>
-                        <div class="text-subtitle1">{{ lihatData.masa_berlaku_str }}</div>
+                        <div class="text-subtitle1">{{ UMUM.tglConvert(lihatData.masa_berlaku_str) }}</div>
                      </div>
                   </div>
 
@@ -331,9 +331,6 @@
             </q-card-actions>
          </q-card>
       </q-dialog>
-
-
-
 
       <!-- ================================================= MODAL PASSWORD ================================================ -->
       <q-dialog v-model="mdl_password" persistent>
@@ -405,9 +402,11 @@
 
 
 <script>
+import UMUM from "../../library/umum.js";
 export default {
    data() {
       return {
+         UMUM: UMUM,
 
 
          form: {
