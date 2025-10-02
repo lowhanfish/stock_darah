@@ -224,3 +224,15 @@ input.mdCheckbox1 {
   }
 }
 
+.action-fab {
+  z-index: 999!important; 
+}
+.tbl_responsive table td,
+.tbl_responsive table tr {
+  overflow: visible !important;
+  position: relative;
+}
+
+.action-fab {
+  z-index: 9999 !important;
+}

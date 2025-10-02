@@ -99,6 +99,12 @@ function isLoggedIn(to, from, next) {
     beforeEnter: isLoggedIn,
   },
   {
+    path: '/regisPendonor',
+    name: 'regisPendonor',
+    component: () => import('../views/dataMaster/regisPendonor.vue'),
+    beforeEnter: isLoggedIn,
+  },
+  {
     path: '/regisMitra',
     name: 'regisMitra',
     component: () => import('../views/dataMaster/regisTenagaMedis.vue'),

@@ -4,7 +4,7 @@
          <q-card-section class="main2 text-white">
             <div class="row">
                <div class="col-12 col-md-6">
-                  <div class="text-h6 h_titleHead">Registrasi Tenaga Medis</div>
+                  <div class="text-h6 h_titleHead">Registrasi Pendonor</div>
                   <!-- <div class="text-subtitle2">Program/Kegiatan</div> -->
                </div>
                <div class="col-12 col-md-2"></div>
@@ -36,8 +36,8 @@
                      <tr>
                         <th width="5%" class="text-center">No</th>
                         <th width="20%">Nama Lengkap</th>
-                        <th width="15%">No STR</th>
-                        <th width="15%">Jabatan</th>
+                        <th width="15%">TTL</th>
+                        <th width="15%">Golongan Darah</th>
                         <th width="10%">No HP</th>
                         <th width="10%">username</th>
                         <th width="25%">Aksi</th>
@@ -48,18 +48,12 @@
                         <td class="text-center">{{ indexing(index + 1) }}</td>
 
                         <td>{{ data.nama_lengkap }}</td>
-                        <td>{{ data.no_str }}</td>
-                        <td>{{ data.jabatan_fungsional }}</td>
+                        <td>{{ data.tanggal_lahir }}</td>
+                        <td>{{ data.golongan_darah }}</td>
                         <td>{{ data.no_hp }}</td>
                         <td>{{ data.username }}</td>
                         <td class="text-center">
                            <q-btn-group>
-                              <q-btn @click="mdl_lihat = true, selectData(data)" glossy color="green" icon="search"
-                                 class="tbl_btn">
-                                 <q-tooltip content-class="bg-green-9" content-style="font-size: 13px">
-                                    Click untuk melihat detil pengguna ini
-                                 </q-tooltip>
-                              </q-btn>
                               <q-btn @click="mdl_password = true, selectData(data)" glossy color="blue" icon="vpn_key"
                                  class="tbl_btn">
                                  <q-tooltip content-class="bg-blue-9" content-style="font-size: 13px">
@@ -95,7 +89,7 @@
       <q-dialog v-model="mdl_add" persistent>
          <q-card class="mdl-md">
             <q-card-section class="main2 text-white">
-               <div class="text-h6 h_modalhead">Tambah Tenaga Medis</div>
+               <div class="text-h6 h_modalhead">Tambah Pendonor</div>
             </q-card-section>
 
             <form @submit.prevent="addData()">
@@ -108,69 +102,103 @@
                   <q-input v-model="form.nama_lengkap" outlined square required :dense="true"
                      class="bg-white margin_btn" />
 
-                  <span class="h_lable">NIP</span>
-                  <q-input v-model="form.nip" type="number" outlined required square :dense="true"
-                     class="bg-white margin_btn" />
-
-                  <span class="h_lable">Nomor Induk Profesi</span>
-                  <q-input v-model="form.nomor_induk_profesi" type="number" outlined required square :dense="true"
-                     class="bg-white margin_btn" />
-
-                  <span class="h_lable">Jabatan Fungsional</span>
-                  <q-input v-model="form.jabatan_fungsional" outlined required square :dense="true"
-                     class="bg-white margin_btn" />
-
-
                   <div class="row q-col-gutter-md">
-
                      <div class="col-6">
-
-                        <span class="h_lable">No STR</span>
-                        <q-input v-model="form.no_str" outlined required square :dense="true"
+                        <span class="h_lable">Tanggal Lahir</span>
+                        <q-input v-model="form.tanggal_lahir" type="date" outlined required square :dense="true"
                            class="bg-white margin_btn" />
                      </div>
 
                      <div class="col-6">
-                        <span class="h_lable">Masa Berlaku STR</span>
-                        <q-input v-model="form.masa_berlaku_str" type="date" outlined required square :dense="true"
-                           class="bg-white margin_btn" />
-                     </div>
-
-                     <div class="col-12">
-                        <span class="h_lable">FILE STR</span>
-                        <q-file v-model="form.file_str" label="Pilih PDF" accept=".pdf,application/pdf" outlined square
-                           dense required class="bg-white margin_btn" :rules="[
-                        val => !!val || 'Foto kegiatan wajib diisi'
-                     ]" />
+                        <span class="h_lable">Jenis Kelamin</span>
+                        <q-select v-model="form.jenis_kelamin" :options="[
+                        { label: 'Laki-laki', value: 'L' },
+                        { label: 'Perempuan', value: 'P' }
+                     ]" outlined required square :dense="true" class="bg-white margin_btn" />
                      </div>
                   </div>
 
-                  <span class="h_lable ">Email Aktif</span>
-                  <q-input v-model="form.email" type="email" outlined square :dense="true"
+                  <div class="row q-col-gutter-md">
+                     <div class="col-6">
+                        <span class="h_lable">Email</span>
+                        <q-input v-model="form.email" type="email" outlined square :dense="true"
+                           class="bg-white margin_btn" />
+                     </div>
+
+                     <div class="col-6">
+                        <span class="h_lable">No HP</span>
+                        <q-input v-model="form.no_hp" type="tel" outlined square :dense="true"
+                           class="bg-white margin_btn" />
+
+                     </div>
+                  </div>
+                  <div class="row q-col-gutter-md">
+                     <div class="col-6">
+                        <span class="h_lable">Golongan Darah</span>
+                        <q-select v-model="form.golongan_darah" :options="[
+                        { label: 'A', value: 'A' },
+                        { label: 'B', value: 'B' },
+                        { label: 'AB', value: 'AB' },
+                        { label: 'O', value: 'O' }
+                     ]" outlined required square :dense="true" class="bg-white margin_btn" />
+                     </div>
+
+                     <div class="col-6">
+                        <span class="h_lable">Rhesus *Kosongkan jika tidak tau</span>
+                        <q-select v-model="form.rhesus" :options="[
+                        { label: '+', value: '+' },
+                        { label: '-', value: '-' }
+                     ]" outlined square :dense="true" class="bg-white margin_btn" />
+
+                     </div>
+                  </div>
+
+
+
+                  <div class="row q-col-gutter-md margin_btn">
+                     <div class="col-4">
+                        <span class="h_lable">Kabupaten (Optional)</span>
+                        <q-select v-model="form.kabupaten_id" :options="kabupatenOptions" outlined square dense
+                           emit-value map-options />
+
+                     </div>
+
+                     <div class="col-4">
+                        <span class="h_lable">Kecamatan (Optional)</span>
+                        <q-select v-model="form.kecamatan_id" :options="kecamatanOptions" outlined square dense
+                           emit-value map-options :disable="!form.kabupaten_id" />
+
+                     </div>
+                     <div class="col-4">
+                        <span class="h_lable">Desa/Kelurahan (Optional)</span>
+                        <q-select v-model="form.des_kel_id" :options="deskelOptions" outlined square dense emit-value
+                           map-options :disable="!form.kecamatan_id" />
+                     </div>
+                  </div>
+
+
+                  <span class="h_lable">Alamat (Optional)</span>
+                  <q-input v-model="form.alamat" type="textarea" outlined square :dense="true"
                      class="bg-white margin_btn" />
-                  <span class="h_lable ">No HP Aktif</span>
-                  <q-input v-model="form.no_hp" type="number" outlined square :dense="true"
+
+
+                  <span class="h_lable">Riwayat Penyakit (Optional)</span>
+                  <q-input v-model="form.riwayat_penyakit" type="textarea" outlined square :dense="true"
                      class="bg-white margin_btn" />
 
-                  <span class="h_lable ">Tempat Kerja</span>
-                  <q-input v-model="form.tempat_kerja" outlined square :dense="true" class="bg-white margin_btn" />
-                  <span class="h_lable ">Alamat</span>
-                  <q-input v-model="form.alamat_praktik" type="textarea" outlined square :dense="true"
+                  <span class="h_lable">Terakhir Donor (Optional)</span>
+                  <q-input v-model="form.terakhir_donor" type="date" outlined square :dense="true"
                      class="bg-white margin_btn" />
 
-                  <hr class="hrpagin2">
-
-                  <span class="h_lable ">Username</span>
-                  <q-input v-model="dataku.username" outlined square :dense="true" class="bg-white margin_btn" />
 
 
-                  <span class="h_lable ">Password</span>
-                  <q-input type="password" v-model="dataku.password" outlined square :dense="true"
+                  <span class="h_lable">Foto Profil (Optional)</span>
+                  <q-file v-model="form.foto_profil" label="Pilih Foto" accept="image/*" outlined square dense
                      class="bg-white margin_btn" />
 
-                  <span class="h_lable ">Confirm Password</span>
-                  <q-input type="password" v-model="dataku.confirmPassword" outlined square :dense="true"
-                     class="bg-white margin_btn" />
+                  <span class="h_lable">Dokumen Pendukung (Optional)</span>
+                  <q-file v-model="form.dokumen_pendukung" label="Pilih Dokumen" accept=".pdf,application/pdf" outlined
+                     square dense class="bg-white margin_btn" />
 
                   <hr class="hrpagin2">
 
@@ -183,156 +211,131 @@
             </form>
          </q-card>
       </q-dialog>
-      <!-- ===================== MODAL ADD ===================== -->
 
-      <!-- ================= MODAL EDIT TENAGA MEDIS ================= -->
+      <!-- ===================== MODAL EDIT ===================== -->
       <q-dialog v-model="mdl_edit" persistent>
          <q-card class="mdl-md">
-            <q-card-section class="bg-orange">
-               <div class="text-h6 h_modalhead">Edit Data Tenaga Medis</div>
+            <q-card-section class="main2 text-white">
+               <div class="text-h6 h_modalhead">Edit Pendonor</div>
             </q-card-section>
 
-            <form @submit.prevent="editData">
-               <q-card-section>
+            <form @submit.prevent="updateData()">
+
+               <q-card-section class="q-pt-none">
+
+                  <hr class="hrpagin2">
 
                   <span class="h_lable">Nama Lengkap</span>
                   <q-input v-model="form.nama_lengkap" outlined square required :dense="true"
                      class="bg-white margin_btn" />
 
-                  <span class="h_lable">NIP</span>
-                  <q-input v-model="form.nip" type="number" outlined required square :dense="true"
-                     class="bg-white margin_btn" />
-
-                  <span class="h_lable">Nomor Induk Profesi</span>
-                  <q-input v-model="form.nomor_induk_profesi" type="number" outlined required square :dense="true"
-                     class="bg-white margin_btn" />
-
-                  <span class="h_lable">Jabatan Fungsional</span>
-                  <q-input v-model="form.jabatan_fungsional" outlined required square :dense="true"
-                     class="bg-white margin_btn" />
-
                   <div class="row q-col-gutter-md">
                      <div class="col-6">
-                        <span class="h_lable">No STR</span>
-                        <q-input v-model="form.no_str" outlined required square :dense="true"
+                        <span class="h_lable">Tanggal Lahir</span>
+                        <q-input v-model="form.tanggal_lahir" type="date" outlined required square :dense="true"
                            class="bg-white margin_btn" />
                      </div>
+
                      <div class="col-6">
-                        <span class="h_lable">Masa Berlaku STR</span>
-                        <q-input v-model="form.masa_berlaku_str" type="date" outlined required square :dense="true"
-                           class="bg-white margin_btn" />
-                     </div>
-                     <div class="col-12">
-                        <span class="h_lable">FILE STR (biarkan kosong jika tidak ingin ganti)</span>
-                        <q-file v-model="form.file_str" label="Pilih PDF" accept=".pdf,application/pdf" outlined square
-                           dense class="bg-white margin_btn" />
+                        <span class="h_lable">Jenis Kelamin</span>
+                        <q-select v-model="form.jenis_kelamin" :options="[
+                        { label: 'Laki-laki', value: 'L' },
+                        { label: 'Perempuan', value: 'P' }
+                     ]" outlined required square :dense="true" class="bg-white margin_btn" />
                      </div>
                   </div>
 
-                  <span class="h_lable">Email Aktif</span>
-                  <q-input v-model="form.email" type="email" outlined square :dense="true"
+                  <div class="row q-col-gutter-md">
+                     <div class="col-6">
+                        <span class="h_lable">Email</span>
+                        <q-input v-model="form.email" type="email" outlined square :dense="true"
+                           class="bg-white margin_btn" />
+                     </div>
+
+                     <div class="col-6">
+                        <span class="h_lable">No HP</span>
+                        <q-input v-model="form.no_hp" type="tel" outlined square :dense="true"
+                           class="bg-white margin_btn" />
+                     </div>
+                  </div>
+
+                  <div class="row q-col-gutter-md">
+                     <div class="col-6">
+                        <span class="h_lable">Golongan Darah</span>
+                        <q-select v-model="form.golongan_darah" :options="[
+                        { label: 'A', value: 'A' },
+                        { label: 'B', value: 'B' },
+                        { label: 'AB', value: 'AB' },
+                        { label: 'O', value: 'O' }
+                     ]" outlined required square :dense="true" class="bg-white margin_btn" />
+                     </div>
+
+                     <div class="col-6">
+                        <span class="h_lable">Rhesus *Kosongkan jika tidak tau</span>
+                        <q-select v-model="form.rhesus" :options="[
+                        { label: '+', value: '+' },
+                        { label: '-', value: '-' }
+                     ]" outlined square :dense="true" class="bg-white margin_btn" />
+                     </div>
+                  </div>
+
+                  <div class="row q-col-gutter-md">
+                     <div class="col-4">
+                        <span class="h_lable">Kabupaten (Optional)</span>
+                        <q-select v-model="form.kabupaten_id" :options="kabupatenOptions" outlined square :dense="true"
+                           class="bg-white margin_btn" emit-value map-options />
+                     </div>
+
+                     <div class="col-4">
+                        <span class="h_lable">Kecamatan (Optional)</span>
+                        <q-select v-model="form.kecamatan_id" :options="kecamatanOptions" outlined square :dense="true"
+                           class="bg-white margin_btn" emit-value map-options />
+                     </div>
+
+                     <div class="col-4">
+                        <span class="h_lable">Desa/Kelurahan (Optional)</span>
+                        <q-select v-model="form.des_kel_id" :options="deskelOptions" outlined square :dense="true"
+                           class="bg-white margin_btn" emit-value map-options />
+                     </div>
+                  </div>
+
+                  <span class="h_lable">Alamat (Optional)</span>
+                  <q-input v-model="form.alamat" type="textarea" outlined square :dense="true"
                      class="bg-white margin_btn" />
 
-                  <span class="h_lable">No HP Aktif</span>
-                  <q-input v-model="form.no_hp" type="number" outlined square :dense="true"
+                  <span class="h_lable">Riwayat Penyakit (Optional)</span>
+                  <q-input v-model="form.riwayat_penyakit" type="textarea" outlined square :dense="true"
                      class="bg-white margin_btn" />
 
-                  <span class="h_lable">Tempat Kerja</span>
-                  <q-input v-model="form.tempat_kerja" outlined square :dense="true" class="bg-white margin_btn" />
-
-                  <span class="h_lable">Alamat Praktik</span>
-                  <q-input v-model="form.alamat_praktik" type="textarea" outlined square :dense="true"
+                  <span class="h_lable">Terakhir Donor (Optional)</span>
+                  <q-input v-model="form.terakhir_donor" type="date" outlined square :dense="true"
                      class="bg-white margin_btn" />
 
-                  <hr class="hrpagin2" />
+                  <span class="h_lable">Foto Profil (Optional)</span>
+                  <q-file v-model="form.foto_profil" label="Pilih Foto" accept="image/*" outlined square dense
+                     class="bg-white margin_btn" :clearable="true" />
+                  <div v-if="form.foto_profil_url" class="q-mb-md">
+                     <img :src="form.foto_profil_url" alt="Foto Profil" style="max-width: 150px; max-height: 150px;" />
+                  </div>
 
-                  <span class="h_lable">Username</span>
-                  <q-input v-model="dataku.username" outlined square :dense="true" class="bg-white margin_btn" />
+                  <span class="h_lable">Dokumen Pendukung (Optional)</span>
+                  <q-file v-model="form.dokumen_pendukung" label="Pilih Dokumen" accept=".pdf,application/pdf" outlined
+                     square dense class="bg-white margin_btn" :clearable="true" />
+                  <div v-if="form.dokumen_pendukung_url" class="q-mb-md">
+                     <a :href="form.dokumen_pendukung_url" target="_blank" rel="noopener">Lihat Dokumen Saat Ini</a>
+                  </div>
+
+                  <hr class="hrpagin2">
 
                </q-card-section>
 
-               <q-card-actions align="right" class="bg-grey-4 mdl-footer">
-                  <q-btn label="Simpan" type="submit" color="primary" :loading="btn_edit" />
+               <q-card-actions class="bg-grey-4 mdl-footer" align="right">
+                  <q-btn :loading="btn_edit" color="primary" type="submit" label="Update" />
                   <q-btn label="Batal" color="negative" v-close-popup />
                </q-card-actions>
             </form>
          </q-card>
       </q-dialog>
-
-
-      <q-dialog v-model="mdl_lihat" persistent>
-         <q-card class="mdl-md"> <q-card-section class="bg-green text-white">
-               <div class="text-h6 h_modalhead">Detail Tenaga Medis</div>
-            </q-card-section>
-
-            <q-card-section>
-               <div class="row q-col-gutter-md">
-
-                  <div class="col-12 col-md-6">
-                     <div class="q-gutter-y-sm">
-                        <div class="text-caption text-grey-7">Nama Lengkap</div>
-                        <div class="text-subtitle1">{{ lihatData.nama_lengkap }}</div>
-
-                        <div class="text-caption text-grey-7">NIP</div>
-                        <div class="text-subtitle1">{{ lihatData.nip }}</div>
-
-                        <div class="text-caption text-grey-7">Nomor Induk Profesi</div>
-                        <div class="text-subtitle1">{{ lihatData.nomor_induk_profesi }}</div>
-
-                        <div class="text-caption text-grey-7">Jabatan Fungsional</div>
-                        <div class="text-subtitle1">{{ lihatData.jabatan_fungsional }}</div>
-
-                        <div class="text-caption text-grey-7">No STR</div>
-                        <div class="text-subtitle1">{{ lihatData.no_str }}</div>
-
-                        <div class="text-caption text-grey-7">Masa Berlaku STR</div>
-                        <div class="text-subtitle1">{{ lihatData.masa_berlaku_str }}</div>
-                     </div>
-                  </div>
-
-                  <div class="col-12 col-md-6">
-                     <div class="q-gutter-y-sm">
-                        <div class="text-caption text-grey-7">Email</div>
-                        <div class="text-subtitle1">{{ lihatData.email }}</div>
-
-                        <div class="text-caption text-grey-7">No HP</div>
-                        <div class="text-subtitle1">{{ lihatData.no_hp }}</div>
-
-                        <div class="text-caption text-grey-7">Tempat Kerja</div>
-                        <div class="text-subtitle1">{{ lihatData.tempat_kerja }}</div>
-
-                        <div class="text-caption text-grey-7">Alamat Praktik</div>
-                        <div class="text-subtitle1">{{ lihatData.alamat_praktik }}</div>
-
-                        <div class="text-caption text-grey-7">Username</div>
-                        <div class="text-subtitle1">{{ lihatData.username }}</div>
-                     </div>
-                  </div>
-
-                  <div class="col-12 q-pt-lg">
-                     <q-banner v-if="lihatData.file_str" dense rounded class="bg-green-1 text-primary">
-                        <template v-slot:avatar>
-                           <q-icon name="picture_as_pdf" color="positive" />
-                        </template>
-
-                        <span class="text-weight-bold">Dokumen File STR Tersedia</span>
-                        <span class="text-caption block">Klik tombol di samping untuk melihat dokumen.</span>
-
-                        <template v-slot:action>
-                           <q-btn color="primary" label="Lihat Dokumen" @click="openFileSTR()" flat dense />
-                        </template>
-                     </q-banner>
-                  </div>
-               </div>
-            </q-card-section>
-
-            <q-card-actions align="right" class="bg-grey-2 mdl-footer q-pa-md">
-               <q-btn label="Tutup" color="negative" v-close-popup />
-            </q-card-actions>
-         </q-card>
-      </q-dialog>
-
-
 
 
       <!-- ================================================= MODAL PASSWORD ================================================ -->
@@ -424,7 +427,13 @@ export default {
             no_hp: '',
             tempat_kerja: '',
             alamat_praktik: '',
+            kabupaten_id: null,
+            kecamatan_id: null,
+            des_kel_id: null,
          },
+         kabupatenOptions: [],
+         kecamatanOptions: [],
+         deskelOptions: [],
 
          mdl_add: false,
          mdl_edit: false,
@@ -450,25 +459,81 @@ export default {
             confirmPassword: ''
          },
          errorMessage: '',
-
-         mdl_lihat: false,
-         lihatData: {
-            nama_lengkap: '',
-            nip: '',
-            nomor_induk_profesi: '',
-            jabatan_fungsional: '',
-            no_str: '',
-            masa_berlaku_str: '',
-            file_str: '',
-            email: '',
-            no_hp: '',
-            tempat_kerja: '',
-            alamat_praktik: '',
-            username: '',
-         },
+      }
+   },
+   watch: {
+      // Ketika kabupaten_id berubah, load kecamatan terkait dan reset kecamatan & desa
+      'form.kabupaten_id'(newVal) {
+         this.form.kecamatan_id = null;
+         this.form.des_kel_id = null;
+         this.kecamatanOptions = [];
+         this.deskelOptions = [];
+         if (newVal) {
+            this.loadKecamatan(newVal);
+         }
+      },
+      // Ketika kecamatan_id berubah, load desa terkait dan reset desa
+      'form.kecamatan_id'(newVal) {
+         this.form.des_kel_id = null;
+         this.deskelOptions = [];
+         if (newVal) {
+            this.loadDeskel(newVal);
+         }
       }
    },
    methods: {
+      loadKabupaten() {
+         fetch(this.$store.state.url.REGIS_DONOR + "kabupaten")
+            .then(res => res.json())
+            .then(res => {
+               if (res.success) {
+                  this.kabupatenOptions = res.data.map(item => ({
+                     label: item.label,
+                     value: item.id
+                  }));
+               } else {
+                  this.$q.notify({ type: 'negative', message: 'Gagal memuat data kabupaten' });
+               }
+            })
+            .catch(() => {
+               this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat memuat kabupaten' });
+            });
+      },
+      loadKecamatan(kabupatenId) {
+         fetch(`${this.$store.state.url.REGIS_DONOR}kecamatan?kabupaten_id=${kabupatenId}`)
+            .then(res => res.json())
+            .then(res => {
+               if (res.success) {
+                  this.kecamatanOptions = res.data.map(item => ({
+                     label: item.label,
+                     value: item.id
+                  }));
+               } else {
+                  this.$q.notify({ type: 'negative', message: 'Gagal memuat data kecamatan' });
+               }
+            })
+            .catch(() => {
+               this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat memuat kecamatan' });
+            });
+      },
+      loadDeskel(kecamatanId) {
+         fetch(`${this.$store.state.url.REGIS_DONOR}deskel?kecamatan_id=${kecamatanId}`)
+            .then(res => res.json())
+            .then(res => {
+               if (res.success) {
+                  this.deskelOptions = res.data.map(item => ({
+                     label: item.label,
+                     value: item.id
+                  }));
+               } else {
+                  this.$q.notify({ type: 'negative', message: 'Gagal memuat data desa/kelurahan' });
+               }
+            })
+            .catch(() => {
+               this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat memuat desa/kelurahan' });
+            });
+      },
+
 
       getView() {
          const body = {
@@ -477,7 +542,7 @@ export default {
             cari_value: this.cari_value,
          };
 
-         fetch(this.$store.state.url.REGIS_MEDIS + "getview", {
+         fetch(this.$store.state.url.REGIS + "getview", {
             method: "POST",
             headers: {
                "content-type": "application/json",
@@ -540,7 +605,7 @@ export default {
                formData.append('file_str', this.form.file_str);
             }
 
-            const response = await fetch(this.$store.state.url.REGIS_MEDIS + "addTenagaMedis", {
+            const response = await fetch(this.$store.state.url.REGIS + "addTenagaMedis", {
                method: 'POST',
                body: formData,
                //          headers: {
@@ -632,7 +697,7 @@ export default {
                }
                formData.append('file_str', this.form.file_str);
 
-               response = await fetch(this.$store.state.url.REGIS_MEDIS + "EditTenagaMedis", {
+               response = await fetch(this.$store.state.url.REGIS + "EditTenagaMedis", {
                   method: "POST",
                   headers: {
                      authorization: "kikensbatara " + localStorage.token
@@ -642,7 +707,7 @@ export default {
                result = await response.json();
             } else {
                // Jika tidak ada file baru, kirim JSON biasa
-               response = await fetch(this.$store.state.url.REGIS_MEDIS + "EditTenagaMedis", {
+               response = await fetch(this.$store.state.url.REGIS + "EditTenagaMedis", {
                   method: "POST",
                   headers: {
                      "Content-Type": "application/json",
@@ -691,7 +756,7 @@ export default {
       async hapusData() {
          this.btn_hapus = true;
          try {
-            const response = await fetch(this.$store.state.url.REGIS_MEDIS + "removeTenagaMedis", {
+            const response = await fetch(this.$store.state.url.REGIS + "removeTenagaMedis", {
                method: "POST",
                headers: {
                   "Content-Type": "application/json",
@@ -740,7 +805,7 @@ export default {
          }
 
          try {
-            const res = await fetch(this.$store.state.url.REGIS_MEDIS + "editPassword", {
+            const res = await fetch(this.$store.state.url.REGIS + "editPassword", {
                method: "POST",
                headers: {
                   "Content-Type": "application/json",
@@ -801,7 +866,7 @@ export default {
          }
 
          try {
-            const res = await fetch(this.$store.state.url.REGIS_MEDIS + "editPasswordTenagaMedis", {
+            const res = await fetch(this.$store.state.url.REGIS + "editPasswordTenagaMedis", {
                method: "POST",
                headers: {
                   "Content-Type": "application/json",
@@ -842,40 +907,13 @@ export default {
          this.mdl_edit = true;
       },
 
-      selectData(data) {
-         this.lihatData = {
-            nama_lengkap: data.nama_lengkap || '',
-            nip: data.nip || '',
-            nomor_induk_profesi: data.nomor_induk_profesi || '',
-            jabatan_fungsional: data.jabatan_fungsional || '',
-            no_str: data.no_str || '',
-            masa_berlaku_str: data.masa_berlaku_str || '',
-            file_str: data.file_str || '',
-            email: data.email || '',
-            no_hp: data.no_hp || '',
-            tempat_kerja: data.tempat_kerja || '',
-            alamat_praktik: data.alamat_praktik || '',
-            username: data.username || '',
-            users_id: data.users_id || '',
-            id: data.id || '',
-         };
-      },
-      // Method untuk membuka file STR di tab baru
-      openFileSTR() {
-         if (this.lihatData.file_str) {
-            const url = this.file_path + this.lihatData.file_str;
-            window.open(url, '_blank');
-         } else {
-            this.$q.notify({ type: 'negative', message: 'File STR tidak tersedia' });
-         }
-      },
-
 
 
       cari_data() { this.page_first = 1; this.getView(); }
    },
    mounted() {
       this.getView();
+      this.loadKabupaten();
    }
 }
 </script>
