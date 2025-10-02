@@ -6,6 +6,73 @@ var upload = require('../../../../db/multer/image');
 const path = require('path');
 const fs = require('fs');
 
+router.get('/kabupaten', (req, res) => {
+  const provinsiId = 74; 
+  const sql = `
+    SELECT kabupaten_id AS id, nama_kabupaten AS label
+    FROM master_kabupaten
+    WHERE provinsi_id = ?
+    ORDER BY nama_kabupaten ASC
+  `;
+  db.query(sql, [provinsiId], (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching kabupaten:', err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+    res.json({
+      success: true,
+      data: results
+    });
+  });
+});
+
+router.get('/kecamatan', (req, res) => {
+  const kabupatenId = req.query.kabupaten_id;
+  if (!kabupatenId) {
+    return res.status(400).json({ success: false, error: 'kabupaten_id is required' });
+  }
+  const sql = `
+    SELECT kecamatan_id AS id, nama_kecamatan AS label
+    FROM master_kecamatan
+    WHERE kabupaten_id = ?
+    ORDER BY nama_kecamatan ASC
+  `;
+  db.query(sql, [kabupatenId], (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching kecamatan:', err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+    res.json({
+      success: true,
+      data: results
+    });
+  });
+});
+
+router.get('/deskel', (req, res) => {
+  const kecamatanId = req.query.kecamatan_id;
+  if (!kecamatanId) {
+    return res.status(400).json({ success: false, error: 'kecamatan_id is required' });
+  }
+  const sql = `
+    SELECT des_kel_id AS id, nama_des_kel AS label
+    FROM master_des_kel
+    WHERE kecamatan_id = ?
+    ORDER BY nama_des_kel ASC
+  `;
+  db.query(sql, [kecamatanId], (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching desa/kelurahan:', err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+    res.json({
+      success: true,
+      data: results
+    });
+  });
+});
+
+
 router.post("/getview", (req, res) => {
     const { page_limit, data_ke, cari_value } = req.body;
 
@@ -30,7 +97,7 @@ router.post("/getview", (req, res) => {
         tm.masa_berlaku_str,
         tm.file_str,
         tm.email,
-        tm.no_hp,
+        tm.phone,
         tm.tempat_kerja,
         tm.alamat_praktik,
         u.username,
@@ -79,7 +146,7 @@ router.post("/addTenagaMedis", upload.single('file_str'), async (req, res) => {
             no_str,
             masa_berlaku_str,
             email,
-            no_hp,
+            phone,
             tempat_kerja,
             alamat_praktik
         } = req.body;
@@ -133,7 +200,7 @@ router.post("/addTenagaMedis", upload.single('file_str'), async (req, res) => {
 
             db.query(
                 sqlUser,
-                [username, hashedPassword, email, no_hp, nama_lengkap, jabatan_fungsional, 2],
+                [username, hashedPassword, email, phone, nama_lengkap, jabatan_fungsional, 2],
                 (err, resultUser) => {
                     if (err) {
                         console.error("❌ Insert user error:", err);
@@ -157,7 +224,7 @@ router.post("/addTenagaMedis", upload.single('file_str'), async (req, res) => {
               masa_berlaku_str, 
               file_str,
               email, 
-              no_hp, 
+              phone, 
               tempat_kerja, 
               alamat_praktik,
               created_at
@@ -176,7 +243,7 @@ router.post("/addTenagaMedis", upload.single('file_str'), async (req, res) => {
                             masa_berlaku_str,
                             file_str,
                             email,
-                            no_hp,
+                            phone,
                             tempat_kerja,
                             alamat_praktik
                         ],
@@ -227,7 +294,7 @@ router.post('/EditTenagaMedis', upload.single('file_str'), (req, res) => {
         no_str,
         masa_berlaku_str,
         email,
-        no_hp,
+        phone,
         tempat_kerja,
         alamat_praktik,
         username
@@ -284,7 +351,7 @@ router.post('/EditTenagaMedis', upload.single('file_str'), (req, res) => {
           masa_berlaku_str = ?,
           file_str = ?,
           email = ?,
-          no_hp = ?,
+          phone = ?,
           tempat_kerja = ?,
           alamat_praktik = ?
         WHERE id = ?
@@ -299,7 +366,7 @@ router.post('/EditTenagaMedis', upload.single('file_str'), (req, res) => {
             masa_berlaku_str,
             newFile,
             email,
-            no_hp,
+            phone,
             tempat_kerja,
             alamat_praktik,
             id
