@@ -37,10 +37,11 @@
                         <th width="5%" class="text-center">No</th>
                         <th width="20%">Nama Lengkap</th>
                         <th width="15%">No STR</th>
+                        <th width="15%">Masa Berlaku STR</th>
                         <th width="15%">Jabatan</th>
                         <th width="10%">No HP</th>
                         <th width="10%">username</th>
-                        <th width="25%">Aksi</th>
+                        <th width="10%">Aksi</th>
                      </tr>
                   </thead>
                   <tbody>
@@ -49,36 +50,40 @@
 
                         <td>{{ data.nama_lengkap }}</td>
                         <td>{{ data.no_str }}</td>
+                        <td>{{ UMUM.tglConvert(data.masa_berlaku_str) }}</td>
                         <td>{{ data.jabatan_fungsional }}</td>
                         <td>{{ data.no_hp }}</td>
                         <td>{{ data.username }}</td>
                         <td class="text-center">
-                           <q-btn-group>
-                              <q-btn @click="mdl_lihat = true, selectData(data)" glossy color="green" icon="search"
-                                 class="tbl_btn">
-                                 <q-tooltip content-class="bg-green-9" content-style="font-size: 13px">
-                                    Click untuk melihat detil pengguna ini
-                                 </q-tooltip>
-                              </q-btn>
-                              <q-btn @click="mdl_password = true, selectData(data)" glossy color="blue" icon="vpn_key"
-                                 class="tbl_btn">
-                                 <q-tooltip content-class="bg-blue-9" content-style="font-size: 13px">
-                                    Click untuk mengubah password pengguna ini
-                                 </q-tooltip>
-                              </q-btn>
-                              <q-btn @click="editModal(data)" glossy color="orange" icon="create" class="tbl_btn">
-                                 <q-tooltip content-class="bg-orange-9" content-style="font-size: 13px">
-                                    Click untuk mengubah data ini
-                                 </q-tooltip>
-                              </q-btn>
-                              <q-btn @click="mdl_hapus = true, selectData(data)" glossy color="negative"
-                                 icon="delete_forever" class="tbl_btn">
-                                 <q-tooltip content-class="bg-red" content-style="font-size: 13px">
-                                    Click untuk menghapus data ini
-                                 </q-tooltip>
-                              </q-btn>
-                           </q-btn-group>
+                           <q-item-section>
+                              <div class="text-white q-gutter-xs text-center">
+                                 <q-btn size="12px" dense glossy round icon="settings" class="main1x">
+                                    <q-menu>
+                                       <q-list dense style="min-width: 100px">
+                                          <q-item clickable v-close-popup @click="mdl_lihat = true, selectData(data)">
+                                             <q-item-section>Lihat Detail</q-item-section>
+                                          </q-item>
+                                          <q-separator />
+                                          <q-item clickable v-close-popup
+                                             @click="mdl_password = true, selectData(data)">
+                                             <q-item-section>Edit Password</q-item-section>
+                                          </q-item>
+                                          <q-separator />
+                                          <q-item clickable v-close-popup @click="editModal(data)">
+                                             <q-item-section>Edit</q-item-section>
+                                          </q-item>
+                                          <q-separator />
+                                          <q-item clickable v-close-popup @click="mdl_hapus = true, selectData(data)">
+                                             <q-item-section>Hapus</q-item-section>
+                                          </q-item>
+                                          <q-separator />
+                                       </q-list>
+                                    </q-menu>
+                                 </q-btn>
+                              </div>
+                           </q-item-section>
                         </td>
+
                      </tr>
                   </tbody>
                </table>
@@ -108,19 +113,25 @@
                   <q-input v-model="form.nama_lengkap" outlined square required :dense="true"
                      class="bg-white margin_btn" />
 
-                  <span class="h_lable">NIP</span>
-                  <q-input v-model="form.nip" type="number" outlined required square :dense="true"
-                     class="bg-white margin_btn" />
 
-                  <span class="h_lable">Nomor Induk Profesi</span>
-                  <q-input v-model="form.nomor_induk_profesi" type="number" outlined required square :dense="true"
-                     class="bg-white margin_btn" />
+
 
                   <span class="h_lable">Jabatan Fungsional</span>
                   <q-input v-model="form.jabatan_fungsional" outlined required square :dense="true"
                      class="bg-white margin_btn" />
 
-
+                  <div class="row q-col-gutter-md">
+                     <div class="col-6">
+                        <span class="h_lable">NIP</span>
+                        <q-input v-model="form.nip" type="number" outlined required square :dense="true"
+                           class="bg-white margin_btn" />
+                     </div>
+                     <div class="col-6">
+                        <span class="h_lable">Nomor SIP (Surat Izin Praktik)</span>
+                        <q-input v-model="form.nomor_induk_profesi" type="number" outlined required square :dense="true"
+                           class="bg-white margin_btn" />
+                     </div>
+                  </div>
                   <div class="row q-col-gutter-md">
 
                      <div class="col-6">
@@ -139,18 +150,27 @@
                      <div class="col-12">
                         <span class="h_lable">FILE STR</span>
                         <q-file v-model="form.file_str" label="Pilih PDF" accept=".pdf,application/pdf" outlined square
-                           dense required class="bg-white margin_btn" :rules="[
+                           dense required class="bg-white" :rules="[
                         val => !!val || 'Foto kegiatan wajib diisi'
                      ]" />
                      </div>
                   </div>
 
-                  <span class="h_lable ">Email Aktif</span>
-                  <q-input v-model="form.email" type="email" outlined square :dense="true"
-                     class="bg-white margin_btn" />
-                  <span class="h_lable ">No HP Aktif</span>
-                  <q-input v-model="form.no_hp" type="number" outlined square :dense="true"
-                     class="bg-white margin_btn" />
+
+
+
+                  <div class="row q-col-gutter-md">
+                     <div class="col-6">
+                        <span class="h_lable ">Email Aktif</span>
+                        <q-input v-model="form.email" type="email" outlined square :dense="true"
+                           class="bg-white margin_btn" />
+                     </div>
+                     <div class="col-6">
+                        <span class="h_lable ">No HP Aktif</span>
+                        <q-input v-model="form.no_hp" type="number" outlined square :dense="true"
+                           class="bg-white margin_btn" />
+                     </div>
+                  </div>
 
                   <span class="h_lable ">Tempat Kerja</span>
                   <q-input v-model="form.tempat_kerja" outlined square :dense="true" class="bg-white margin_btn" />
@@ -163,14 +183,19 @@
                   <span class="h_lable ">Username</span>
                   <q-input v-model="dataku.username" outlined square :dense="true" class="bg-white margin_btn" />
 
+                  <div class="row q-col-gutter-md">
+                     <div class="col-6">
+                        <span class="h_lable ">Password</span>
+                        <q-input type="password" v-model="dataku.password" outlined square :dense="true"
+                           class="bg-white margin_btn" />
 
-                  <span class="h_lable ">Password</span>
-                  <q-input type="password" v-model="dataku.password" outlined square :dense="true"
-                     class="bg-white margin_btn" />
-
-                  <span class="h_lable ">Confirm Password</span>
-                  <q-input type="password" v-model="dataku.confirmPassword" outlined square :dense="true"
-                     class="bg-white margin_btn" />
+                     </div>
+                     <div class="col-6">
+                        <span class="h_lable ">Confirm Password</span>
+                        <q-input type="password" v-model="dataku.confirmPassword" outlined square :dense="true"
+                           class="bg-white margin_btn" />
+                     </div>
+                  </div>
 
                   <hr class="hrpagin2">
 
@@ -188,44 +213,47 @@
       <!-- ================= MODAL EDIT TENAGA MEDIS ================= -->
       <q-dialog v-model="mdl_edit" persistent>
          <q-card class="mdl-md">
-            <q-card-section class="bg-orange">
+            <q-card-section class="bg-orange text-white">
                <div class="text-h6 h_modalhead">Edit Data Tenaga Medis</div>
             </q-card-section>
 
             <form @submit.prevent="editData">
-               <q-card-section>
+
+               <q-card-section class="q-pt-none">
+
+                  <hr class="hrpagin2">
 
                   <span class="h_lable">Nama Lengkap</span>
-                  <q-input v-model="form.nama_lengkap" outlined square required :dense="true"
-                     class="bg-white margin_btn" />
+                  <q-input v-model="form.nama_lengkap" outlined square :dense="true" class="bg-white margin_btn" />
 
                   <span class="h_lable">NIP</span>
-                  <q-input v-model="form.nip" type="number" outlined required square :dense="true"
-                     class="bg-white margin_btn" />
+                  <q-input v-model="form.nip" type="number" outlined square :dense="true" class="bg-white margin_btn" />
 
-                  <span class="h_lable">Nomor Induk Profesi</span>
-                  <q-input v-model="form.nomor_induk_profesi" type="number" outlined required square :dense="true"
+                  <span class="h_lable">Nomor SIP (Surat Izin Praktik)</span>
+                  <q-input v-model="form.nomor_induk_profesi" type="number" outlined square :dense="true"
                      class="bg-white margin_btn" />
 
                   <span class="h_lable">Jabatan Fungsional</span>
-                  <q-input v-model="form.jabatan_fungsional" outlined required square :dense="true"
+                  <q-input v-model="form.jabatan_fungsional" outlined square :dense="true"
                      class="bg-white margin_btn" />
 
                   <div class="row q-col-gutter-md">
                      <div class="col-6">
                         <span class="h_lable">No STR</span>
-                        <q-input v-model="form.no_str" outlined required square :dense="true"
-                           class="bg-white margin_btn" />
+                        <q-input v-model="form.no_str" outlined square :dense="true" class="bg-white margin_btn" />
                      </div>
                      <div class="col-6">
                         <span class="h_lable">Masa Berlaku STR</span>
-                        <q-input v-model="form.masa_berlaku_str" type="date" outlined required square :dense="true"
+                        <q-input v-model="form.masa_berlaku_str" type="date" outlined square :dense="true"
                            class="bg-white margin_btn" />
                      </div>
                      <div class="col-12">
                         <span class="h_lable">FILE STR (biarkan kosong jika tidak ingin ganti)</span>
                         <q-file v-model="form.file_str" label="Pilih PDF" accept=".pdf,application/pdf" outlined square
-                           dense class="bg-white margin_btn" />
+                           dense class="bg-white margin_btn" :clearable="true" />
+                        <div v-if="form.file_str_url" class="q-mb-md">
+                           <a :href="form.file_str_url" target="_blank" rel="noopener">Lihat File STR Saat Ini</a>
+                        </div>
                      </div>
                   </div>
 
@@ -244,94 +272,191 @@
                   <q-input v-model="form.alamat_praktik" type="textarea" outlined square :dense="true"
                      class="bg-white margin_btn" />
 
-                  <hr class="hrpagin2" />
+                  <hr class="hrpagin2">
 
                   <span class="h_lable">Username</span>
-                  <q-input v-model="dataku.username" outlined square :dense="true" class="bg-white margin_btn" />
+                  <q-input v-model="dataku.username" outlined square :dense="true" class="bg-white margin_btn"
+                     placeholder="Masukkan username baru jika ingin ubah" />
+
+                  <hr class="hrpagin2">
 
                </q-card-section>
 
-               <q-card-actions align="right" class="bg-grey-4 mdl-footer">
-                  <q-btn label="Simpan" type="submit" color="primary" :loading="btn_edit" />
+               <q-card-actions class="bg-grey-4 mdl-footer" align="right">
+                  <q-btn :loading="btn_edit" color="warning" type="submit" label="Update" />
                   <q-btn label="Batal" color="negative" v-close-popup />
                </q-card-actions>
             </form>
          </q-card>
       </q-dialog>
 
-
       <q-dialog v-model="mdl_lihat" persistent>
-         <q-card class="mdl-md"> <q-card-section class="bg-green text-white">
-               <div class="text-h6 h_modalhead">Detail Tenaga Medis</div>
+         <q-card class="mdl-md detail-modal" style="box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); border-radius: 12px;">
+            <q-card-section class="bg-green text-white q-pa-lg" style="border-radius: 12px 12px 0 0;">
+               <div class="text-h6 h_modalhead flex items-center q-gutter-sm">
+                  <q-icon name="medical_services" size="24px" />
+                  <span>Detail Tenaga Medis</span>
+               </div>
             </q-card-section>
 
-            <q-card-section>
-               <div class="row q-col-gutter-md">
-
+            <q-card-section class="q-pa-xl">
+               <div class="row q-col-gutter-lg">
+                  <!-- Kolom Kiri: Data Pribadi & Profesi -->
                   <div class="col-12 col-md-6">
-                     <div class="q-gutter-y-sm">
-                        <div class="text-caption text-grey-7">Nama Lengkap</div>
-                        <div class="text-subtitle1">{{ lihatData.nama_lengkap }}</div>
+                     <div class="text-h6 text-grey-8 q-mb-md q-pa-sm bg-grey-2 rounded"
+                        style="border-left: 4px solid #4caf50;">
+                        Data Profesi
+                     </div>
+                     <div class="q-gutter-y-md">
+                        <!-- Nama Lengkap -->
+                        <div class="row items-start q-gutter-sm detail-field">
+                           <q-icon name="person" size="16px" color="grey-6" class="q-mt-xs" />
+                           <div class="col">
+                              <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Nama Lengkap</div>
+                              <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.nama_lengkap || '-' }}
+                              </div>
+                           </div>
+                        </div>
 
-                        <div class="text-caption text-grey-7">NIP</div>
-                        <div class="text-subtitle1">{{ lihatData.nip }}</div>
+                        <!-- NIP -->
+                        <div class="row items-start q-gutter-sm detail-field">
+                           <q-icon name="badge" size="16px" color="grey-6" class="q-mt-xs" />
+                           <div class="col">
+                              <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">NIP</div>
+                              <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.nip || '-' }}</div>
+                           </div>
+                        </div>
 
-                        <div class="text-caption text-grey-7">Nomor Induk Profesi</div>
-                        <div class="text-subtitle1">{{ lihatData.nomor_induk_profesi }}</div>
+                        <!-- Nomor SIP (Surat Izin Praktik) -->
+                        <div class="row items-start q-gutter-sm detail-field">
+                           <q-icon name="assignment_ind" size="16px" color="grey-6" class="q-mt-xs" />
+                           <div class="col">
+                              <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Nomor SIP (Surat Izin
+                                 Praktik)</div>
+                              <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.nomor_induk_profesi ||
+                        '-' }}</div>
+                           </div>
+                        </div>
 
-                        <div class="text-caption text-grey-7">Jabatan Fungsional</div>
-                        <div class="text-subtitle1">{{ lihatData.jabatan_fungsional }}</div>
+                        <!-- Jabatan Fungsional -->
+                        <div class="row items-start q-gutter-sm detail-field">
+                           <q-icon name="work" size="16px" color="grey-6" class="q-mt-xs" />
+                           <div class="col">
+                              <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Jabatan Fungsional</div>
+                              <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.jabatan_fungsional ||
+                        '-' }}</div>
+                           </div>
+                        </div>
 
-                        <div class="text-caption text-grey-7">No STR</div>
-                        <div class="text-subtitle1">{{ lihatData.no_str }}</div>
+                        <!-- No STR -->
+                        <div class="row items-start q-gutter-sm detail-field">
+                           <q-icon name="verified_user" size="16px" color="grey-6" class="q-mt-xs" />
+                           <div class="col">
+                              <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">No STR</div>
+                              <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.no_str || '-' }}</div>
+                           </div>
+                        </div>
 
-                        <div class="text-caption text-grey-7">Masa Berlaku STR</div>
-                        <div class="text-subtitle1">{{ UMUM.tglConvert(lihatData.masa_berlaku_str) }}</div>
+                        <!-- Masa Berlaku STR -->
+                        <div class="row items-start q-gutter-sm detail-field">
+                           <q-icon name="event" size="16px" color="grey-6" class="q-mt-xs" />
+                           <div class="col">
+                              <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Masa Berlaku STR</div>
+                              <div class="text-body1 text-weight-bold text-grey-9">{{
+                        UMUM.tglConvert(lihatData.masa_berlaku_str) || '-' }}</div>
+                           </div>
+                        </div>
                      </div>
                   </div>
 
+                  <!-- Kolom Kanan: Kontak & Lokasi -->
                   <div class="col-12 col-md-6">
-                     <div class="q-gutter-y-sm">
-                        <div class="text-caption text-grey-7">Email</div>
-                        <div class="text-subtitle1">{{ lihatData.email }}</div>
+                     <div class="text-h6 text-grey-8 q-mb-md q-pa-sm bg-grey-2 rounded"
+                        style="border-left: 4px solid #4caf50;">
+                        Data Kontak
+                     </div>
+                     <div class="q-gutter-y-md">
+                        <!-- Email -->
+                        <div class="row items-start q-gutter-sm detail-field">
+                           <q-icon name="email" size="16px" color="grey-6" class="q-mt-xs" />
+                           <div class="col">
+                              <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Email Aktif</div>
+                              <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.email || '-' }}</div>
+                           </div>
+                        </div>
 
-                        <div class="text-caption text-grey-7">No HP</div>
-                        <div class="text-subtitle1">{{ lihatData.no_hp }}</div>
+                        <!-- No HP -->
+                        <div class="row items-start q-gutter-sm detail-field">
+                           <q-icon name="phone" size="16px" color="grey-6" class="q-mt-xs" />
+                           <div class="col">
+                              <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">No HP Aktif</div>
+                              <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.no_hp || '-' }}</div>
+                           </div>
+                        </div>
 
-                        <div class="text-caption text-grey-7">Tempat Kerja</div>
-                        <div class="text-subtitle1">{{ lihatData.tempat_kerja }}</div>
+                        <!-- Tempat Kerja -->
+                        <div class="row items-start q-gutter-sm detail-field">
+                           <q-icon name="business" size="16px" color="grey-6" class="q-mt-xs" />
+                           <div class="col">
+                              <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Tempat Kerja</div>
+                              <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.tempat_kerja || '-' }}
+                              </div>
+                           </div>
+                        </div>
 
-                        <div class="text-caption text-grey-7">Alamat Praktik</div>
-                        <div class="text-subtitle1">{{ lihatData.alamat_praktik }}</div>
+                        <!-- Alamat Praktik -->
+                        <div class="row items-start q-gutter-sm detail-field">
+                           <q-icon name="location_on" size="16px" color="grey-6" class="q-mt-xs" />
+                           <div class="col">
+                              <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Alamat Praktik</div>
+                              <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.alamat_praktik || '-' }}
+                              </div>
+                           </div>
+                        </div>
 
-                        <div class="text-caption text-grey-7">Username</div>
-                        <div class="text-subtitle1">{{ lihatData.username }}</div>
+                        <!-- Username -->
+                        <div class="row items-start q-gutter-sm detail-field">
+                           <q-icon name="account_circle" size="16px" color="grey-6" class="q-mt-xs" />
+                           <div class="col">
+                              <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Username</div>
+                              <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.username || '-' }}</div>
+                           </div>
+                        </div>
                      </div>
                   </div>
 
-                  <div class="col-12 q-pt-lg">
-                     <q-banner v-if="lihatData.file_str" dense rounded class="bg-green-1 text-primary">
+                  <!-- Banner File STR (Full Width di Bawah) -->
+                  <div class="col-12 q-mt-xl">
+                     <q-separator class="q-mb-md" />
+                     <q-banner v-if="lihatData.file_str" dense rounded class="bg-green-1 text-primary"
+                        style="border-left: 4px solid #4caf50; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
                         <template v-slot:avatar>
-                           <q-icon name="picture_as_pdf" color="positive" />
+                           <q-icon name="picture_as_pdf" size="20px" color="positive" />
                         </template>
-
-                        <span class="text-weight-bold">Dokumen File STR Tersedia</span>
-                        <span class="text-caption block">Klik tombol di samping untuk melihat dokumen.</span>
-
+                        <div>
+                           <span class="text-weight-bold text-body2">Dokumen File STR Tersedia</span>
+                           <div class="text-caption q-mt-xs">Klik tombol di samping untuk membuka dokumen PDF di tab
+                              baru.</div>
+                        </div>
                         <template v-slot:action>
-                           <q-btn color="primary" label="Lihat Dokumen" @click="openFileSTR()" flat dense />
+                           <q-btn color="primary" label="Lihat Dokumen" @click="openFileSTR()" flat dense unelevated
+                              size="sm" />
                         </template>
                      </q-banner>
+                     <div v-else class="text-center q-pa-lg bg-grey-1 rounded" style="border-left: 4px solid #9e9e9e;">
+                        <q-icon name="picture_as_pdf_off" size="32px" color="grey-5" />
+                        <div class="text-h6 text-grey-6 q-mt-sm">Tidak Ada File STR</div>
+                        <div class="text-caption text-grey-7">Dokumen belum diunggah.</div>
+                     </div>
                   </div>
                </div>
             </q-card-section>
 
-            <q-card-actions align="right" class="bg-grey-2 mdl-footer q-pa-md">
-               <q-btn label="Tutup" color="negative" v-close-popup />
+            <q-card-actions align="right" class="bg-grey-2 text-grey-8 q-pa-lg" style="border-radius: 0 0 12px 12px;">
+               <q-btn label="Tutup" color="negative" v-close-popup unelevated size="md" />
             </q-card-actions>
          </q-card>
       </q-dialog>
-
       <!-- ================================================= MODAL PASSWORD ================================================ -->
       <q-dialog v-model="mdl_password" persistent>
          <q-card class="mdl-md">
@@ -419,6 +544,7 @@ export default {
             no_str: '',
             masa_berlaku_str: '',
             file_str: null,
+            file_str_url: '',
             email: '',
             no_hp: '',
             tempat_kerja: '',
@@ -587,6 +713,7 @@ export default {
             no_str: '',
             masa_berlaku_str: '',
             file_str: null,
+            file_str_url: '',
             email: '',
             no_hp: '',
             tempat_kerja: '',
@@ -603,6 +730,14 @@ export default {
       async editData() {
          this.btn_edit = true;
          try {
+            if (!this.form.nama_lengkap || !this.form.nip || !this.form.jabatan_fungsional || !this.form.no_str || !this.form.masa_berlaku_str) {
+               throw new Error('Field wajib (Nama, NIP, Jabatan, No STR, Masa Berlaku STR) harus diisi!');
+            }
+            if (this.dataku.username && this.dataku.username.length < 6) {
+               throw new Error('Username minimal 6 karakter jika diubah!');
+            }
+
+            const normalizedSTR = this.normalizeDate(this.form.masa_berlaku_str);
             // Siapkan data yang akan dikirim ke backend
             const payload = {
                id: this.form.id, // id tenaga medis
@@ -612,25 +747,27 @@ export default {
                nomor_induk_profesi: this.form.nomor_induk_profesi,
                jabatan_fungsional: this.form.jabatan_fungsional,
                no_str: this.form.no_str,
-               masa_berlaku_str: this.form.masa_berlaku_str,
+               masa_berlaku_str: normalizedSTR,
                email: this.form.email,
                no_hp: this.form.no_hp,
                tempat_kerja: this.form.tempat_kerja,
                alamat_praktik: this.form.alamat_praktik,
-               username: this.dataku.username || '', // jika username bisa diedit
-               // Jika ingin update password di sini, bisa ditambahkan
-               // password: this.dataku.password || undefined,
+               username: this.dataku.username || '',
             };
+
+            // Cek apakah ada file baru
+            const hasNewFile = this.form.file_str && this.form.file_str instanceof File;
+
 
             // Jika ada file baru yang diupload, gunakan FormData
             let response, result;
-            if (this.form.file_str && this.form.file_str instanceof File) {
+            if (hasNewFile) {
+               // Gunakan FormData untuk file
                const formData = new FormData();
                for (const key in payload) {
-                  formData.append(key, payload[key]);
+                  formData.append(key, payload[key] || '');
                }
                formData.append('file_str', this.form.file_str);
-
                response = await fetch(this.$store.state.url.REGIS_MEDIS + "EditTenagaMedis", {
                   method: "POST",
                   headers: {
@@ -640,7 +777,7 @@ export default {
                });
                result = await response.json();
             } else {
-               // Jika tidak ada file baru, kirim JSON biasa
+               // Kirim JSON biasa (tanpa file)
                response = await fetch(this.$store.state.url.REGIS_MEDIS + "EditTenagaMedis", {
                   method: "POST",
                   headers: {
@@ -651,7 +788,6 @@ export default {
                });
                result = await response.json();
             }
-
             if (response.ok && result.success) {
                this.$q.notify({ type: "positive", message: result.message || "Data berhasil diupdate" });
                this.mdl_edit = false;
@@ -678,6 +814,7 @@ export default {
             no_str: data.no_str || '',
             masa_berlaku_str: data.masa_berlaku_str || '',
             file_str: null, // reset file input, user harus upload ulang jika ingin ganti
+            file_str_url: data.file_str ? (this.file_path + data.file_str) : '',
             email: data.email || '',
             no_hp: data.no_hp || '',
             tempat_kerja: data.tempat_kerja || '',
@@ -755,7 +892,7 @@ export default {
 
             if (res.ok && data.success) {
                this.$q.notify({ type: "positive", message: data.message || "Password berhasil diubah!" });
-               this.mdl_password = false; // tutup modal
+               this.mdl_password = false; 
                // Reset password fields
                this.dataku.password = '';
                this.dataku.confirmPassword = '';
@@ -768,22 +905,6 @@ export default {
          }
       },
 
-
-
-
-      selectData(data) {
-         this.dataku = {
-            users_id: data.users_id,
-            password: '',
-            confirmPassword: ''
-         };
-         this.errorMessage = '';
-         this.form = {
-            ...data,
-            users_id: data.users_id,
-            id: data.id
-         };
-      },
 
       async editDataPassword() {
          this.errorMessage = '';
@@ -816,7 +937,7 @@ export default {
 
             if (data.success) {
                this.$q.notify({ type: "positive", message: "Password berhasil diubah!" });
-               this.mdl_password = false; // tutup modal
+               this.mdl_password = false; 
             } else {
                this.errorMessage = data.message || "Gagal mengubah password!";
             }
@@ -830,18 +951,19 @@ export default {
       indexing(idx) {
          return ((this.page_first - 1) * this.page_limit) + idx;
       },
-      editModal(data) {
-         this.form = {
-            ...data,
-            pic_nama: data.nama_pic || '',
-            pic_jabatan: data.jabatan || '',
-            pic_email: data.email_pic || '',
-            pic_hp: data.hp_pic || ''
-         };
-         this.mdl_edit = true;
-      },
 
       selectData(data) {
+         this.dataku = {
+            users_id: data.users_id,
+            password: '',
+            confirmPassword: ''
+         };
+         this.errorMessage = '';
+         this.form = {
+            ...data,
+            users_id: data.users_id,
+            id: data.id
+         };
          this.lihatData = {
             nama_lengkap: data.nama_lengkap || '',
             nip: data.nip || '',
@@ -867,6 +989,13 @@ export default {
          } else {
             this.$q.notify({ type: 'negative', message: 'File STR tidak tersedia' });
          }
+      },
+
+      normalizeDate(dateStr) {
+         if (!dateStr || dateStr === '') return '';
+         if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+         if (dateStr.includes('T')) return dateStr.split('T')[0];
+         return '';
       },
 
 

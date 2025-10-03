@@ -236,3 +236,16 @@ input.mdCheckbox1 {
 .action-fab {
   z-index: 9999 !important;
 }
+
+.detail-modal {
+  max-width: 800px;
+  width: 90vw;
+}
+.detail-field {
+  padding: 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+.detail-field:hover {
+  background-color: rgba(76, 175, 80, 0.04); /* Subtle hover untuk interaktivitas */
+}

@@ -36,11 +36,13 @@
                      <tr>
                         <th width="5%" class="text-center">No</th>
                         <th width="20%">Nama Lengkap</th>
+                        <th width="10%">NIK</th>
                         <th width="15%">TTL</th>
-                        <th width="15%">Golongan Darah</th>
+                        <th width="10%">Golongan Darah</th>
                         <th width="10%">No HP</th>
+                        <th width="10%">Jenis Kelamin</th>
                         <th width="10%">username</th>
-                        <th width="25%">Aksi</th>
+                        <th width="10%" class="text-center">Aksi</th>
                      </tr>
                   </thead>
                   <tbody>
@@ -48,31 +50,42 @@
                         <td class="text-center">{{ indexing(index + 1) }}</td>
 
                         <td>{{ data.nama_lengkap }}</td>
+                        <td>{{ data.nik }}</td>
                         <td>{{ UMUM.tglConvert(data.tanggal_lahir) }}</td>
                         <td>{{ data.golongan_darah }}</td>
                         <td>{{ data.no_hp }}</td>
+                        <td>{{ data.jenis_kelamin }}</td>
                         <td>{{ data.username }}</td>
                         <td class="text-center">
-                           <q-btn-group>
-                              <q-btn @click="mdl_password = true, selectData(data)" glossy color="blue" icon="vpn_key"
-                                 class="tbl_btn">
-                                 <q-tooltip content-class="bg-blue-9" content-style="font-size: 13px">
-                                    Click untuk mengubah password pengguna ini
-                                 </q-tooltip>
-                              </q-btn>
-                              <q-btn @click="editModal(data)" glossy color="orange" icon="create" class="tbl_btn">
-                                 <q-tooltip content-class="bg-orange-9" content-style="font-size: 13px">
-                                    Click untuk mengubah data ini
-                                 </q-tooltip>
-                              </q-btn>
-                              <q-btn @click="mdl_hapus = true, selectData(data)" glossy color="negative"
-                                 icon="delete_forever" class="tbl_btn">
-                                 <q-tooltip content-class="bg-red" content-style="font-size: 13px">
-                                    Click untuk menghapus data ini
-                                 </q-tooltip>
-                              </q-btn>
-                           </q-btn-group>
+                           <q-item-section>
+                              <div class="text-white q-gutter-xs text-center">
+                                 <q-btn size="12px" dense glossy round icon="settings" class="main1x">
+                                    <q-menu>
+                                       <q-list dense style="min-width: 100px">
+                                          <q-item clickable v-close-popup @click="mdl_lihat = true, selectData(data)">
+                                             <q-item-section>Lihat Detail</q-item-section>
+                                          </q-item>
+                                          <q-separator />
+                                          <q-item clickable v-close-popup
+                                             @click="mdl_password = true, selectData(data)">
+                                             <q-item-section>Edit Password</q-item-section>
+                                          </q-item>
+                                          <q-separator />
+                                          <q-item clickable v-close-popup @click="editModal(data)">
+                                             <q-item-section>Edit</q-item-section>
+                                          </q-item>
+                                          <q-separator />
+                                          <q-item clickable v-close-popup @click="mdl_hapus = true, selectData(data)">
+                                             <q-item-section>Hapus</q-item-section>
+                                          </q-item>
+                                          <q-separator />
+                                       </q-list>
+                                    </q-menu>
+                                 </q-btn>
+                              </div>
+                           </q-item-section>
                         </td>
+
                      </tr>
                   </tbody>
                </table>
@@ -100,6 +113,10 @@
 
                   <span class="h_lable">Nama Lengkap</span>
                   <q-input v-model="form.nama_lengkap" outlined square required :dense="true"
+                     class="bg-white margin_btn" />
+
+                  <span class="h_lable">NIK</span>
+                  <q-input v-model="form.nik" outlined square required :dense="true"
                      class="bg-white margin_btn" />
 
                   <div class="row q-col-gutter-md">
@@ -240,8 +257,9 @@
                   <hr class="hrpagin2">
 
                   <span class="h_lable">Nama Lengkap</span>
-                  <q-input v-model="form.nama_lengkap" outlined square :dense="true"
-                     class="bg-white margin_btn" />
+                  <q-input v-model="form.nama_lengkap" outlined square :dense="true" class="bg-white margin_btn" />
+                  <span class="h_lable">NIK</span>
+                  <q-input v-model="form.nik" outlined square :dense="true" class="bg-white margin_btn" />
 
                   <div class="row q-col-gutter-md">
                      <div class="col-6">
@@ -344,15 +362,6 @@
                   <q-input v-model="dataku.username" outlined square :dense="true" class="bg-white margin_btn"
                      placeholder="Masukkan username baru jika ingin ubah" />
 
-                  <!-- Opsional: Tambahkan tombol/link untuk buka modal password (saran saya) -->
-                  <!-- <div class="q-mt-md text-center">
-                     <q-btn flat color="blue" @click="mdl_password = true; selectDataForPassword()"
-                        label="Ubah Password" size="sm">
-                        <q-tooltip content-class="bg-blue-9" content-style="font-size: 13px">
-                           Klik untuk mengubah password pengguna ini
-                        </q-tooltip>
-                     </q-btn>
-                  </div> -->
 
                   <hr class="hrpagin2">
 
@@ -369,65 +378,234 @@
 
       <!-- ================================================= MODAL PASSWORD ================================================ -->
       <!-- ===================== MODAL EDIT PASSWORD ===================== -->
-<q-dialog v-model="mdl_password" persistent>
-   <q-card class="mdl-md">
-      <q-card-section class="bg-blue text-white">
-         <div class="text-h6 h_modalhead">Ubah Password Pendonor</div>
-      </q-card-section>
+      <q-dialog v-model="mdl_password" persistent>
+         <q-card class="mdl-md">
+            <q-card-section class="bg-blue text-white">
+               <div class="text-h6 h_modalhead">Ubah Password Pendonor</div>
+            </q-card-section>
 
-      <form @submit.prevent="editDataPassword()">
+            <form @submit.prevent="editDataPassword()">
 
-         <q-card-section class="q-pt-none">
+               <q-card-section class="q-pt-none">
 
-            <hr class="hrpagin2">
+                  <hr class="hrpagin2">
 
-            <span class="h_lable">Password Baru</span>
-            <q-input v-model="dataku.password" :type="isPwd ? 'password' : 'text'" outlined square :dense="true"
-               class="bg-white margin_btn" placeholder="Minimal 6 karakter" :loading="btn_password" />
-            <q-toggle v-model="isPwd" icon="visibility" class="q-pt-none" />
-            <hr>
-            <span class="h_lable">Konfirmasi Password</span>
-            <q-input v-model="dataku.confirmPassword" :type="isPwd2 ? 'password' : 'text'" outlined square :dense="true"
-               class="bg-white margin_btn" placeholder="Ulangi password baru" />
-            <q-toggle v-model="isPwd2" icon="visibility" class="q-pt-none" />
+                  <span class="h_lable">Password Baru</span>
+                  <q-input v-model="dataku.password" :type="isPwd ? 'password' : 'text'" outlined square :dense="true"
+                     class="bg-white margin_btn" placeholder="Minimal 6 karakter" :loading="btn_password" />
+                  <q-toggle v-model="isPwd" icon="visibility" class="q-pt-none" />
+                  <hr>
+                  <span class="h_lable">Konfirmasi Password</span>
+                  <q-input v-model="dataku.confirmPassword" :type="isPwd2 ? 'password' : 'text'" outlined square
+                     :dense="true" class="bg-white margin_btn" placeholder="Ulangi password baru" />
+                  <q-toggle v-model="isPwd2" icon="visibility" class="q-pt-none" />
 
-            <hr class="hrpagin2">
+                  <hr class="hrpagin2">
 
-         </q-card-section>
+               </q-card-section>
 
-         <q-card-actions class="bg-grey-4 mdl-footer" align="right">
-            <q-btn :loading="btn_password" color="primary" type="submit" label="Ubah Password" />
-            <q-btn label="Batal" color="negative" v-close-popup @click="resetPasswordForm" />
-         </q-card-actions>
-      </form>
-   </q-card>
-</q-dialog>
+               <q-card-actions class="bg-grey-4 mdl-footer" align="right">
+                  <q-btn :loading="btn_password" color="primary" type="submit" label="Ubah Password" />
+                  <q-btn label="Batal" color="negative" v-close-popup @click="resetPasswordForm" />
+               </q-card-actions>
+            </form>
+         </q-card>
+      </q-dialog>
       <!-- ================================================= MODAL PASSWORD ================================================ -->
       <!-- ================================================ MODAL HAPUS ================================================ -->
-      <!-- ================================================ MODAL HAPUS ================================================ -->
-<q-dialog v-model="mdl_hapus" persistent>
-   <q-card class="mdl-sm">
-      <q-card-section class="q-pt-none text-center orageGrad">
-         <form @submit.prevent="hapusData">
-            <br>
-            <img src="img/alert.png" alt="" width="75"> <br>
-            <span class="h_notifikasi">APAKAH ANDA YAKIN INGIN MENGHAPUS DATA INI??</span>
-            <br>
-            <br>
+     <q-dialog v-model="mdl_hapus" persistent>
+         <q-card class="mdl-sm">
+            <q-card-section class="q-pt-none text-center orageGrad">
+               <form @submit.prevent="hapusData">
+                  <br>
+                  <img src="img/alert.png" alt="" width="75"> <br>
+                  <span class="h_notifikasi">APAKAH ANDA YAKIN INGIN MENGHAPUS DATA INI??</span>
+                  <br>
+                  <br>
 
-            <q-card-actions align="right">
-               <q-btn label="Batal" size="sm" color="negative" v-close-popup @click="resetHapusForm" />
-               &nbsp;
-               <q-btn :loading="btn_hapus" type="submit" label="Hapus" size="sm" color="primary" v-close-popup />
-            </q-card-actions>
-         </form>
+                  <q-card-actions align="center">
+                     <q-btn label="Batal" size="sm" color="negative" v-close-popup @click="resetHapusForm" />
+                     &nbsp;
+                     <q-btn :loading="btn_hapus" type="submit" label="Hapus" size="sm" color="primary" v-close-popup />
+                  </q-card-actions>
+               </form>
+            </q-card-section>
+         </q-card>
+      </q-dialog>
+
+      <!-- ================================================ MODAL HAPUS ================================================ -->
+
+      <q-dialog v-model="mdl_lihat" persistent>
+   <q-card class="mdl-md detail-modal" style="box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); border-radius: 12px;">
+      <q-card-section class="bg-green text-white q-pa-lg" style="border-radius: 12px 12px 0 0;">
+         <div class="text-h6 h_modalhead flex items-center q-gutter-sm">
+            <q-icon name="bloodtype" size="24px" />
+            <span>Detail Pendonor</span>
+         </div>
       </q-card-section>
+      <div class="col-12 text-center q-mb-xs">
+   <div v-if="lihatData.foto_profil" class="q-pa-md">
+      <img 
+         :src="file_path + lihatData.foto_profil" 
+         alt="Foto Profil Pendonor" 
+         style="max-width: 200px; max-height: 200px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);"
+         @error="handleImageError" 
+      />
+      <div class="text-caption text-grey-6 q-mt-sm">Foto Profil</div>
+   </div>
+   <div v-else class="q-pa-md bg-grey-1 rounded" style="width: 200px; height: 200px; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; border: 2px dashed grey-4;">
+      <q-icon name="account_circle_off" size="64px" color="grey-5" />
+      <div class="text-h6 text-grey-6 q-mt-sm">Tidak Ada Foto Profil</div>
+      <div class="text-caption text-grey-7 q-mt-xs">Foto belum diunggah</div>
+   </div>
+</div>
+
+      <q-card-section class="q-pa-md">
+         
+         <div class="row q-col-gutter-lg">
+            <div class="col-12 col-md-6">
+               <div class="text-h6 text-grey-8 q-mb-md q-pa-sm bg-grey-2 rounded"
+                  style="border-left: 4px solid #4caf50;">
+                  Data Pribadi & Darah
+               </div>
+               
+               <div class="q-gutter-y-md">
+                  <div class="row items-start q-gutter-sm detail-field">
+                     <q-icon name="person" size="16px" color="grey-6" class="q-mt-xs" />
+                     <div class="col">
+                        <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Nama Lengkap</div>
+                        <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.nama_lengkap || '-' }}</div>
+                     </div>
+                  </div>
+
+                  <div class="row items-start q-gutter-sm detail-field">
+                     <q-icon name="event" size="16px" color="grey-6" class="q-mt-xs" />
+                     <div class="col">
+                        <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Tanggal Lahir</div>
+                        <div class="text-body1 text-weight-bold text-grey-9">{{ UMUM.tglConvert(lihatData.tanggal_lahir) || '-' }}</div>
+                     </div>
+                  </div>
+
+                  <div class="row items-start q-gutter-sm detail-field">
+                     <q-icon name="wc" size="16px" color="grey-6" class="q-mt-xs" />
+                     <div class="col">
+                        <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Jenis Kelamin</div>
+                        <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.jenis_kelamin === 'L' ? 'Laki-laki' : lihatData.jenis_kelamin === 'P' ? 'Perempuan' : '-' }}</div>
+                     </div>
+                  </div>
+
+                  <div class="row items-start q-gutter-sm detail-field">
+                     <q-icon name="bloodtype" size="16px" color="grey-6" class="q-mt-xs" />
+                     <div class="col">
+                        <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Golongan Darah</div>
+                        <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.golongan_darah || '-' }}</div>
+                     </div>
+                  </div>
+
+                  <div class="row items-start q-gutter-sm detail-field">
+                     <q-icon name="science" size="16px" color="grey-6" class="q-mt-xs" />
+                     <div class="col">
+                        <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Rhesus</div>
+                        <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.rhesus || '-' }}</div>
+                     </div>
+                  </div>
+
+                  <div class="row items-start q-gutter-sm detail-field">
+                     <q-icon name="calendar_today" size="16px" color="grey-6" class="q-mt-xs" />
+                     <div class="col">
+                        <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Terakhir Donor</div>
+                        <div class="text-body1 text-weight-bold text-grey-9">{{ UMUM.tglConvert(lihatData.terakhir_donor) || '-' }}</div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+               <div class="text-h6 text-grey-8 q-mb-md q-pa-sm bg-grey-2 rounded"
+                  style="border-left: 4px solid #4caf50;">
+                  Data Kontak & Lokasi
+               </div>
+               <div class="q-gutter-y-md">
+                  <div class="row items-start q-gutter-sm detail-field">
+                     <q-icon name="email" size="16px" color="grey-6" class="q-mt-xs" />
+                     <div class="col">
+                        <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Email</div>
+                        <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.email || '-' }}</div>
+                     </div>
+                  </div>
+
+                  <div class="row items-start q-gutter-sm detail-field">
+                     <q-icon name="phone" size="16px" color="grey-6" class="q-mt-xs" />
+                     <div class="col">
+                        <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">No HP</div>
+                        <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.no_hp || '-' }}</div>
+                     </div>
+                  </div>
+                  <div class="row items-start q-gutter-sm detail-field">
+                     <q-icon name="location_on" size="16px" color="grey-6" class="q-mt-xs" />
+                     <div class="col">
+                        <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Alamat Lengkap</div>
+                        <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.alamat || '-' }}</div>
+                     </div>
+                  </div>
+
+                  <div class="row items-start q-gutter-sm detail-field">
+                     <q-icon name="map" size="16px" color="grey-6" class="q-mt-xs" />
+                     <div class="col">
+                        <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Lokasi</div>
+                        <div class="text-body1 text-weight-bold text-grey-9">
+                           {{ [lihatData.kabupaten_nama, lihatData.kecamatan_nama, lihatData.des_kel_nama].filter(Boolean).join(', ') || '-' }}
+                        </div>
+                     </div>
+                  </div>
+
+                  <div class="row items-start q-gutter-sm detail-field">
+                     <q-icon name="local_hospital" size="16px" color="grey-6" class="q-mt-xs" />
+                     <div class="col">
+                        <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Riwayat Penyakit</div>
+                        <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.riwayat_penyakit || '-' }}</div>
+                     </div>
+                  </div>
+
+                  <div class="row items-start q-gutter-sm detail-field">
+                     <q-icon name="account_circle" size="16px" color="grey-6" class="q-mt-xs" />
+                     <div class="col">
+                        <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Username</div>
+                        <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.username || '-' }}</div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div class="col-12 q-mt-xl">
+               <q-separator class="q-mb-md" />
+               <q-banner v-if="lihatData.dokumen_pendukung" dense rounded class="bg-green-1 text-primary"
+                  style="border-left: 4px solid #4caf50; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);">
+                  <template v-slot:avatar>
+                     <q-icon name="picture_as_pdf" size="20px" color="positive" />
+                  </template>
+                  <div>
+                     <span class="text-weight-bold text-body2">Dokumen Pendukung Tersedia</span>
+                     <div class="text-caption q-mt-xs">Klik tombol di samping untuk membuka dokumen PDF di tab baru.</div>
+                  </div>
+                  <template v-slot:action>
+                     <q-btn color="primary" label="Lihat Dokumen" @click="openDokumen()" flat dense unelevated size="sm" />
+                  </template>
+               </q-banner>
+               <div v-else class="text-center q-pa-lg bg-grey-1 rounded" style="border-left: 4px solid #9e9e9e;">
+                  <q-icon name="picture_as_pdf_off" size="32px" color="grey-5" />
+                  <div class="text-h6 text-grey-6 q-mt-sm">Tidak Ada Dokumen Pendukung</div>
+                  <div class="text-caption text-grey-7">Dokumen belum diunggah.</div>
+               </div>
+            </div>
+         </div>
+      </q-card-section>
+
+      <q-card-actions align="right" class="bg-grey-2 text-grey-8 q-pa-lg" style="border-radius: 0 0 12px 12px;">
+         <q-btn label="Tutup" color="negative" v-close-popup unelevated size="md" />
+      </q-card-actions>
    </q-card>
 </q-dialog>
-
-      <!-- ================================================ MODAL HAPUS ================================================ -->
-
-
    </div>
 </template>
 
@@ -438,14 +616,15 @@ export default {
    data() {
       return {
          UMUM: UMUM,
-         isPwd: true,      // Toggle visibility password
-      isPwd2: true,     // Toggle visibility konfirmasi
-      btn_password: false,  // Loading button untuk password
+         isPwd: true,      
+         isPwd2: true,     
+         btn_password: false, 
 
          form: {
             id: null,
             users_id: null,
             nama_lengkap: '',
+            nik: '',
             tanggal_lahir: '',
             jenis_kelamin: '',
             golongan_darah: '',
@@ -474,7 +653,7 @@ export default {
          mdl_hapus: false,
          btn_add: false,
          btn_edit: false,
-      btn_hapus: false,
+         btn_hapus: false,
 
          list_data: [],
          jml_data: 0,
@@ -493,6 +672,27 @@ export default {
             confirmPassword: ''
          },
          errorMessage: '',
+         mdl_lihat: false,
+     lihatData: {
+        nama_lengkap: '',
+        tanggal_lahir: '',
+        jenis_kelamin: '',
+        golongan_darah: '',
+        rhesus: '',
+        email: '',
+        no_hp: '',
+        alamat: '',
+        riwayat_penyakit: '',
+        terakhir_donor: '',
+        kabupaten_nama: '',  
+        kecamatan_nama: '',  
+        des_kel_nama: '',    
+        foto_profil: '',     
+        dokumen_pendukung: '', 
+        username: '',
+        users_id: '',
+        id: '',
+     },
       }
    },
    computed: {
@@ -606,7 +806,7 @@ export default {
 
       async addData() {
          try {
-       
+
             if (this.dataku.password !== this.dataku.confirmPassword) {
                this.$q.notify({
                   type: 'negative',
@@ -632,9 +832,8 @@ export default {
             this.btn_add = true;
 
             const formData = new FormData();
-
-   
             formData.append('nama_lengkap', this.form.nama_lengkap);
+            formData.append('nik', this.form.nik);
             formData.append('tanggal_lahir', this.form.tanggal_lahir);
             formData.append('jenis_kelamin', this.form.jenis_kelamin);
             formData.append('golongan_darah', this.form.golongan_darah);
@@ -648,7 +847,7 @@ export default {
             formData.append('riwayat_penyakit', this.form.riwayat_penyakit || '');
             formData.append('terakhir_donor', this.form.terakhir_donor || '');
             formData.append('stokdarah_konut', this.form.stokdarah_konut || 4);
-            formData.append('bersedia_dipublikasikan', 1); 
+            formData.append('bersedia_dipublikasikan', 1);
 
 
             formData.append('username', this.dataku.username);
@@ -695,18 +894,12 @@ export default {
          }
       },
 
-
-
-     
-      // Hapus editModal lama jika ada duplikasi, ganti dengan ini
       editModal(data) {
-         console.log('Debug: Data dari backend (cek nama file):', data.foto_profil, data.dokumen_pendukung);  // Debug: Cek apakah string ada
-
-         // Buat objek form baru (jangan spread { ...data } agar tidak salin string ke file field)
          this.form = {
             id: data.id,
             users_id: data.users_id || null,
             nama_lengkap: data.nama_lengkap || '',
+            nik: data.nik || '',
             tanggal_lahir: data.tanggal_lahir || '',
             jenis_kelamin: data.jenis_kelamin || '',
             email: data.email || '',
@@ -719,19 +912,15 @@ export default {
             alamat: data.alamat || '',
             riwayat_penyakit: data.riwayat_penyakit || null,
             terakhir_donor: data.terakhir_donor || null,
-
-            
-            foto_profil: null, 
-            dokumen_pendukung: null, 
-
+            foto_profil: null,
+            dokumen_pendukung: null,
             foto_profil_url: data.foto_profil ? (this.file_path + data.foto_profil) : '',
             dokumen_pendukung_url: data.dokumen_pendukung ? (this.file_path + data.dokumen_pendukung) : '',
-
             stokdarah_konut: data.stokdarah_konut || 4,
             bersedia_dipublikasikan: data.bersedia_dipublikasikan || true,
          };
 
-       
+
          this.dataku.username = data.username || '';
 
          if (this.form.kabupaten_id) {
@@ -744,29 +933,28 @@ export default {
          this.dataku.password = '';
          this.dataku.confirmPassword = '';
 
-         this.mdl_edit = true; 
+         this.mdl_edit = true;
       },
 
       async updateData() {
          this.btn_edit = true;
          try {
-   
             if (!this.form.nama_lengkap || !this.form.tanggal_lahir || !this.form.jenis_kelamin || !this.form.golongan_darah) {
                throw new Error('Field wajib (Nama, TTL, Jenis Kelamin, Golongan Darah) harus diisi!');
             }
-
-            if (this.dataku.username && this.dataku.username.length < 3) {
-               throw new Error('Username minimal 3 karakter jika diubah!');
+            if (this.dataku.username && this.dataku.username.length < 6) {
+               throw new Error('Username minimal 6 karakter jika diubah!');
             }
-
+            if (this.form.nik && this.form.nik.length < 16) {
+               throw new Error('NIK harus berjumlah 16 angka!');
+            }
             const normalizedTerakhirDonor = this.normalizeDate(this.form.terakhir_donor);
-const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
-
-
+            const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
             const payload = {
                id: this.form.id,
                users_id: this.form.users_id,
                nama_lengkap: this.form.nama_lengkap,
+               nik: this.form.nik,
                tanggal_lahir: normalizedTanggalLahir,
                jenis_kelamin: this.form.jenis_kelamin,
                email: this.form.email || '',
@@ -802,7 +990,7 @@ const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
                   formData.append('dokumen_pendukung', this.form.dokumen_pendukung);
                }
 
-               response = await fetch(this.$store.state.url.REGIS_DONOR + "editData", { 
+               response = await fetch(this.$store.state.url.REGIS_DONOR + "editData", {
                   method: "POST",
                   headers: {
                      authorization: "kikensbatara " + localStorage.token
@@ -811,7 +999,7 @@ const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
                });
                result = await response.json();
             } else {
-               response = await fetch(this.$store.state.url.REGIS_DONOR + "editData", { 
+               response = await fetch(this.$store.state.url.REGIS_DONOR + "editData", {
                   method: "POST",
                   headers: {
                      "Content-Type": "application/json",
@@ -827,10 +1015,10 @@ const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
                   type: "positive",
                   message: result.message || "Data pendonor berhasil diupdate"
                });
-              
+
                this.mdl_edit = false;
-               this.getView(); 
-               this.resetForm();  
+               this.getView();
+               this.resetForm();
             } else {
                throw new Error(result.message || "Gagal mengupdate data pendonor");
             }
@@ -850,6 +1038,7 @@ const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
             id: null,
             users_id: null,
             nama_lengkap: '',
+            nik: '',
             tanggal_lahir: '',
             jenis_kelamin: '',
             golongan_darah: '',
@@ -879,64 +1068,61 @@ const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
          this.errorMessage = '';
       },
 
-
-    
-   
-   async hapusData() {
-      // Validasi ID wajib
-      if (!this.form.id || !this.form.users_id) {
-         this.$q.notify({ 
-            type: 'negative', 
-            message: 'Data tidak valid. Silakan pilih ulang.' 
-         });
-         this.resetHapusForm();
-         return;
-      }
-      
-      this.btn_hapus = true;
-      try {
-         const payload = {
-            id: this.form.id,        
-            users_id: this.form.users_id 
-         };
-         
-         const response = await fetch(this.$store.state.url.REGIS_DONOR + "removePendonor", {  
-            method: "POST",
-            headers: {
-               "Content-Type": "application/json",
-               authorization: "kikensbatara " + localStorage.token
-            },
-            body: JSON.stringify(payload)
-         });
-
-         const res_data = await response.json();
-
-         if (response.ok && res_data.success) {
-            this.$q.notify({ 
-               type: 'positive', 
-               message: res_data.message || 'Data pendonor berhasil dihapus' 
+      async hapusData() {
+         // Validasi ID wajib
+         if (!this.form.id || !this.form.users_id) {
+            this.$q.notify({
+               type: 'negative',
+               message: 'Data tidak valid. Silakan pilih ulang.'
             });
-            this.mdl_hapus = false;
-            this.getView();  
-            this.resetForm();
-         } else {
-            throw new Error(res_data.message || 'Gagal menghapus data');
+            this.resetHapusForm();
+            return;
          }
-      } catch (error) {
-         console.error('Error hapus data:', error);
-         this.$q.notify({ 
-            type: 'negative', 
-            message: error.message || 'Terjadi kesalahan saat menghapus data' 
-         });
-      } finally {
-         this.btn_hapus = false;
-      }
-   },
-   
+
+         this.btn_hapus = true;
+         try {
+            const payload = {
+               id: this.form.id,
+               users_id: this.form.users_id
+            };
+
+            const response = await fetch(this.$store.state.url.REGIS_DONOR + "removePendonor", {
+               method: "POST",
+               headers: {
+                  "Content-Type": "application/json",
+                  authorization: "kikensbatara " + localStorage.token
+               },
+               body: JSON.stringify(payload)
+            });
+
+            const res_data = await response.json();
+
+            if (response.ok && res_data.success) {
+               this.$q.notify({
+                  type: 'positive',
+                  message: res_data.message || 'Data pendonor berhasil dihapus'
+               });
+               this.mdl_hapus = false;
+               this.getView();
+               this.resetForm();
+            } else {
+               throw new Error(res_data.message || 'Gagal menghapus data');
+            }
+         } catch (error) {
+            console.error('Error hapus data:', error);
+            this.$q.notify({
+               type: 'negative',
+               message: error.message || 'Terjadi kesalahan saat menghapus data'
+            });
+         } finally {
+            this.btn_hapus = false;
+         }
+      },
+
 
       async editDataPassword() {
          this.errorMessage = '';
-      
+
          if (!this.dataku.password || !this.dataku.confirmPassword) {
             this.errorMessage = "Password dan Confirm Password wajib diisi!";
             return;
@@ -992,26 +1178,47 @@ const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
             users_id: data.users_id,
             id: data.id
          };
+         this.lihatData = {
+           nama_lengkap: data.nama_lengkap || '',
+           nik: data.nik || '',
+           tanggal_lahir: data.tanggal_lahir || '',
+           jenis_kelamin: data.jenis_kelamin || '',
+           golongan_darah: data.golongan_darah || '',
+           rhesus: data.rhesus || '',
+           email: data.email || '',
+           no_hp: data.no_hp || '',
+           alamat: data.alamat || '',
+           riwayat_penyakit: data.riwayat_penyakit || '',
+           terakhir_donor: data.terakhir_donor || '',
+           kabupaten_nama: data.kabupaten_nama || '',  // Asumsi dari backend; jika ID saja, fetch di sini
+           kecamatan_nama: data.kecamatan_nama || '',
+           des_kel_nama: data.des_kel_nama || '',
+           foto_profil: data.foto_profil || '',
+           dokumen_pendukung: data.dokumen_pendukung || '',
+           username: data.username || '',
+           users_id: data.users_id || '',
+           id: data.id || '',
+        };
       },
 
       resetPasswordForm() {
-      this.dataku.password = '';
-      this.dataku.confirmPassword = '';
-      this.dataku.users_id = null; 
-      this.isPwd = true;
-      this.isPwd2 = true;
-      this.btn_password = false;
-      this.mdl_password = false;  
-   },
+         this.dataku.password = '';
+         this.dataku.confirmPassword = '';
+         this.dataku.users_id = null;
+         this.isPwd = true;
+         this.isPwd2 = true;
+         this.btn_password = false;
+         this.mdl_password = false;
+      },
 
-   resetHapusForm() {
-      this.form.id = null;
-      this.form.users_id = null;
-      this.btn_hapus = false;
-      this.mdl_hapus = false; 
-   },
+      resetHapusForm() {
+         this.form.id = null;
+         this.form.users_id = null;
+         this.btn_hapus = false;
+         this.mdl_hapus = false;
+      },
 
-     
+
 
       indexing(idx) {
          return ((this.page_first - 1) * this.page_limit) + idx;
@@ -1021,10 +1228,32 @@ const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
          if (!dateStr || dateStr === '') return '';
          if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
          if (dateStr.includes('T')) return dateStr.split('T')[0];
-         return ''; 
+         return '';
       },
 
-      cari_data() { this.page_first = 1; this.getView(); }
+      cari_data() { this.page_first = 1; this.getView(); },
+      openFoto() {
+        if (this.lihatData.foto_profil) {
+           const url = this.file_path + this.lihatData.foto_profil;
+           window.open(url, '_blank');
+        } else {
+           this.$q.notify({ type: 'negative', message: 'Foto tidak tersedia' });
+        }
+     },
+     openDokumen() {
+        if (this.lihatData.dokumen_pendukung) {
+           const url = this.file_path + this.lihatData.dokumen_pendukung;
+           window.open(url, '_blank');
+        } else {
+           this.$q.notify({ type: 'negative', message: 'Dokumen tidak tersedia' });
+        }
+     },
+     handleImageError(event) {
+        event.target.src = 'path/to/placeholder-image.jpg';  // Ganti dengan URL placeholder default, atau kosongkan src
+        // Atau: event.target.style.display = 'none'; untuk sembunyikan img rusak
+     },
+     
+      
    },
    mounted() {
       this.getView();
