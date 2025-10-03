@@ -130,7 +130,7 @@ router.post("/getview", (req, res) => {
     LIMIT ? OFFSET ?
   `;
 
-  // Eksekusi query count
+
   db.query(countSql, [search, search, search, search, search], (err, countResult) => {
       if (err) {
           console.error("❌ Error count pendonor:", err);
@@ -139,7 +139,7 @@ router.post("/getview", (req, res) => {
 
       const total_data = countResult[0].total;
 
-      // Eksekusi query data
+    
       db.query(dataSql, [search, search, search, search, search, limit, offset], (err2, dataResult) => {
           if (err2) {
               console.error("❌ Error get pendonor:", err2);
@@ -368,20 +368,15 @@ router.post("/addData", upload.fields([
   }
 });
 
-// ... (Kode router.get('/kabupaten'), router.get('/kecamatan'), router.get('/deskel'), router.post("/getview"), router.post("/addData") Anda yang sudah ada) ...
-
-// =====================================================================================================================
-// NEW: ROUTER UNTUK EDIT DATA PENDONOR
-// =====================================================================================================================
 router.post("/editData", upload.fields([
   { name: 'foto_profil', maxCount: 1 },
   { name: 'dokumen_pendukung', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const {
-      id, // ID dari tabel pendonor_darah
-      users_id, // ID dari tabel users
-      username, // Username baru (opsional, jika diubah)
+      id, 
+      users_id, 
+      username, 
       nama_lengkap,
       tanggal_lahir,
       jenis_kelamin,
@@ -399,12 +394,10 @@ router.post("/editData", upload.fields([
       bersedia_dipublikasikan
     } = req.body;
 
-    // Validasi ID wajib
     if (!id || !users_id) {
       return res.status(400).json({ success: false, message: 'ID pendonor dan users_id wajib diisi untuk update.' });
     }
 
-    // ========== NORMALISASI DATA UNTUK HINDARI ER_DATA_TOO_LONG ==========
     const nama_lengkap_clean = nama_lengkap ? nama_lengkap.trim().substring(0, 255) : null;
     const alamat_clean = alamat ? alamat.trim().substring(0, 255) : null;
     const email_clean = email ? email.trim().substring(0, 150) : null;
@@ -429,7 +422,6 @@ router.post("/editData", upload.fields([
     const stokdarah_konut_clean = stokdarah_konut ? parseInt(stokdarah_konut) : 4;
     const bersedia_dipublikasikan_clean = bersedia_dipublikasikan ? parseInt(bersedia_dipublikasikan) : 1;
 
-    // 1. Ambil data lama untuk file (foto_profil, dokumen_pendukung)
     const getOldFilesSql = 'SELECT foto_profil, dokumen_pendukung FROM pendonor_darah WHERE id = ?';
     db.query(getOldFilesSql, [id], (err, results) => {
       if (err) {
@@ -446,9 +438,7 @@ router.post("/editData", upload.fields([
       let newFotoProfil = oldFotoProfil;
       let newDokumenPendukung = oldDokumenPendukung;
 
-      // Handle new file uploads and delete old files if replaced
       if (req.files) {
-        // Foto Profil
         if (req.files['foto_profil'] && req.files['foto_profil'][0]) {
           newFotoProfil = req.files['foto_profil'][0].filename;
           if (oldFotoProfil && oldFotoProfil !== newFotoProfil) {
@@ -458,7 +448,6 @@ router.post("/editData", upload.fields([
             });
           }
         }
-        // Dokumen Pendukung
         if (req.files['dokumen_pendukung'] && req.files['dokumen_pendukung'][0]) {
           newDokumenPendukung = req.files['dokumen_pendukung'][0].filename;
           if (oldDokumenPendukung && oldDokumenPendukung !== newDokumenPendukung) {
@@ -470,7 +459,6 @@ router.post("/editData", upload.fields([
         }
       }
 
-      // 2. Update data di tabel `pendonor_darah`
       const updatePendonorSql = `
         UPDATE pendonor_darah SET
           nama_lengkap = ?,
@@ -520,7 +508,6 @@ router.post("/editData", upload.fields([
           return res.status(500).json({ success: false, error: updateErr.message });
         }
 
-        // 3. Update username di tabel `users` jika disediakan
         if (username) {
           const checkUsernameSql = `SELECT id FROM users WHERE username = ? AND id != ?`;
           db.query(checkUsernameSql, [username.trim(), users_id], (checkErr, checkResults) => {
@@ -542,7 +529,6 @@ router.post("/editData", upload.fields([
             });
           });
         } else {
-          // Jika username tidak diubah, hanya update email, hp, nama, stokdarah_konut di tabel users
           const updateUserSql = 'UPDATE users SET email = ?, hp = ?, nama = ?, stokdarah_konut = ? WHERE id = ?';
           db.query(updateUserSql, [email_clean, no_hp_clean, nama_lengkap_clean, stokdarah_konut_clean, users_id], (userErr) => {
             if (userErr) {
@@ -561,9 +547,7 @@ router.post("/editData", upload.fields([
   }
 });
 
-// =====================================================================================================================
-// NEW: ROUTER UNTUK REMOVE DATA PENDONOR
-// =====================================================================================================================
+
 router.post('/removePendonor', (req, res) => {
   const { id, users_id } = req.body;
 
@@ -571,7 +555,6 @@ router.post('/removePendonor', (req, res) => {
     return res.status(400).json({ success: false, message: 'ID pendonor dan users_id wajib diisi.' });
   }
 
-  // 1. Ambil data lama untuk file (foto_profil, dokumen_pendukung)
   const getOldFilesSql = 'SELECT foto_profil, dokumen_pendukung FROM pendonor_darah WHERE id = ?';
   db.query(getOldFilesSql, [id], (err, results) => {
     if (err) {
@@ -585,7 +568,6 @@ router.post('/removePendonor', (req, res) => {
     const oldFotoProfil = results[0].foto_profil;
     const oldDokumenPendukung = results[0].dokumen_pendukung;
 
-    // 2. Hapus data dari tabel `pendonor_darah`
     const deletePendonorSql = 'DELETE FROM pendonor_darah WHERE id = ?';
     db.query(deletePendonorSql, [id], (delErr) => {
       if (delErr) {
@@ -593,15 +575,12 @@ router.post('/removePendonor', (req, res) => {
         return res.status(500).json({ success: false, message: 'Gagal menghapus data pendonor.' });
       }
 
-      // 3. Hapus user terkait dari tabel `users`
       const deleteUserSql = 'DELETE FROM users WHERE id = ?';
       db.query(deleteUserSql, [users_id], (userErr) => {
         if (userErr) {
           console.error('❌ Error deleting user associated with pendonor:', userErr);
-          // Tidak fatal, lanjutkan proses penghapusan file
-        }
 
-        // 4. Hapus file fisik jika ada
+        }
         if (oldFotoProfil) {
           const filePath = path.join(__dirname, '../../../../uploads', oldFotoProfil);
           fs.unlink(filePath, (unlinkErr) => {
@@ -621,16 +600,13 @@ router.post('/removePendonor', (req, res) => {
   });
 });
 
-// =====================================================================================================================
-// NEW: ROUTER UNTUK EDIT PASSWORD PENDONOR
-// =====================================================================================================================
 router.post('/editPasswordPendonor', async (req, res) => {
   const { users_id, password } = req.body;
   if (!users_id || !password) {
     return res.status(400).json({ success: false, message: 'users_id dan password wajib diisi.' });
   }
   try {
-    const hashedPassword = await bcrypt.hash(password, 12); // Salt rounds 12
+    const hashedPassword = await bcrypt.hash(password, 12); 
     const updateSql = 'UPDATE users SET password = ? WHERE id = ?';
     db.query(updateSql, [hashedPassword, users_id], (err, result) => {
       if (err) {
