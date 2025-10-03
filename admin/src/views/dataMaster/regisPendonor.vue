@@ -229,7 +229,7 @@
       <!-- ===================== MODAL EDIT ===================== -->
       <q-dialog v-model="mdl_edit" persistent>
          <q-card class="mdl-md">
-            <q-card-section class="main2 text-white">
+            <q-card-section class="bg-orange text-white">
                <div class="text-h6 h_modalhead">Edit Pendonor</div>
             </q-card-section>
 
@@ -240,13 +240,13 @@
                   <hr class="hrpagin2">
 
                   <span class="h_lable">Nama Lengkap</span>
-                  <q-input v-model="form.nama_lengkap" outlined square required :dense="true"
+                  <q-input v-model="form.nama_lengkap" outlined square :dense="true"
                      class="bg-white margin_btn" />
 
                   <div class="row q-col-gutter-md">
                      <div class="col-6">
                         <span class="h_lable">Tanggal Lahir</span>
-                        <q-input v-model="form.tanggal_lahir" type="date" outlined required square :dense="true"
+                        <q-input v-model="form.tanggal_lahir" type="date" outlined square :dense="true"
                            class="bg-white margin_btn" />
                      </div>
 
@@ -255,7 +255,7 @@
                         <q-select v-model="form.jenis_kelamin" :options="[
                         { label: 'Laki-laki', value: 'L' },
                         { label: 'Perempuan', value: 'P' }
-                     ]" outlined required square :dense="true" class="bg-white margin_btn" />
+                     ]" outlined square :dense="true" class="bg-white margin_btn" />
                      </div>
                   </div>
 
@@ -281,7 +281,7 @@
                         { label: 'B', value: 'B' },
                         { label: 'AB', value: 'AB' },
                         { label: 'O', value: 'O' }
-                     ]" outlined required square :dense="true" class="bg-white margin_btn" />
+                     ]" outlined square :dense="true" class="bg-white margin_btn" />
                      </div>
 
                      <div class="col-6">
@@ -338,13 +338,28 @@
                   <div v-if="form.dokumen_pendukung_url" class="q-mb-md">
                      <a :href="form.dokumen_pendukung_url" target="_blank" rel="noopener">Lihat Dokumen Saat Ini</a>
                   </div>
+                  <hr class="hrpagin2">
+
+                  <span class="h_lable">Username</span>
+                  <q-input v-model="dataku.username" outlined square :dense="true" class="bg-white margin_btn"
+                     placeholder="Masukkan username baru jika ingin ubah" />
+
+                  <!-- Opsional: Tambahkan tombol/link untuk buka modal password (saran saya) -->
+                  <!-- <div class="q-mt-md text-center">
+                     <q-btn flat color="blue" @click="mdl_password = true; selectDataForPassword()"
+                        label="Ubah Password" size="sm">
+                        <q-tooltip content-class="bg-blue-9" content-style="font-size: 13px">
+                           Klik untuk mengubah password pengguna ini
+                        </q-tooltip>
+                     </q-btn>
+                  </div> -->
 
                   <hr class="hrpagin2">
 
                </q-card-section>
 
                <q-card-actions class="bg-grey-4 mdl-footer" align="right">
-                  <q-btn :loading="btn_edit" color="primary" type="submit" label="Update" />
+                  <q-btn :loading="btn_edit" color="warning" type="submit" label="Update" />
                   <q-btn label="Batal" color="negative" v-close-popup />
                </q-card-actions>
             </form>
@@ -353,46 +368,40 @@
 
 
       <!-- ================================================= MODAL PASSWORD ================================================ -->
-      <q-dialog v-model="mdl_password" persistent>
-         <q-card class="mdl-md">
-            <q-card-section class="bg-blue">
-               <div class="text-h6 h_modalhead text-center">Edit Password</div>
-            </q-card-section>
+      <!-- ===================== MODAL EDIT PASSWORD ===================== -->
+<q-dialog v-model="mdl_password" persistent>
+   <q-card class="mdl-md">
+      <q-card-section class="main2 text-white">
+         <div class="text-h6 h_modalhead">Ubah Password Pendonor</div>
+      </q-card-section>
 
-            <q-card-section class="q-pt-none">
-               <br>
-               <div class="row">
+      <form @submit.prevent="editDataPassword()">
 
-                  <div class="col-12 col-md-12 frame_cari">
-                     <span class="h_lable ">Password</span>
-                     <q-input v-model="dataku.password" type="password" outlined square :dense="true"
-                        class="bg-white margin_btn" />
-                  </div>
+         <q-card-section class="q-pt-none">
 
-                  <div class="col-12 col-md-12 frame_cari">
-                     <span class="h_lable ">Confirm Password</span>
-                     <q-input v-model="dataku.confirmPassword" type="password" outlined square :dense="true"
-                        class="bg-white margin_btn" />
-                  </div>
+            <hr class="hrpagin2">
 
-                  <div class="col-12 col-md-12 frame_cari">
-                     <div class="bg-red text-center" v-if="errorMessage" style="padding:2%">
-                        <span style="color:white">{{ errorMessage }}</span>
-                     </div>
-                  </div>
+            <span class="h_lable">Password Baru</span>
+            <q-input v-model="dataku.password" :type="isPwd ? 'password' : 'text'" outlined square :dense="true"
+               class="bg-white margin_btn" placeholder="Minimal 6 karakter" :loading="btn_password" />
+            <q-toggle v-model="isPwd" icon="visibility" class="q-pt-none" />
 
-               </div>
+            <span class="h_lable">Konfirmasi Password</span>
+            <q-input v-model="dataku.confirmPassword" :type="isPwd2 ? 'password' : 'text'" outlined square :dense="true"
+               class="bg-white margin_btn" placeholder="Ulangi password baru" />
+            <q-toggle v-model="isPwd2" icon="visibility" class="q-pt-none" />
 
-            </q-card-section>
+            <hr class="hrpagin2">
 
-            <q-card-actions class="bg-grey-4 mdl-footer" align="right">
+         </q-card-section>
 
-               <q-btn color="primary" @click="editDataPassword()" label="Simpan" />
-               <q-btn label="Batal" color="negative" v-close-popup />
-
-            </q-card-actions>
-         </q-card>
-      </q-dialog>
+         <q-card-actions class="bg-grey-4 mdl-footer" align="right">
+            <q-btn :loading="btn_password" color="primary" type="submit" label="Ubah Password" />
+            <q-btn label="Batal" color="negative" v-close-popup @click="resetPasswordForm" />
+         </q-card-actions>
+      </form>
+   </q-card>
+</q-dialog>
       <!-- ================================================= MODAL PASSWORD ================================================ -->
       <!-- ================================================ MODAL HAPUS ================================================ -->
       <q-dialog v-model="mdl_hapus" persistent>
@@ -446,6 +455,8 @@ export default {
             terakhir_donor: null,
             foto_profil: null,
             dokumen_pendukung: null,
+            foto_profil_url: '',
+            dokumen_pendukung_url: '',
             stokdarah_konut: 4,
             bersedia_dipublikasikan: true,
          },
@@ -458,7 +469,6 @@ export default {
          mdl_hapus: false,
          btn_add: false,
          btn_edit: false,
-         file_path: this.$store.state.url.URL_APP + "uploads/",
 
          list_data: [],
          jml_data: 0,
@@ -477,6 +487,11 @@ export default {
             confirmPassword: ''
          },
          errorMessage: '',
+      }
+   },
+   computed: {
+      file_path() {
+         return this.$store.state.url.URL_APP + "uploads/";
       }
    },
    watch: {
@@ -551,7 +566,6 @@ export default {
       },
 
 
-      // ========== GET VIEW DATA ==========
       getView() {
          const body = {
             page_limit: this.page_limit,
@@ -586,7 +600,7 @@ export default {
 
       async addData() {
          try {
-            // Validasi confirm password
+       
             if (this.dataku.password !== this.dataku.confirmPassword) {
                this.$q.notify({
                   type: 'negative',
@@ -613,7 +627,7 @@ export default {
 
             const formData = new FormData();
 
-            // Append field pendonor
+   
             formData.append('nama_lengkap', this.form.nama_lengkap);
             formData.append('tanggal_lahir', this.form.tanggal_lahir);
             formData.append('jenis_kelamin', this.form.jenis_kelamin);
@@ -628,9 +642,9 @@ export default {
             formData.append('riwayat_penyakit', this.form.riwayat_penyakit || '');
             formData.append('terakhir_donor', this.form.terakhir_donor || '');
             formData.append('stokdarah_konut', this.form.stokdarah_konut || 4);
-            formData.append('bersedia_dipublikasikan', 1); // Otomatis 1
+            formData.append('bersedia_dipublikasikan', 1); 
 
-            // Append username dan password
+
             formData.append('username', this.dataku.username);
             formData.append('password', this.dataku.password);
 
@@ -676,6 +690,155 @@ export default {
       },
 
 
+
+     
+      // Hapus editModal lama jika ada duplikasi, ganti dengan ini
+      editModal(data) {
+         console.log('Debug: Data dari backend (cek nama file):', data.foto_profil, data.dokumen_pendukung);  // Debug: Cek apakah string ada
+
+         // Buat objek form baru (jangan spread { ...data } agar tidak salin string ke file field)
+         this.form = {
+            id: data.id,
+            users_id: data.users_id || null,
+            nama_lengkap: data.nama_lengkap || '',
+            tanggal_lahir: data.tanggal_lahir || '',
+            jenis_kelamin: data.jenis_kelamin || '',
+            email: data.email || '',
+            no_hp: data.no_hp || '',
+            golongan_darah: data.golongan_darah || '',
+            rhesus: data.rhesus || '',
+            kabupaten_id: data.kabupaten_id || null,
+            kecamatan_id: data.kecamatan_id || null,
+            des_kel_id: data.des_kel_id || null,
+            alamat: data.alamat || '',
+            riwayat_penyakit: data.riwayat_penyakit || null,
+            terakhir_donor: data.terakhir_donor || null,
+
+            
+            foto_profil: null, 
+            dokumen_pendukung: null, 
+
+            foto_profil_url: data.foto_profil ? (this.file_path + data.foto_profil) : '',
+            dokumen_pendukung_url: data.dokumen_pendukung ? (this.file_path + data.dokumen_pendukung) : '',
+
+            stokdarah_konut: data.stokdarah_konut || 4,
+            bersedia_dipublikasikan: data.bersedia_dipublikasikan || true,
+         };
+
+       
+         this.dataku.username = data.username || '';
+
+         if (this.form.kabupaten_id) {
+            this.loadKecamatan(this.form.kabupaten_id);
+            if (this.form.kecamatan_id) {
+               this.loadDeskel(this.form.kecamatan_id);
+            }
+         }
+
+         this.dataku.password = '';
+         this.dataku.confirmPassword = '';
+
+         this.mdl_edit = true; 
+      },
+
+      async updateData() {
+         this.btn_edit = true;
+         try {
+   
+            if (!this.form.nama_lengkap || !this.form.tanggal_lahir || !this.form.jenis_kelamin || !this.form.golongan_darah) {
+               throw new Error('Field wajib (Nama, TTL, Jenis Kelamin, Golongan Darah) harus diisi!');
+            }
+
+            if (this.dataku.username && this.dataku.username.length < 3) {
+               throw new Error('Username minimal 3 karakter jika diubah!');
+            }
+
+            const normalizedTerakhirDonor = this.normalizeDate(this.form.terakhir_donor);
+const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
+
+
+            const payload = {
+               id: this.form.id,
+               users_id: this.form.users_id,
+               nama_lengkap: this.form.nama_lengkap,
+               tanggal_lahir: normalizedTanggalLahir,
+               jenis_kelamin: this.form.jenis_kelamin,
+               email: this.form.email || '',
+               no_hp: this.form.no_hp || '',
+               golongan_darah: this.form.golongan_darah,
+               rhesus: this.form.rhesus || '',
+               kabupaten_id: this.form.kabupaten_id || null,
+               kecamatan_id: this.form.kecamatan_id || null,
+               des_kel_id: this.form.des_kel_id || null,
+               alamat: this.form.alamat || '',
+               riwayat_penyakit: this.form.riwayat_penyakit || '',
+               terakhir_donor: normalizedTerakhirDonor,
+               stokdarah_konut: this.form.stokdarah_konut || 4,
+               bersedia_dipublikasikan: this.form.bersedia_dipublikasikan ? 1 : 0,
+               username: this.dataku.username || '',
+            };
+
+            const hasNewFile = (this.form.foto_profil && this.form.foto_profil instanceof File) ||
+               (this.form.dokumen_pendukung && this.form.dokumen_pendukung instanceof File);
+
+            let response, result;
+
+            if (hasNewFile) {
+               const formData = new FormData();
+               for (const key in payload) {
+                  formData.append(key, payload[key] || '');
+               }
+               // Append files jika ada
+               if (this.form.foto_profil && this.form.foto_profil instanceof File) {
+                  formData.append('foto_profil', this.form.foto_profil);
+               }
+               if (this.form.dokumen_pendukung && this.form.dokumen_pendukung instanceof File) {
+                  formData.append('dokumen_pendukung', this.form.dokumen_pendukung);
+               }
+
+               response = await fetch(this.$store.state.url.REGIS_DONOR + "editData", { 
+                  method: "POST",
+                  headers: {
+                     authorization: "kikensbatara " + localStorage.token
+                  },
+                  body: formData
+               });
+               result = await response.json();
+            } else {
+               response = await fetch(this.$store.state.url.REGIS_DONOR + "editData", { 
+                  method: "POST",
+                  headers: {
+                     "Content-Type": "application/json",
+                     authorization: "kikensbatara " + localStorage.token
+                  },
+                  body: JSON.stringify(payload)
+               });
+               result = await response.json();
+            }
+
+            if (response.ok && result.success) {
+               this.$q.notify({
+                  type: "positive",
+                  message: result.message || "Data pendonor berhasil diupdate"
+               });
+              
+               this.mdl_edit = false;
+               this.getView(); 
+               this.resetForm();  
+            } else {
+               throw new Error(result.message || "Gagal mengupdate data pendonor");
+            }
+         } catch (error) {
+            console.error("Error update data pendonor:", error);
+            this.$q.notify({
+               type: "negative",
+               message: error.message || "Terjadi kesalahan saat update data pendonor"
+            });
+         } finally {
+            this.btn_edit = false;
+         }
+      },
+
       resetForm() {
          this.form = {
             id: null,
@@ -693,110 +856,23 @@ export default {
             no_hp: '',
             riwayat_penyakit: '',
             terakhir_donor: '',
-            bersedia_dipublikasikan: false,
             foto_profil: null,
             dokumen_pendukung: null,
+            foto_profil_url: '',
+            dokumen_pendukung_url: '',
             stokdarah_konut: 4,
-            status_verifikasi: 'active',
+            bersedia_dipublikasikan: true,
          };
          this.dataku = {
             username: '',
             password: '',
             confirmPassword: ''
          };
-         this.form.kabupaten_id = null;
-         this.form.kecamatan_id = null;
-         this.form.des_kel_id = null;
          this.kecamatanOptions = [];
          this.deskelOptions = [];
+         this.errorMessage = '';
       },
 
-      async editData() {
-         this.btn_edit = true;
-         try {
-            // Siapkan data yang akan dikirim ke backend
-            const payload = {
-               id: this.form.id, // id tenaga medis
-               users_id: this.form.users_id,
-               nama_lengkap: this.form.nama_lengkap,
-               nip: this.form.nip,
-               nomor_induk_profesi: this.form.nomor_induk_profesi,
-               jabatan_fungsional: this.form.jabatan_fungsional,
-               no_str: this.form.no_str,
-               masa_berlaku_str: this.form.masa_berlaku_str,
-               email: this.form.email,
-               no_hp: this.form.no_hp,
-               tempat_kerja: this.form.tempat_kerja,
-               alamat_praktik: this.form.alamat_praktik,
-               username: this.dataku.username || '', // jika username bisa diedit
-               // Jika ingin update password di sini, bisa ditambahkan
-               // password: this.dataku.password || undefined,
-            };
-
-            // Jika ada file baru yang diupload, gunakan FormData
-            let response, result;
-            if (this.form.file_str && this.form.file_str instanceof File) {
-               const formData = new FormData();
-               for (const key in payload) {
-                  formData.append(key, payload[key]);
-               }
-               formData.append('file_str', this.form.file_str);
-
-               response = await fetch(this.$store.state.url.REGIS + "EditTenagaMedis", {
-                  method: "POST",
-                  headers: {
-                     authorization: "kikensbatara " + localStorage.token
-                  },
-                  body: formData
-               });
-               result = await response.json();
-            } else {
-               // Jika tidak ada file baru, kirim JSON biasa
-               response = await fetch(this.$store.state.url.REGIS + "EditTenagaMedis", {
-                  method: "POST",
-                  headers: {
-                     "Content-Type": "application/json",
-                     authorization: "kikensbatara " + localStorage.token
-                  },
-                  body: JSON.stringify(payload)
-               });
-               result = await response.json();
-            }
-
-            if (response.ok && result.success) {
-               this.$q.notify({ type: "positive", message: result.message || "Data berhasil diupdate" });
-               this.mdl_edit = false;
-               this.getView();
-            } else {
-               throw new Error(result.message || "Gagal mengupdate data");
-            }
-         } catch (error) {
-            console.error("Error edit data:", error);
-            this.$q.notify({ type: "negative", message: error.message || "Terjadi kesalahan saat update data" });
-         } finally {
-            this.btn_edit = false;
-         }
-      },
-
-      editModal(data) {
-         this.form = {
-            id: data.id,
-            users_id: data.users_id,
-            nama_lengkap: data.nama_lengkap || '',
-            nip: data.nip || '',
-            nomor_induk_profesi: data.nomor_induk_profesi || '',
-            jabatan_fungsional: data.jabatan_fungsional || '',
-            no_str: data.no_str || '',
-            masa_berlaku_str: data.masa_berlaku_str || '',
-            file_str: null, // reset file input, user harus upload ulang jika ingin ganti
-            email: data.email || '',
-            no_hp: data.no_hp || '',
-            tempat_kerja: data.tempat_kerja || '',
-            alamat_praktik: data.alamat_praktik || '',
-         };
-         this.dataku.username = data.username || '';
-         this.mdl_edit = true;
-      },
 
       async hapusData() {
          this.btn_hapus = true;
@@ -808,8 +884,8 @@ export default {
                   authorization: "kikensbatara " + localStorage.token
                },
                body: JSON.stringify({
-                  id: this.form.id,           // id tenaga medis
-                  users_id: this.form.users_id // id user terkait
+                  id: this.form.id,        
+                  users_id: this.form.users_id 
                })
             });
 
@@ -818,7 +894,7 @@ export default {
 
             if (response.ok && res_data.success) {
                this.mdl_hapus = false;
-               this.getView(); // refresh data
+               this.getView();
                this.$q.notify({ type: 'positive', message: res_data.message || 'Data berhasil dihapus' });
             } else {
                this.$q.notify({ type: 'negative', message: res_data.message || 'Gagal menghapus data' });
@@ -832,8 +908,7 @@ export default {
 
       async editDataPassword() {
          this.errorMessage = '';
-
-         // Validasi input password
+      
          if (!this.dataku.password || !this.dataku.confirmPassword) {
             this.errorMessage = "Password dan Confirm Password wajib diisi!";
             return;
@@ -866,8 +941,7 @@ export default {
 
             if (res.ok && data.success) {
                this.$q.notify({ type: "positive", message: data.message || "Password berhasil diubah!" });
-               this.mdl_password = false; // tutup modal
-               // Reset password fields
+               this.mdl_password = false;
                this.dataku.password = '';
                this.dataku.confirmPassword = '';
             } else {
@@ -878,10 +952,6 @@ export default {
             this.errorMessage = "Terjadi kesalahan saat mengubah password.";
          }
       },
-
-
-
-
       selectData(data) {
          this.dataku = {
             users_id: data.users_id,
@@ -899,7 +969,6 @@ export default {
       async editDataPassword() {
          this.errorMessage = '';
 
-         // validasi password
          if (!this.dataku.password || !this.dataku.confirmPassword) {
             this.errorMessage = "Password dan Confirm Password wajib diisi!";
             return;
@@ -927,7 +996,7 @@ export default {
 
             if (data.success) {
                this.$q.notify({ type: "positive", message: "Password berhasil diubah!" });
-               this.mdl_password = false; // tutup modal
+               this.mdl_password = false; 
             } else {
                this.errorMessage = data.message || "Gagal mengubah password!";
             }
@@ -941,18 +1010,13 @@ export default {
       indexing(idx) {
          return ((this.page_first - 1) * this.page_limit) + idx;
       },
-      editModal(data) {
-         this.form = {
-            ...data,
-            pic_nama: data.nama_pic || '',
-            pic_jabatan: data.jabatan || '',
-            pic_email: data.email_pic || '',
-            pic_hp: data.hp_pic || ''
-         };
-         this.mdl_edit = true;
+
+      normalizeDate(dateStr) {
+         if (!dateStr || dateStr === '') return '';
+         if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+         if (dateStr.includes('T')) return dateStr.split('T')[0];
+         return ''; 
       },
-
-
 
       cari_data() { this.page_first = 1; this.getView(); }
    },
