@@ -46,6 +46,7 @@ export default new Vuex.Store({
 
       REGIS_MEDIS : URL + 'api/v1/reg_tenagamedis/',
       REGIS_DONOR : URL + 'api/v1/reg_pendonor/',
+      REGIS_MASYARAKAT : URL + 'api/v1/reg_masyarakat/',
 
 
       
@@ -118,7 +119,7 @@ export default new Vuex.Store({
 
       Loading.show({
         spinner,
-        spinnerColor: 'blue',
+        spinnerColor: 'red',
         spinnerSize: 140,
         backgroundColor: 'grey',
         // message: 'Loading... Tunggu beberapa saat, system sedang menyesuaikan akun anda..!',

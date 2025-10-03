@@ -129,9 +129,6 @@ const getBiodata = (sub_unit_kerja) => {
 
 module.exports = {
   fetchPOST: fetchPOST,
-  getJK : getJK,
-  getStatusKeluarga : getStatusKeluarga,
-  getAgama : getAgama,
   getStrataIjazah : getStrataIjazah,
   getJenisKel : getJenisKel,
   getPendidikanAkhir : getPendidikanAkhir,

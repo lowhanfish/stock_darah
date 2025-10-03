@@ -19,7 +19,7 @@
 <style>
     .loadingFonts{
         font-size: 15pt;
-        color: #2ab5f5;
+        color: #ff1b1b;
         font-weight: 600;
     }
 
