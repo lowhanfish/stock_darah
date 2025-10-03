@@ -371,7 +371,7 @@
       <!-- ===================== MODAL EDIT PASSWORD ===================== -->
 <q-dialog v-model="mdl_password" persistent>
    <q-card class="mdl-md">
-      <q-card-section class="main2 text-white">
+      <q-card-section class="bg-blue text-white">
          <div class="text-h6 h_modalhead">Ubah Password Pendonor</div>
       </q-card-section>
 
@@ -385,7 +385,7 @@
             <q-input v-model="dataku.password" :type="isPwd ? 'password' : 'text'" outlined square :dense="true"
                class="bg-white margin_btn" placeholder="Minimal 6 karakter" :loading="btn_password" />
             <q-toggle v-model="isPwd" icon="visibility" class="q-pt-none" />
-
+            <hr>
             <span class="h_lable">Konfirmasi Password</span>
             <q-input v-model="dataku.confirmPassword" :type="isPwd2 ? 'password' : 'text'" outlined square :dense="true"
                class="bg-white margin_btn" placeholder="Ulangi password baru" />
@@ -404,25 +404,27 @@
 </q-dialog>
       <!-- ================================================= MODAL PASSWORD ================================================ -->
       <!-- ================================================ MODAL HAPUS ================================================ -->
-      <q-dialog v-model="mdl_hapus" persistent>
-         <q-card class="mdl-sm ">
-            <q-card-section class="q-pt-none text-center orageGrad">
-               <form @submit.prevent="hapusData">
-                  <br>
-                  <img src="img/alert.png" alt="" width="75"> <br>
-                  <span class="h_notifikasi">APAKAH ANDA YAKIN INGIN MENGHAPUS DATA INI??</span>
-                  <input type="submit" style="position: absolute; left: -9999px" />
-                  <br>
-                  <br>
+      <!-- ================================================ MODAL HAPUS ================================================ -->
+<q-dialog v-model="mdl_hapus" persistent>
+   <q-card class="mdl-sm">
+      <q-card-section class="q-pt-none text-center orageGrad">
+         <form @submit.prevent="hapusData">
+            <br>
+            <img src="img/alert.png" alt="" width="75"> <br>
+            <span class="h_notifikasi">APAKAH ANDA YAKIN INGIN MENGHAPUS DATA INI??</span>
+            <br>
+            <br>
 
-                  <q-btn label="Batal" size="sm" color="negative" v-close-popup />
-                  &nbsp;
-                  <q-btn type="submit" label="Hapus" size="sm" color="primary" v-close-popup />
+            <q-card-actions align="right">
+               <q-btn label="Batal" size="sm" color="negative" v-close-popup @click="resetHapusForm" />
+               &nbsp;
+               <q-btn :loading="btn_hapus" type="submit" label="Hapus" size="sm" color="primary" v-close-popup />
+            </q-card-actions>
+         </form>
+      </q-card-section>
+   </q-card>
+</q-dialog>
 
-               </form>
-            </q-card-section>
-         </q-card>
-      </q-dialog>
       <!-- ================================================ MODAL HAPUS ================================================ -->
 
 
@@ -436,6 +438,9 @@ export default {
    data() {
       return {
          UMUM: UMUM,
+         isPwd: true,      // Toggle visibility password
+      isPwd2: true,     // Toggle visibility konfirmasi
+      btn_password: false,  // Loading button untuk password
 
          form: {
             id: null,
@@ -469,6 +474,7 @@ export default {
          mdl_hapus: false,
          btn_add: false,
          btn_edit: false,
+      btn_hapus: false,
 
          list_data: [],
          jml_data: 0,
@@ -874,37 +880,59 @@ const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
       },
 
 
-      async hapusData() {
-         this.btn_hapus = true;
-         try {
-            const response = await fetch(this.$store.state.url.REGIS + "removeTenagaMedis", {
-               method: "POST",
-               headers: {
-                  "Content-Type": "application/json",
-                  authorization: "kikensbatara " + localStorage.token
-               },
-               body: JSON.stringify({
-                  id: this.form.id,        
-                  users_id: this.form.users_id 
-               })
+    
+   
+   async hapusData() {
+      // Validasi ID wajib
+      if (!this.form.id || !this.form.users_id) {
+         this.$q.notify({ 
+            type: 'negative', 
+            message: 'Data tidak valid. Silakan pilih ulang.' 
+         });
+         this.resetHapusForm();
+         return;
+      }
+      
+      this.btn_hapus = true;
+      try {
+         const payload = {
+            id: this.form.id,        
+            users_id: this.form.users_id 
+         };
+         
+         const response = await fetch(this.$store.state.url.REGIS_DONOR + "removePendonor", {  
+            method: "POST",
+            headers: {
+               "Content-Type": "application/json",
+               authorization: "kikensbatara " + localStorage.token
+            },
+            body: JSON.stringify(payload)
+         });
+
+         const res_data = await response.json();
+
+         if (response.ok && res_data.success) {
+            this.$q.notify({ 
+               type: 'positive', 
+               message: res_data.message || 'Data pendonor berhasil dihapus' 
             });
-
-            const res_data = await response.json();
-            this.btn_hapus = false;
-
-            if (response.ok && res_data.success) {
-               this.mdl_hapus = false;
-               this.getView();
-               this.$q.notify({ type: 'positive', message: res_data.message || 'Data berhasil dihapus' });
-            } else {
-               this.$q.notify({ type: 'negative', message: res_data.message || 'Gagal menghapus data' });
-            }
-         } catch (error) {
-            this.btn_hapus = false;
-            this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat menghapus data' });
-            console.error('Error hapus data:', error);
+            this.mdl_hapus = false;
+            this.getView();  
+            this.resetForm();
+         } else {
+            throw new Error(res_data.message || 'Gagal menghapus data');
          }
-      },
+      } catch (error) {
+         console.error('Error hapus data:', error);
+         this.$q.notify({ 
+            type: 'negative', 
+            message: error.message || 'Terjadi kesalahan saat menghapus data' 
+         });
+      } finally {
+         this.btn_hapus = false;
+      }
+   },
+   
 
       async editDataPassword() {
          this.errorMessage = '';
@@ -925,7 +953,7 @@ const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
          }
 
          try {
-            const res = await fetch(this.$store.state.url.REGIS + "editPassword", {
+            const res = await fetch(this.$store.state.url.REGIS_DONOR + "editPasswordPendonor", {
                method: "POST",
                headers: {
                   "Content-Type": "application/json",
@@ -966,46 +994,24 @@ const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
          };
       },
 
-      async editDataPassword() {
-         this.errorMessage = '';
+      resetPasswordForm() {
+      this.dataku.password = '';
+      this.dataku.confirmPassword = '';
+      this.dataku.users_id = null; 
+      this.isPwd = true;
+      this.isPwd2 = true;
+      this.btn_password = false;
+      this.mdl_password = false;  
+   },
 
-         if (!this.dataku.password || !this.dataku.confirmPassword) {
-            this.errorMessage = "Password dan Confirm Password wajib diisi!";
-            return;
-         }
+   resetHapusForm() {
+      this.form.id = null;
+      this.form.users_id = null;
+      this.btn_hapus = false;
+      this.mdl_hapus = false; 
+   },
 
-         if (this.dataku.password !== this.dataku.confirmPassword) {
-            this.errorMessage = "Password dan Confirm Password tidak sama!";
-            return;
-         }
-
-         try {
-            const res = await fetch(this.$store.state.url.REGIS + "editPasswordTenagaMedis", {
-               method: "POST",
-               headers: {
-                  "Content-Type": "application/json",
-                  authorization: "kikensbatara " + localStorage.token
-               },
-               body: JSON.stringify({
-                  users_id: this.dataku.users_id,
-                  password: this.dataku.password
-               })
-            });
-
-            const data = await res.json();
-
-            if (data.success) {
-               this.$q.notify({ type: "positive", message: "Password berhasil diubah!" });
-               this.mdl_password = false; 
-            } else {
-               this.errorMessage = data.message || "Gagal mengubah password!";
-            }
-         } catch (error) {
-            console.error(error);
-            this.errorMessage = "Terjadi kesalahan saat mengubah password.";
-         }
-      },
-
+     
 
       indexing(idx) {
          return ((this.page_first - 1) * this.page_limit) + idx;
