@@ -214,7 +214,7 @@
                      <div class="col-6">
                         <span class="h_lable">Tanggal Lahir</span>
                         <q-input v-model="form.tanggal_lahir" type="date" outlined square :dense="true"
-                           class="bg-white margin_btn" required />
+                           class="bg-white margin_btn" />
                      </div>
 
                      <div class="col-6">
