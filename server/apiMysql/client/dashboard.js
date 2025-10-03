@@ -218,7 +218,6 @@ router.get('/bidangUsaha', (req, res) => {
     db.query(sql, (err, result) => {
       if (err) return res.status(500).json(err);
       res.json({ data: result });
-      console.log("Data bidangCSR keseluruhan:", result);
     });
   });
   

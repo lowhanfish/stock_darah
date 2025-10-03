@@ -368,5 +368,286 @@ router.post("/addData", upload.fields([
   }
 });
 
+// ... (Kode router.get('/kabupaten'), router.get('/kecamatan'), router.get('/deskel'), router.post("/getview"), router.post("/addData") Anda yang sudah ada) ...
+
+// =====================================================================================================================
+// NEW: ROUTER UNTUK EDIT DATA PENDONOR
+// =====================================================================================================================
+router.post("/editData", upload.fields([
+  { name: 'foto_profil', maxCount: 1 },
+  { name: 'dokumen_pendukung', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const {
+      id, // ID dari tabel pendonor_darah
+      users_id, // ID dari tabel users
+      username, // Username baru (opsional, jika diubah)
+      nama_lengkap,
+      tanggal_lahir,
+      jenis_kelamin,
+      golongan_darah,
+      rhesus,
+      kabupaten_id,
+      kecamatan_id,
+      des_kel_id,
+      alamat,
+      email,
+      no_hp,
+      riwayat_penyakit,
+      terakhir_donor,
+      stokdarah_konut,
+      bersedia_dipublikasikan
+    } = req.body;
+
+    // Validasi ID wajib
+    if (!id || !users_id) {
+      return res.status(400).json({ success: false, message: 'ID pendonor dan users_id wajib diisi untuk update.' });
+    }
+
+    // ========== NORMALISASI DATA UNTUK HINDARI ER_DATA_TOO_LONG ==========
+    const nama_lengkap_clean = nama_lengkap ? nama_lengkap.trim().substring(0, 255) : null;
+    const alamat_clean = alamat ? alamat.trim().substring(0, 255) : null;
+    const email_clean = email ? email.trim().substring(0, 150) : null;
+    const no_hp_clean = no_hp ? no_hp.trim().substring(0, 25) : null;
+    const riwayat_penyakit_clean = riwayat_penyakit ? riwayat_penyakit.trim() : null;
+
+    let golongan_darah_clean = golongan_darah ? golongan_darah.trim() : null;
+    if (golongan_darah_clean && golongan_darah_clean.length > 2) {
+      golongan_darah_clean = golongan_darah_clean.substring(0, 2);
+    }
+
+    let rhesus_clean = rhesus ? rhesus.trim() : null;
+    if (rhesus_clean && rhesus_clean.length > 1) {
+      rhesus_clean = rhesus_clean.substring(0, 1);
+    }
+
+    let jenis_kelamin_clean = jenis_kelamin ? jenis_kelamin.trim() : null;
+    if (jenis_kelamin_clean && jenis_kelamin_clean.length > 1) {
+      jenis_kelamin_clean = jenis_kelamin_clean.substring(0, 1);
+    }
+
+    const stokdarah_konut_clean = stokdarah_konut ? parseInt(stokdarah_konut) : 4;
+    const bersedia_dipublikasikan_clean = bersedia_dipublikasikan ? parseInt(bersedia_dipublikasikan) : 1;
+
+    // 1. Ambil data lama untuk file (foto_profil, dokumen_pendukung)
+    const getOldFilesSql = 'SELECT foto_profil, dokumen_pendukung FROM pendonor_darah WHERE id = ?';
+    db.query(getOldFilesSql, [id], (err, results) => {
+      if (err) {
+        console.error('❌ Error fetching old pendonor files:', err);
+        return res.status(500).json({ success: false, error: err.message });
+      }
+      if (results.length === 0) {
+        return res.status(404).json({ success: false, message: 'Data pendonor tidak ditemukan.' });
+      }
+
+      let oldFotoProfil = results[0].foto_profil;
+      let oldDokumenPendukung = results[0].dokumen_pendukung;
+
+      let newFotoProfil = oldFotoProfil;
+      let newDokumenPendukung = oldDokumenPendukung;
+
+      // Handle new file uploads and delete old files if replaced
+      if (req.files) {
+        // Foto Profil
+        if (req.files['foto_profil'] && req.files['foto_profil'][0]) {
+          newFotoProfil = req.files['foto_profil'][0].filename;
+          if (oldFotoProfil && oldFotoProfil !== newFotoProfil) {
+            const oldFilePath = path.join(__dirname, '../../../../uploads', oldFotoProfil);
+            fs.unlink(oldFilePath, (unlinkErr) => {
+              if (unlinkErr) console.warn('⚠️ Gagal hapus foto profil lama:', unlinkErr);
+            });
+          }
+        }
+        // Dokumen Pendukung
+        if (req.files['dokumen_pendukung'] && req.files['dokumen_pendukung'][0]) {
+          newDokumenPendukung = req.files['dokumen_pendukung'][0].filename;
+          if (oldDokumenPendukung && oldDokumenPendukung !== newDokumenPendukung) {
+            const oldFilePath = path.join(__dirname, '../../../../uploads', oldDokumenPendukung);
+            fs.unlink(oldFilePath, (unlinkErr) => {
+              if (unlinkErr) console.warn('⚠️ Gagal hapus dokumen pendukung lama:', unlinkErr);
+            });
+          }
+        }
+      }
+
+      // 2. Update data di tabel `pendonor_darah`
+      const updatePendonorSql = `
+        UPDATE pendonor_darah SET
+          nama_lengkap = ?,
+          tanggal_lahir = ?,
+          jenis_kelamin = ?,
+          golongan_darah = ?,
+          rhesus = ?,
+          kabupaten_id = ?,
+          kecamatan_id = ?,
+          des_kel_id = ?,
+          alamat = ?,
+          email = ?,
+          no_hp = ?,
+          riwayat_penyakit = ?,
+          terakhir_donor = ?,
+          stokdarah_konut = ?,
+          bersedia_dipublikasikan = ?,
+          foto_profil = ?,
+          dokumen_pendukung = ?
+        WHERE id = ?
+      `;
+
+      const pendonorData = [
+        nama_lengkap_clean,
+        tanggal_lahir,
+        jenis_kelamin_clean,
+        golongan_darah_clean,
+        rhesus_clean,
+        kabupaten_id ? parseInt(kabupaten_id) : null,
+        kecamatan_id ? parseInt(kecamatan_id) : null,
+        des_kel_id ? parseInt(des_kel_id) : null,
+        alamat_clean,
+        email_clean,
+        no_hp_clean,
+        riwayat_penyakit_clean,
+        terakhir_donor || null,
+        stokdarah_konut_clean,
+        bersedia_dipublikasikan_clean,
+        newFotoProfil,
+        newDokumenPendukung,
+        id
+      ];
+
+      db.query(updatePendonorSql, pendonorData, (updateErr) => {
+        if (updateErr) {
+          console.error('❌ Error updating pendonor_darah:', updateErr);
+          return res.status(500).json({ success: false, error: updateErr.message });
+        }
+
+        // 3. Update username di tabel `users` jika disediakan
+        if (username) {
+          const checkUsernameSql = `SELECT id FROM users WHERE username = ? AND id != ?`;
+          db.query(checkUsernameSql, [username.trim(), users_id], (checkErr, checkResults) => {
+            if (checkErr) {
+              console.error("❌ Error checking username uniqueness:", checkErr);
+              return res.status(500).json({ success: false, error: checkErr.message });
+            }
+            if (checkResults.length > 0) {
+              return res.status(400).json({ success: false, message: "Username sudah digunakan oleh user lain!" });
+            }
+
+            const updateUserSql = 'UPDATE users SET username = ?, email = ?, hp = ?, nama = ?, stokdarah_konut = ? WHERE id = ?';
+            db.query(updateUserSql, [username.trim(), email_clean, no_hp_clean, nama_lengkap_clean, stokdarah_konut_clean, users_id], (userErr) => {
+              if (userErr) {
+                console.error('❌ Error updating user data:', userErr);
+                return res.status(500).json({ success: false, error: userErr.message });
+              }
+              res.json({ success: true, message: 'Data pendonor diupdate.' });
+            });
+          });
+        } else {
+          // Jika username tidak diubah, hanya update email, hp, nama, stokdarah_konut di tabel users
+          const updateUserSql = 'UPDATE users SET email = ?, hp = ?, nama = ?, stokdarah_konut = ? WHERE id = ?';
+          db.query(updateUserSql, [email_clean, no_hp_clean, nama_lengkap_clean, stokdarah_konut_clean, users_id], (userErr) => {
+            if (userErr) {
+              console.error('❌ Error updating user data (no username change):', userErr);
+              return res.status(500).json({ success: false, error: userErr.message });
+            }
+            res.json({ success: true, message: 'Data pendonor berhasil diupdate.' });
+          });
+        }
+      });
+    });
+
+  } catch (error) {
+    console.error("🔥 Error edit pendonor:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// =====================================================================================================================
+// NEW: ROUTER UNTUK REMOVE DATA PENDONOR
+// =====================================================================================================================
+router.post('/removePendonor', (req, res) => {
+  const { id, users_id } = req.body;
+
+  if (!id || !users_id) {
+    return res.status(400).json({ success: false, message: 'ID pendonor dan users_id wajib diisi.' });
+  }
+
+  // 1. Ambil data lama untuk file (foto_profil, dokumen_pendukung)
+  const getOldFilesSql = 'SELECT foto_profil, dokumen_pendukung FROM pendonor_darah WHERE id = ?';
+  db.query(getOldFilesSql, [id], (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching old pendonor files for deletion:', err);
+      return res.status(500).json({ success: false, message: 'Database error saat mengambil file lama.' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, message: 'Data pendonor tidak ditemukan.' });
+    }
+
+    const oldFotoProfil = results[0].foto_profil;
+    const oldDokumenPendukung = results[0].dokumen_pendukung;
+
+    // 2. Hapus data dari tabel `pendonor_darah`
+    const deletePendonorSql = 'DELETE FROM pendonor_darah WHERE id = ?';
+    db.query(deletePendonorSql, [id], (delErr) => {
+      if (delErr) {
+        console.error('❌ Error deleting pendonor_darah:', delErr);
+        return res.status(500).json({ success: false, message: 'Gagal menghapus data pendonor.' });
+      }
+
+      // 3. Hapus user terkait dari tabel `users`
+      const deleteUserSql = 'DELETE FROM users WHERE id = ?';
+      db.query(deleteUserSql, [users_id], (userErr) => {
+        if (userErr) {
+          console.error('❌ Error deleting user associated with pendonor:', userErr);
+          // Tidak fatal, lanjutkan proses penghapusan file
+        }
+
+        // 4. Hapus file fisik jika ada
+        if (oldFotoProfil) {
+          const filePath = path.join(__dirname, '../../../../uploads', oldFotoProfil);
+          fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) console.warn('⚠️ Gagal hapus foto profil lama:', unlinkErr);
+          });
+        }
+        if (oldDokumenPendukung) {
+          const filePath = path.join(__dirname, '../../../../uploads', oldDokumenPendukung);
+          fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) console.warn('⚠️ Gagal hapus dokumen pendukung lama:', unlinkErr);
+          });
+        }
+
+        return res.json({ success: true, message: 'Data pendonor berhasil dihapus.' });
+      });
+    });
+  });
+});
+
+// =====================================================================================================================
+// NEW: ROUTER UNTUK EDIT PASSWORD PENDONOR
+// =====================================================================================================================
+router.post('/editPasswordPendonor', async (req, res) => {
+  const { users_id, password } = req.body;
+  if (!users_id || !password) {
+    return res.status(400).json({ success: false, message: 'users_id dan password wajib diisi.' });
+  }
+  try {
+    const hashedPassword = await bcrypt.hash(password, 12); // Salt rounds 12
+    const updateSql = 'UPDATE users SET password = ? WHERE id = ?';
+    db.query(updateSql, [hashedPassword, users_id], (err, result) => {
+      if (err) {
+        console.error('❌ Error updating pendonor password:', err);
+        return res.status(500).json({ success: false, message: 'Gagal mengubah password.' });
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
+      }
+      return res.json({ success: true, message: 'Password berhasil diubah.' });
+    });
+  } catch (error) {
+    console.error('🔥 Error hashing password for pendonor:', error);
+    return res.status(500).json({ success: false, message: 'Terjadi kesalahan server.' });
+  }
+});
+
+
 
 module.exports = router;
