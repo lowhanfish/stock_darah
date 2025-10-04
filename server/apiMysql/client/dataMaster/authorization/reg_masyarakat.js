@@ -114,7 +114,7 @@ router.post("/getview", (req, res) => {
       m.foto_profil,
       u.username,
       u.id AS users_id,
-      u.stokdarah_konut -- Tambahkan stokdarah_konut dari tabel users
+      u.stokdarah_konut 
     FROM masyarakat m
     JOIN users u ON m.users_id = u.id
     LEFT JOIN master_kabupaten mkab ON m.kabupaten_id = mkab.kabupaten_id

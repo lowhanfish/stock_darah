@@ -22,7 +22,7 @@ db.getConnection((err)=>{
     if(err){
         console.log(err);
     }else{
-        console.log('Terkoneksi dengan DATABASE UMUM');
+        console.log('Terkoneksi dengan DATABASE DARAH');
     }
 })
 

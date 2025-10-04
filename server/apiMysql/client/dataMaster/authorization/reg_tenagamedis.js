@@ -133,7 +133,7 @@ router.post("/addTenagaMedis", upload.single('file_str'), async (req, res) => {
 
             db.query(
                 sqlUser,
-                [username, hashedPassword, email, no_hp, nama_lengkap, jabatan_fungsional, 2],
+                [username, hashedPassword, email, no_hp, nama_lengkap, jabatan_fungsional, 3],
                 (err, resultUser) => {
                     if (err) {
                         console.error("❌ Insert user error:", err);

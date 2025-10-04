@@ -63,6 +63,8 @@ app.use('/uploads', express.static(path.join(__dirname, './uploads')))
       app.use('/api/v1/reg_tenagamedis', reg_tenagamedis);
       const reg_pendonor = require('./apiMysql/client/dataMaster/authorization/reg_pendonor');
       app.use('/api/v1/reg_pendonor', reg_pendonor);
+      const reg_admin = require('./apiMysql/client/dataMaster/authorization/reg_admin');
+      app.use('/api/v1/reg_admin', reg_admin);
       const reg_masyarakat = require('./apiMysql/client/dataMaster/authorization/reg_masyarakat');
       app.use('/api/v1/reg_masyarakat', reg_masyarakat);
 
