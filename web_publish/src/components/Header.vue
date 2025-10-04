@@ -178,13 +178,9 @@
                             </ul>
                         </div>
                         <ul class="nav-bar-tools">
-  <!-- HAPUS/MATIKAN BAGIAN SEARCH & PHONE -->
-  <!-- <li class="item search-icon"><i class="fas fa-search"></i></li>
-  <li class="item phone"> ... </li> -->
-
   <!-- Tambahkan tombol baru -->
   <li class="btn">
-    <a href="/login" class="btn-1">Masuk</a>
+    <router-link to="/Login" class="btn-1">Masuk</router-link>
   </li>
   <li class="btn">
     <a href="/register" class="btn-1">Registrasi</a>
