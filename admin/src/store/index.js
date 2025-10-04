@@ -47,6 +47,7 @@ export default new Vuex.Store({
       REGIS_MEDIS : URL + 'api/v1/reg_tenagamedis/',
       REGIS_DONOR : URL + 'api/v1/reg_pendonor/',
       REGIS_MASYARAKAT : URL + 'api/v1/reg_masyarakat/',
+      REGIS_ADMIN_BDRS : URL + 'api/v1/reg_admin/',
 
 
       
