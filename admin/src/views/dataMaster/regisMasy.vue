@@ -380,7 +380,7 @@
 
                      <div class="q-gutter-y-md">
                         <div class="row items-start q-gutter-sm detail-field">
-                           <q-icon name="person" size="16px" color="grey-6" class="q-mt-xs" />
+                           <q-icon name="person" size="16px" color="green-6" class="q-mt-xs" />
                            <div class="col">
                               <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Nama Lengkap</div>
                               <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.nama_lengkap || '-' }}
@@ -389,7 +389,7 @@
                         </div>
 
                         <div class="row items-start q-gutter-sm detail-field">
-                           <q-icon name="event" size="16px" color="grey-6" class="q-mt-xs" />
+                           <q-icon name="event" size="16px" color="green-6" class="q-mt-xs" />
                            <div class="col">
                               <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Tanggal Lahir</div>
                               <div class="text-body1 text-weight-bold text-grey-9">{{
@@ -399,7 +399,7 @@
                         </div>
 
                         <div class="row items-start q-gutter-sm detail-field">
-                           <q-icon name="wc" size="16px" color="grey-6" class="q-mt-xs" />
+                           <q-icon name="wc" size="16px" color="green-6" class="q-mt-xs" />
                            <div class="col">
                               <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Jenis Kelamin</div>
                               <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.jenis_kelamin === 'L' ?
@@ -408,7 +408,7 @@
                         </div>
 
                         <div class="row items-start q-gutter-sm detail-field" v-if="lihatData.nik">
-                           <q-icon name="card_membership" size="16px" color="grey-6" class="q-mt-xs" />
+                           <q-icon name="card_membership" size="16px" color="green-6" class="q-mt-xs" />
                            <div class="col">
                               <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">NIK / Nomor Identitas
                               </div>
@@ -425,7 +425,7 @@
                      </div>
                      <div class="q-gutter-y-md">
                         <div class="row items-start q-gutter-sm detail-field">
-                           <q-icon name="email" size="16px" color="grey-6" class="q-mt-xs" />
+                           <q-icon name="email" size="16px" color="green-6" class="q-mt-xs" />
                            <div class="col">
                               <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Email</div>
                               <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.email || '-' }}</div>
@@ -433,7 +433,7 @@
                         </div>
 
                         <div class="row items-start q-gutter-sm detail-field">
-                           <q-icon name="phone" size="16px" color="grey-6" class="q-mt-xs" />
+                           <q-icon name="phone" size="16px" color="green-6" class="q-mt-xs" />
                            <div class="col">
                               <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">No HP</div>
                               <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.no_hp || '-' }}</div>
@@ -441,7 +441,7 @@
                         </div>
 
                         <div class="row items-start q-gutter-sm detail-field">
-                           <q-icon name="location_on" size="16px" color="grey-6" class="q-mt-xs" />
+                           <q-icon name="location_on" size="16px" color="green-6" class="q-mt-xs" />
                            <div class="col">
                               <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Alamat Lengkap</div>
                               <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.alamat || '-' }}</div>
@@ -449,12 +449,12 @@
                         </div>
 
                         <div class="row items-start q-gutter-sm detail-field">
-                           <q-icon name="map" size="16px" color="grey-6" class="q-mt-xs" />
+                           <q-icon name="map" size="16px" color="green-6" class="q-mt-xs" />
                            <div class="col">
                               <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Lokasi</div>
                               <div class="text-body1 text-weight-bold text-grey-9">
-                                 {{ [lihatData.kabupaten_nama, lihatData.kecamatan_nama,
-                     lihatData.des_kel_nama].filter(Boolean).join(', ') || '-' }}
+                                 {{ [lihatData.nama_kabupaten, lihatData.nama_kecamatan,
+                     lihatData.nama_des_kel].filter(Boolean).join(', ') || '-' }}
                               </div>
                            </div>
                         </div>
@@ -541,9 +541,9 @@ export default {
             email: '',
             no_hp: '',
             alamat: '',
-            kabupaten_nama: '',
-            kecamatan_nama: '',
-            des_kel_nama: '',
+            nama_kabupaten: '',
+            nama_kecamatan: '',
+            nama_des_kel: '',
             foto_profil: '',
             username: '',
             users_id: '',
@@ -1009,9 +1009,9 @@ export default {
             email: data.email || '',
             no_hp: data.no_hp || '',
             alamat: data.alamat || '',
-            kabupaten_nama: data.kabupaten_nama || '',
-            kecamatan_nama: data.kecamatan_nama || '',
-            des_kel_nama: data.des_kel_nama || '',
+            nama_kabupaten: data.nama_kabupaten || '',
+            nama_kecamatan: data.nama_kecamatan || '',
+            nama_des_kel: data.nama_des_kel || '',
             foto_profil: data.foto_profil || '',
             username: data.username || '',
             users_id: data.users_id || '',

@@ -110,6 +110,12 @@ function isLoggedIn(to, from, next) {
     component: () => import('../views/dataMaster/regisMasy.vue'),
     beforeEnter: isLoggedIn,
   },
+  {
+    path: '/regisAdmin',
+    name: 'regisAdmin',
+    component: () => import('../views/dataMaster/regisAdmin.vue'),
+    beforeEnter: isLoggedIn,
+  },
   
   {
     path: '/subidcsr',
