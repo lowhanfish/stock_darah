@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
-import kegiatan_csr from '../views/1kegiatancsr/kegiatan_csr.vue'
 
 Vue.use(VueRouter);
 
@@ -25,55 +24,36 @@ function isLoggedIn(to, from, next) {
 
 
 
-  const routes = [
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('../views/auth/login.vue'),
-      beforeEnter: loggedInRedirectDashboard,
-    },
-
-
-    {
-      path: '/',
-      name: 'Home',
-      component: Home,
-      beforeEnter: isLoggedIn,
-    },
+const routes = [
   {
-    path: '/kegiatan_csr',
-    name: 'Kegiatan CSR',
-    component: kegiatan_csr,
+    path: '/login',
+    name: 'login',
+    component: () => import('../views/auth/login.vue'),
+    beforeEnter: loggedInRedirectDashboard,
+  },
+
+
+  {
+    path: '/',
+    name: 'Home',
+    component: Home,
     beforeEnter: isLoggedIn,
   },
 
-  {
-    path: '/forceMajeure',
-    name: 'CSR Force Majeure',
-    component: () => import('../views/1kegiatancsr/forceMajeure.vue'),
-    beforeEnter: isLoggedIn,
-  },
   {
     path: '/berita',
-    name: 'CSR Force Majeure',
-    component: () => import('../views/berita.vue'),
+    name: 'Berita',
+    component: () => import('../views/informasi/berita.vue'),
     beforeEnter: isLoggedIn,
   },
   {
-    path: '/list_pengajuan',
-    name: 'List Pengajuan Program',
-    component: () => import('../views/1kegiatancsr/list_pengajuan.vue'),
-    beforeEnter: isLoggedIn,
-  },
-  {
-    path: '/list_pengajuan_force',
-    name: 'List Pengajuan Program',
-    component: () => import('../views/1kegiatancsr/list_pengajuan_force.vue'),
+    path: '/jadwal_donor',
+    name: 'Jadwal Donor',
+    component: () => import('../views/informasi/jadwal_donor.vue'),
     beforeEnter: isLoggedIn,
   },
 
 
- 
   {
     path: '/menuList',
     name: 'menuList',
@@ -116,14 +96,14 @@ function isLoggedIn(to, from, next) {
     component: () => import('../views/dataMaster/regisAdmin.vue'),
     beforeEnter: isLoggedIn,
   },
-  
+
   {
     path: '/subidcsr',
     name: 'subidcsr',
     component: () => import('../views/dataMaster/subidcsr.vue'),
     beforeEnter: isLoggedIn,
   },
- 
+
 
   {
     path: '/about',
