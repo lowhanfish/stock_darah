@@ -7,7 +7,6 @@
                         <div class="text-h6 h_titleHead">Artikel / Berita</div>
                     </div>
                     <div class="col-12 col-md-2">
-
                     </div>
 
                     <!-- Cari + Tombol Add -->
@@ -15,8 +14,7 @@
                         <div class="row">
                             <q-input v-model="cari_value" @keyup="cari_data()" outlined square dense
                                 class="bg-white col q-mr-sm" />
-                            <q-btn glossy class="col-auto" color="green" @click="mdl_add = true" dense
-                                icon="add">
+                            <q-btn glossy class="col-auto" color="green" @click="mdl_add = true" dense icon="add">
                                 <q-tooltip content-class="bg-green-7" content-style="font-size: 13px">
                                     Click untuk menambah data
                                 </q-tooltip>
@@ -24,11 +22,9 @@
                         </div>
                     </div>
                 </div>
-
             </q-card-section>
 
         </q-card>
-
 
         <hr class="hrpagin2">
 
@@ -38,7 +34,8 @@
                 <tr class="h_table_head main1 text-white ">
                     <th width="5%" class="text-center">No</th>
                     <th width="10%">Foto</th>
-                    <th width="30%">Judul</th>
+                    <th width="50%">Judul</th>
+                    <th width="20%">Tanggal</th>
                     <th width="15%" class="text-center">Act</th>
                     <!-- <th width="30%">Keterangan</th> -->
                     <!-- <th width="10%"></th> -->
@@ -58,10 +55,9 @@
                         </div>
                     </td> <!-- Judul -->
 
-                    <!-- <td>
-                        <div>{{ data.deskripsi }}</div>
-                    </td> -->
-
+                    <td>
+                        <div>{{ UMUM.tglConvert(data.createAt) }}</div>  
+                    </td>
 
                     <td class="text-center q-gutter-sm">
                         <q-btn dense round color="warning" icon="edit" @click="openEdit(data)">
@@ -80,7 +76,6 @@
 
             <!-- =================================================== KONTENT =========================================================== -->
         </div>
-
         <hr class="hrpagin">
         <br>
         <div class="flex flex-center">
@@ -93,9 +88,8 @@
         <q-dialog v-model="mdl_add" persistent>
             <q-card class="mdl-md">
                 <q-card-section class="main2 text-white">
-                    <div class="text-h6 h_modalhead">Tambah Berita / CSR</div>
+                    <div class="text-h6 h_modalhead">Tambah Berita</div>
                 </q-card-section>
-
                 <form @submit.prevent="addData()">
 
                     <q-card-section class="q-pt-none">
@@ -143,7 +137,7 @@
         <q-dialog v-model="mdl_edit" persistent>
             <q-card class="mdl-md">
                 <q-card-section class="main2 text-white">
-                    <div class="text-h6 h_modalhead">Edit Berita / CSR</div>
+                    <div class="text-h6 h_modalhead">Edit Berita</div>
                 </q-card-section>
 
                 <form @submit.prevent="updateData()">
@@ -250,7 +244,6 @@
                         <span class="h_notifikasi">APAKAH ANDA YAKIN INGIN MENGHAPUS DATA INI??</span>
                         <input type="submit" style="position: absolute; left: -9999px" />
                         <br>
-                        <br>
 
                         <q-btn label="Batal" size="sm" color="negative" v-close-popup />
                         &nbsp;
@@ -297,11 +290,11 @@ export default {
                 ['bold', 'italic', 'underline'],
                 ['link', 'quote', 'unordered', 'ordered'],
                 ['left', 'center', 'right', 'justify'],
-                ['image'], 
+                ['image'],
                 ['viewsource']
             ],
             form: {
-                isi: '',   
+                isi: '',
                 judul: '',
                 sumber: '',
                 // deskripsi: '',
