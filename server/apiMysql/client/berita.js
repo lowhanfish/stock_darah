@@ -12,7 +12,7 @@ var uniqid = require('uniqid');
 const { log } = require('console');
 const router = express.Router();
 
-// GETVIEW DATA BERITA
+
 router.post("/getview", (req, res) => {
   try {
     let { data_ke = 1, cari_value = "", page_limit = 10 } = req.body;
@@ -22,7 +22,7 @@ router.post("/getview", (req, res) => {
     let values = [];
 
     if (cari_value.trim() !== "") {
-      where = "WHERE judul LIKE ? OR deskripsi LIKE ? OR sumber LIKE ?";
+      where = "WHERE judul LIKE ? OR sumber LIKE ?";
       values = [`%${cari_value}%`, `%${cari_value}%`, `%${cari_value}%`];
     }
 
@@ -36,7 +36,7 @@ router.post("/getview", (req, res) => {
       const total = countResult[0].total;
 
       const sqlData = `
-        SELECT id, judul, sumber, deskripsi, isi, file_name, createdBy, createAt, editeAt
+        SELECT id, judul, sumber, isi, file_name, createdBy, createAt, editeAt
         FROM berita
         ${where}
         ORDER BY createAt DESC
@@ -65,21 +65,21 @@ router.post("/getview", (req, res) => {
 // ADD DATA BERITA
 router.post("/addData", upload.single("file_name"), (req, res) => {
   try {
-    const { judul, sumber, deskripsi, isi } = req.body;
+    const { judul, sumber, isi } = req.body;
     const createdBy = req.user?.username || "system"; // kalau ada middleware auth
     const file_name = req.file ? req.file.filename : null;
 
-    if (!judul || !deskripsi || !isi) {
-      return res.status(400).json({ success: false, message: "Judul, deskripsi, dan isi wajib diisi" });
+    if (!judul || !isi) {
+      return res.status(400).json({ success: false, message: "Judul, dan isi wajib diisi" });
     }
 
     const id = "BRT-" + Date.now(); // generate ID unik
     const sql = `
-      INSERT INTO berita (id, judul, sumber, deskripsi, isi, file_name, createdBy)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO berita (id, judul, sumber, isi, file_name, createdBy)
+      VALUES (?, ?, ?, ?, ?, ?)
     `;
 
-    db.query(sql, [id, judul, sumber, deskripsi, isi, file_name, createdBy], (err, result) => {
+    db.query(sql, [id, judul, sumber, isi, file_name, createdBy], (err, result) => {
       if (err) {
         console.error("❌ Error insert:", err);
         return res.status(500).json({ success: false, message: "DB Error insert" });
@@ -94,7 +94,7 @@ router.post("/addData", upload.single("file_name"), (req, res) => {
 });
 // ================= UPDATE DATA =================
 router.post("/updateData", upload.single("file"), (req, res) => {
-  const { id, judul, sumber, deskripsi, isi, file_name } = req.body;
+  const { id, judul, sumber, isi, file_name } = req.body;
 
   // Cek apakah ada file baru
   let newFile = null;
@@ -118,13 +118,13 @@ router.post("/updateData", upload.single("file"), (req, res) => {
     // Query update
     const sql = `
       UPDATE berita 
-      SET judul = ?, sumber = ?, deskripsi = ?, isi = ?, file_name = ?, editeAt = NOW()
+      SET judul = ?, sumber = ?, isi = ?, file_name = ?, editeAt = NOW()
       WHERE id = ?
     `;
 
     const finalFile = newFile || file_name || oldFile;
 
-    db.query(sql, [judul, sumber, deskripsi, isi, finalFile, id], (err2, result) => {
+    db.query(sql, [judul, sumber, isi, finalFile, id], (err2, result) => {
       if (err2) {
         console.error("❌ DB error (update):", err2);
         return res.status(500).json({ success: false, message: "DB Error update" });
