@@ -698,6 +698,51 @@ router.get('/list', (req, res) => {
   });
 });
 
+// -----------------------------------------------------------------------------
+// POST /getHistoryByPendonor
+// Mengembalikan riwayat jadwal yang pernah diikuti oleh pendonor (join jadwal_peserta -> jadwal_donor)
+// Body: { pendonor_id }  (juga menerima users_id atau id sebagai fallback)
+// -----------------------------------------------------------------------------
+router.post('/getHistoryByPendonor', (req, res) => {
+  const pendonorId = req.body.pendonor_id || req.body.users_id || req.body.id;
+  if (!pendonorId) {
+    return res.status(400).json({ success: false, message: 'pendonor_id (atau users_id) wajib diisi' });
+  }
+
+  const sql = `
+    SELECT
+      jd.id AS jadwal_id,
+      jd.nama_kegiatan,
+      jd.tanggal_mulai,
+      jd.tanggal_selesai,
+      jd.lokasi
+    FROM jadwal_peserta jp
+    JOIN jadwal_donor jd ON jp.jadwal_id = jd.id
+    WHERE jp.pendonor_id = ?
+    GROUP BY jd.id
+    ORDER BY jd.tanggal_mulai DESC
+  `;
+
+  db.query(sql, [pendonorId], (err, results) => {
+    if (err) {
+      console.error('❌ Error getHistoryByPendonor:', err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+
+    // Pastikan format konsisten untuk frontend
+    const data = (results || []).map(r => ({
+      jadwal_id: r.jadwal_id,
+      nama_kegiatan: r.nama_kegiatan,
+      tanggal_mulai: r.tanggal_mulai,
+      tanggal_selesai: r.tanggal_selesai,
+      lokasi: r.lokasi
+    }));
+
+    return res.json({ success: true, data });
+  });
+});
+
+
 
 
 
