@@ -31,31 +31,41 @@
             <table width="100%">
                 <tr class="h_table_head main1 text-white ">
                     <th width="5%" class="text-center">No</th>
+                    <th width="25%">Nama Kegiatan</th>
                     <th width="15%">Tanggal</th>
-                    <th width="25%">Lokasi</th>
-                    <th width="15%">Jam</th>
-                    <th width="15%">Poster</th>
-                    <th width="25%" class="text-center">Act</th>
+                    <th width="20%">Lokasi</th>
+                    <th width="10%">Jam</th>
+                    <th width="10%">Poster</th>
+                    <th width="15%" class="text-center">Act</th>
                 </tr>
 
                 <tr class="h_table_body" v-for="(data, index) in list_data" :key="data.id">
                     <td class="text-center">{{ indexing(index + 1) }}.</td>
 
                     <td>
-                        <div class="text-bold">{{ UMUM.tglConvert(data.tanggal_mulai) }}</div>
-                        <div class="text-caption text-grey">{{ data.keterangan || '-' }}</div>
+                        <div class="text-bold">{{ data.nama_kegiatan }}</div>
+                        <div class="q-mt-sm">
+                            <q-btn dense small color="positive" label="Peserta" icon="people" @click="openPeserta(data)" />
+                        </div>
+                    </td>
+                    <td>
+                        <div class="text-bold">{{ UMUM.tglConvert(data.tanggal_mulai) }} - {{
+                                UMUM.tglConvert(data.tanggal_selesai) }}</div>
+                        <div style="font-size:12px;">
+                            <span>
+                                <q-badge :color="statusColor(data.status)">
+                                    {{ statusLabel(data.status) }}
+                                </q-badge>
+                            </span>
+
+                        </div>
                     </td>
 
                     <td>
                         <div class="text-bold">{{ data.lokasi }}</div>
                         <div style="font-size:12px;">
                             <span class="text-blue">{{ data.map_link ? 'Map tersedia' : 'Map: -' }}</span>
-                            <span style="margin-left:8px;">
-                                <q-badge :color="statusColor(data.status)" align="top" class="q-ml-sm"
-                                    style="font-size:11px">
-                                    {{ statusLabel(data.status) }}
-                                </q-badge>
-                            </span>
+
                         </div>
                     </td>
 
@@ -106,30 +116,44 @@
                         <span class="h_lable">Nama Kegiatan</span>
                         <q-input v-model="form.nama_kegiatan" outlined square dense class="bg-white margin_btn" />
 
-                        <span class="h_lable">Tanggal Mulai</span>
-                        <q-input v-model="form.tanggal_mulai" type="date" outlined square dense
-                            class="bg-white margin_btn" />
+                        <div class="row q-col-gutter-md">
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Tanggal Mulai</span>
+                                <q-input v-model="form.tanggal_mulai" type="date" outlined square dense
+                                    class="bg-white margin_btn" />
+                            </div>
 
-                        <span class="h_lable">Tanggal Selesai</span>
-                        <q-input v-model="form.tanggal_selesai" type="date" outlined square dense
-                            class="bg-white margin_btn" />
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Tanggal Selesai</span>
+                                <q-input v-model="form.tanggal_selesai" type="date" outlined square dense
+                                    class="bg-white margin_btn" />
+                            </div>
+                        </div>
+
 
                         <span class="h_lable">Jam Mulai - Selesai</span>
                         <q-input v-model="form.jam" placeholder="08:00 - 24:00" outlined square dense
                             class="bg-white margin_btn" />
 
-                        <span class="h_lable">Lokasi</span>
-                        <q-input v-model="form.lokasi" outlined square dense class="bg-white margin_btn" />
+                        <div class="row q-col-gutter-md">
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Lokasi</span>
+                                <q-input v-model="form.lokasi" outlined square dense class="bg-white margin_btn" />
+                            </div>
 
-                        <span class="h_lable">Map Link (opsional)</span>
-                        <q-input v-model="form.map_link" outlined square dense class="bg-white margin_btn" />
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Map Link (opsional)</span>
+                                <q-input v-model="form.map_link" outlined square dense class="bg-white margin_btn" />
+                            </div>
+                        </div>
+
 
                         <span class="h_lable">Keterangan (opsional)</span>
                         <q-input v-model="form.keterangan" type="textarea" outlined square dense
                             class="bg-white margin_btn" />
 
                         <span class="h_lable">Jumlah Terdaftar (opsional)</span>
-                        <q-input v-model="form.jumlah_terdaftar" type="textarea" outlined square dense
+                        <q-input v-model="form.jumlah_terdaftar" type="number" outlined square dense
                             class="bg-white margin_btn" />
 
                         <span class="h_lable">Poster (opsional)</span>
@@ -165,30 +189,42 @@
                         <span class="h_lable">Nama Kegiatan</span>
                         <q-input v-model="form.nama_kegiatan" outlined square dense class="bg-white margin_btn" />
 
-                        <span class="h_lable">Tanggal Mulai</span>
-                        <q-input v-model="form.tanggal_mulai" type="date" outlined square dense
-                            class="bg-white margin_btn" />
+                        <div class="row q-col-gutter-md">
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Tanggal Mulai</span>
+                                <q-input v-model="form.tanggal_mulai" type="date" outlined square dense
+                                    class="bg-white margin_btn" />
+                            </div>
 
-                        <span class="h_lable">Tanggal Selesai</span>
-                        <q-input v-model="form.tanggal_selesai" type="date" outlined square dense
-                            class="bg-white margin_btn" />
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Tanggal Selesai</span>
+                                <q-input v-model="form.tanggal_selesai" type="date" outlined square dense
+                                    class="bg-white margin_btn" />
+                            </div>
+                        </div>
 
                         <span class="h_lable">Jam Mulai - Selesai</span>
                         <q-input v-model="form.jam" placeholder="08:00 - 24:00" outlined square dense
                             class="bg-white margin_btn" />
 
-                        <span class="h_lable">Lokasi</span>
-                        <q-input v-model="form.lokasi" outlined square dense class="bg-white margin_btn" />
+                        <div class="row q-col-gutter-md">
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Lokasi</span>
+                                <q-input v-model="form.lokasi" outlined square dense class="bg-white margin_btn" />
+                            </div>
 
-                        <span class="h_lable">Map Link (opsional)</span>
-                        <q-input v-model="form.map_link" outlined square dense class="bg-white margin_btn" />
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Map Link (opsional)</span>
+                                <q-input v-model="form.map_link" outlined square dense class="bg-white margin_btn" />
+                            </div>
+                        </div>
 
                         <span class="h_lable">Keterangan (opsional)</span>
                         <q-input v-model="form.keterangan" type="textarea" outlined square dense
                             class="bg-white margin_btn" />
 
                         <span class="h_lable">Jumlah Terdaftar (opsional)</span>
-                        <q-input v-model="form.jumlah_terdaftar" type="textarea" outlined square dense
+                        <q-input v-model="form.jumlah_terdaftar" type="number" outlined square dense
                             class="bg-white margin_btn" />
 
 
@@ -297,6 +333,85 @@
             </q-card>
         </q-dialog>
 
+
+
+
+        <!-- MODAL PESERTA -->
+        <q-dialog v-model="mdl_peserta">
+            <q-card class="mdl-md">
+                <q-card-section class="main2 text-white">
+                    <div class="text-h6 h_modalhead">Daftar Peserta - {{ currentJadwal.nama_kegiatan || '-' }}</div>
+                </q-card-section>
+
+                <q-card-section class="q-pa-lg scroll" style="max-height: 70vh; overflow-y: auto;">
+                    <!-- Tabel peserta -->
+                    <div class="tbl_responsive q-mb-md">
+                        <table width="100%">
+                            <tr class="h_table_head main1 text-white ">
+                                <th class="text-center" width="5%">No</th>
+                                <th>Nama</th>
+                                <th>Jk</th>
+                                <th>Golongan</th>
+                                <th>Rhesus</th>
+                                <th>HP</th>
+                                <th class="text-center">Aksi</th>
+                            </tr>
+
+                            <tr v-for="(p, i) in participants" :key="p.id" class="h_table_body">
+                                <td class="text-center">{{ i + 1 }}</td>
+                                <td>{{ p.nama_lengkap }}</td>
+                                <td>{{ p.jenis_kelamin }}</td>
+                                <td>{{ p.golongan_darah }}</td>
+                                <td class="text-center">{{ p.rhesus }}</td>
+                                <td>{{ p.no_hp }}</td>
+                                <td class="text-center">
+                                    <q-btn dense round color="negative" icon="delete" @click="removePeserta(p.id)">
+                                        <q-tooltip>Hapus</q-tooltip>
+                                    </q-btn>
+                                </td>
+                            </tr>
+
+                            <tr v-if="participants.length === 0">
+                                <td colspan="7" class="text-center text-grey">Belum ada peserta</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <q-separator />
+
+                    <!-- Form tambah peserta: hanya pilih dari pendonor_darah -->
+                    <div class="q-mt-md">
+                        <div class="text-subtitle2 text-bold">Tambah Peserta (Pilih dari daftar pendonor)</div>
+
+                        <div class="row q-col-gutter-md q-mt-sm">
+                            <div class="col-12 col-md-6">
+                                <!-- <q-select v-model="selectedPendonor" :options="availableOptions" option-value="id"
+                                    option-label="label" outlined dense class="bg-white margin_btn" use-input fill-input
+                                    input-debounce="300" placeholder="Ketik nama pendonor..." @filter="onFilter"
+                                    @input="onSelectPendonor"
+                                    no-options-label="Tidak ada pendonor yang cocok atau belum terdaftar" /> -->
+                                <q-select v-model="selectedPendonor" :options="availableOptions" option-label="label"
+                                    outlined dense class="bg-white margin_btn" use-input input-debounce="300"
+                                    placeholder="Ketik nama pendonor..." @filter="onFilter" @input="onSelectPendonor"
+                                    no-options-label="Tidak ada pendonor yang cocok atau belum terdaftar" />
+
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <q-btn :loading="btn_add_peserta" color="positive" label="Tambah Peserta"
+                                    @click="addPeserta()" />
+                                <q-btn flat label="Reset" @click="resetPesertaForm()" />
+                            </div>
+                        </div>
+                    </div>
+                </q-card-section>
+
+                <q-separator />
+                <q-card-actions class="bg-grey-4 mdl-footer" align="right">
+                    <q-btn label="Tutup" color="negative" v-close-popup @click="mdl_peserta = false" />
+                </q-card-actions>
+            </q-card>
+        </q-dialog>
     </div>
 </template>
 
@@ -328,6 +443,7 @@ export default {
             mdl_delete: false,
             mdl_lihat: false,
             mdl_image: false,
+            mdl_peserta: false,
             selectedImage: null,
             cari_value: "",
             page_first: 1,
@@ -340,7 +456,47 @@ export default {
                 { label: '1 - Aktif', value: 1 },
                 { label: '2 - Selesai', value: 2 },
                 { label: '3 - Dibatalkan', value: 3 }
-            ]
+            ],
+            currentJadwal: {},
+            participants: [],
+            pendonorDarahOptions: [],
+            selectedPendonor: null,
+            btn_add_peserta: false,
+            searchInput: '',
+        }
+    },
+
+
+    computed: {
+        availableOptions() {
+            // buat set id peserta (string) untuk perbandingan
+            const partIds = new Set(
+                (this.participants || [])
+                    .map(p => String(p.pendonor_id ?? p.id ?? p.user_id ?? p.id_pendonor ?? ''))
+                    .filter(Boolean)
+            );
+
+            // normalisasi pendonorDarahOptions -> pastikan id sebagai string dan ada label
+            const normalized = (this.pendonorDarahOptions || []).map(opt => {
+                return {
+                    ...opt,
+                    id: String(opt.id),
+                    label: (opt.label || `${opt.nama_lengkap || opt.nama || '-'} / ${opt.golongan_darah || ''} ${opt.rhesus ? opt.rhesus : ''} / ${opt.no_hp || '-'}`).trim()
+                };
+            });
+
+            // hilangkan yang sudah terdaftar
+            let available = normalized.filter(o => !partIds.has(String(o.id)));
+
+            // hapus duplikat berdasarkan id (keamanan)
+            available = available.filter((item, idx, arr) => arr.findIndex(x => x.id === item.id) === idx);
+
+            // support searchInput seperti sebelumnya
+            const input = String(this.searchInput || '').toLowerCase().trim();
+            if (!input) {
+                return available.slice(0, 8);
+            }
+            return available.filter(opt => (opt.label || '').toLowerCase().includes(input));
         }
     },
 
@@ -372,7 +528,7 @@ export default {
                 keterangan: data.keterangan || '',
                 file_name: data.file_name || null,
                 jumlah_terdaftar: data.jumlah_terdaftar ?? null,
-                status: data.status != null ? Number(data.status) : 1
+                status: data.status != null ? data.status : 1
             }
             this.fileBaru = null
             this.mdl_edit = true
@@ -510,7 +666,13 @@ export default {
                 formData.append("map_link", this.form.map_link || '');
                 formData.append("keterangan", this.form.keterangan || '');
                 formData.append("jumlah_terdaftar", this.form.jumlah_terdaftar != null ? this.form.jumlah_terdaftar : '');
-                formData.append("status", this.form.status != null ? this.form.status : 1);
+                formData.append(
+                    "status",
+                    typeof this.form.status === "object"
+                        ? this.form.status.value
+                        : this.form.status
+                );
+
 
                 if (this.fileBaru) {
                     // user upload file baru pada edit
@@ -576,6 +738,174 @@ export default {
         indexing(index) {
             return ((this.page_first - 1) * this.page_limit) + index;
         },
+
+        async openPeserta(jadwal) {
+            this.currentJadwal = jadwal || {};
+            this.mdl_peserta = true;
+            this.participants = [];
+            this.pendonorDarahOptions = [];
+            this.selectedPendonor = null;
+            this.btn_add_peserta = false;
+            this.searchInput = '';
+
+            try {
+                this.$store.commit("shoWLoading");
+
+                // 1) ambil peserta (pendonor yang sudah ditautkan ke jadwal) dari backend
+                const res = await fetch(this.$store.state.url.JADWAL_DONOR + "getParticipants", {
+                    method: "POST",
+                    headers: {
+                        "content-type": "application/json",
+                        authorization: "kikensbatara " + localStorage.token
+                    },
+                    body: JSON.stringify({ jadwal_id: this.currentJadwal.id })
+                });
+                const json = await res.json();
+                this.participants = json.data || [];
+                console.log('Participants updated:', this.participants);
+
+                // 2) ambil seluruh pendonor dari tabel pendonor_darah untuk opsi select
+                // GANTI endpoint di bawah jika nama endpoint Anda berbeda
+                // contoh asumsi: this.$store.state.url.PENDONOR_DARAH + "list"
+                const pendRes = await fetch(this.$store.state.url.REGIS_DONOR + "list", {
+                    method: "GET",
+                    headers: {
+                        authorization: "kikensbatara " + localStorage.token
+                    }
+                });
+                const pendJson = await pendRes.json();
+                console.log('Raw backend data:', pendJson.data);
+                // Cek duplikasi label
+                const labels = pendJson.data.map(d => d.label);
+                const uniqueLabels = [...new Set(labels)];
+                if (labels.length !== uniqueLabels.length) {
+                    console.warn('Duplikasi label dari backend:', labels.filter((l, i) => labels.indexOf(l) !== i));
+                }
+
+
+                console.log('pendonor list response:', pendJson);
+                // pendJson.data diharapkan array objek: { id, nama, jenis_kelamin, golongan_darah, rhesus, no_hp }
+                // Di dalam openPeserta(), ganti mapping ini:
+                // this.pendonorDarahOptions = (pendJson.data || []).map(p => {
+                //     const nama = p.nama_lengkap || '';  // <-- INI SALAH: p.nama_lengkap tidak ada
+                //     const gol = p.golongan_darah || '';
+                //     const rhesus = p.rhesus || '';
+                //     const no_hp = p.no_hp || '';
+                //     return {
+                //         id: String(p.id),
+                //         label: `${nama || '-'} — ${gol || '-'}${rhesus ? rhesus : ''} — ${no_hp || '-'}`,
+                //         raw: p
+                //     };
+                // });
+                // MENJADI: Gunakan data langsung dari backend (sudah ada label dan raw)
+                // this.pendonorDarahOptions = pendJson.data || [];
+                this.pendonorDarahOptions = (pendJson.data || []).map(p => {
+                    return {
+                        ...p,
+                        id: String(p.id), // wajib string agar konsisten
+                        label: p.label ? String(p.label) : `${p.nama_lengkap || p.nama || '-'} — ${p.golongan_darah || '-'} ${p.rhesus ? p.rhesus : ''} — ${p.no_hp || '-'}`.trim()
+                    };
+                });
+
+                this.$store.commit("hideLoading");
+            } catch (err) {
+                console.error("❌ Error openPeserta:", err);
+                this.$store.commit("hideLoading");
+                this.$q.notify({ type: "negative", message: "Gagal memuat peserta / daftar pendonor" });
+            }
+        },
+
+        onSelectPendonor(val) {
+            console.log('selectedPendonor (objek penuh):', val);
+            this.selectedPendonor = val;  // val adalah objek penuh
+
+        },
+
+
+        resetPesertaForm() {
+            this.selectedPendonor = null;
+            this.searchInput = '';
+            this.btn_add_peserta = false;
+        },
+
+        async addPeserta() {
+            if (!this.currentJadwal.id) {
+                this.$q.notify({ type: "negative", message: "Data jadwal tidak ditemukan" });
+                return;
+            }
+            if (!this.selectedPendonor) {
+                this.$q.notify({ type: "negative", message: "Pilih pendonor dari daftar terlebih dahulu" });
+                return;
+            }
+
+            this.btn_add_peserta = true;
+            try {
+                const body = {
+                    jadwal_id: this.currentJadwal.id,
+                    pendonor_id: this.selectedPendonor ? this.selectedPendonor.id : null  // Akses id dari objek
+                };
+
+                const res = await fetch(this.$store.state.url.JADWAL_DONOR + "addParticipant", {
+                    method: "POST",
+                    headers: {
+                        "content-type": "application/json",
+                        authorization: "kikensbatara " + localStorage.token
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const json = await res.json();
+                this.btn_add_peserta = false;
+
+                if (json.success) {
+                    this.$q.notify({ type: "positive", message: json.message || "Peserta berhasil ditambahkan" });
+                    await this.openPeserta(this.currentJadwal);
+                    this.selectedPendonor = null;  // Reset
+                } else {
+                    this.$q.notify({ type: "negative", message: json.message || "Gagal menambahkan peserta" });
+                }
+            } catch (err) {
+                this.btn_add_peserta = false;
+                console.error("❌ Error addPeserta:", err);
+                this.$q.notify({ type: "negative", message: "Terjadi kesalahan server" });
+            }
+        },
+
+        removePeserta(pesertaId) {
+            if (!pesertaId) {
+                this.$q.notify({ type: 'negative', message: 'ID peserta tidak ditemukan' });
+                return;
+            }
+
+            const ok = window.confirm('Apakah Anda yakin ingin menghapus peserta ini?');
+            if (!ok) return;
+
+            fetch(this.$store.state.url.JADWAL_DONOR + "removeParticipant", {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json",
+                    authorization: "kikensbatara " + localStorage.token
+                },
+                body: JSON.stringify({ id: pesertaId })
+            })
+                .then(res => res.json())
+                .then(res_data => {
+                    if (res_data.success) {
+                        this.$q.notify({ type: "positive", message: res_data.message || 'Peserta berhasil dihapus' });
+                        this.openPeserta(this.currentJadwal);
+                    } else {
+                        this.$q.notify({ type: "negative", message: res_data.message || 'Peserta tidak ditemukan' });
+                    }
+                })
+                .catch(err => {
+                    console.error("❌ Error removePeserta:", err);
+                    this.$q.notify({ type: "negative", message: 'Terjadi kesalahan server' });
+                });
+        },
+        onFilter(val, updateFn) {
+            this.searchInput = val;  // Track input
+            updateFn();  // Update opsi
+        }
 
     },
 

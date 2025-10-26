@@ -144,7 +144,7 @@
 
                      <div class="col-6">
                         <span class="h_lable">No HP</span>
-                        <q-input v-model="form.no_hp" type="tel" outlined square :dense="true"
+                        <q-input v-model="form.no_hp" type="tel" outlined square :dense="true" required
                            class="bg-white margin_btn" />
 
                      </div>
