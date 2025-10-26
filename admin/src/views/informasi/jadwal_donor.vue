@@ -45,7 +45,14 @@
                     <td>
                         <div class="text-bold">{{ data.nama_kegiatan }}</div>
                         <div class="q-mt-sm">
-                            <q-btn dense small color="positive" label="Peserta" icon="people" @click="openPeserta(data)" />
+                            <q-btn dense small color="positive" @click="openPeserta(data)" class="row items-center">
+                                <q-icon name="people" class="q-mr-xs" />
+                                <span style="font-size:13px">
+                                    {{ participantsCount[data.id] != null ? participantsCount[data.id] + ' peserta' :
+                                'Peserta' }}
+                                </span>
+                            </q-btn>
+
                         </div>
                     </td>
                     <td>
@@ -459,6 +466,7 @@ export default {
             ],
             currentJadwal: {},
             participants: [],
+            participantsCount: {},
             pendonorDarahOptions: [],
             selectedPendonor: null,
             btn_add_peserta: false,
@@ -579,31 +587,40 @@ export default {
             this.fileBaru = null
         },
 
-        getView() {
-            this.$store.commit("shoWLoading");
-            fetch(this.$store.state.url.JADWAL_DONOR + "getview", {
-                method: "POST",
-                headers: {
-                    "content-type": "application/json",
-                    authorization: "kikensbatara " + localStorage.token
-                },
-                body: JSON.stringify({
-                    data_ke: this.page_first,
-                    cari_value: this.cari_value,
-                    page_limit: this.page_limit
-                })
-            })
-                .then(res => res.json())
-                .then(res_data => {
-                    this.list_data = res_data.data || [];
-                    this.total = res_data.total || 0;
-                    this.page_last = Math.ceil(this.total / this.page_limit) || 1;
-                    this.$store.commit("hideLoading");
-                })
-                .catch(err => {
-                    console.error("❌ Error getView Jadwal Donor:", err);
-                    this.$store.commit("hideLoading");
+        async getView() {
+            try {
+                this.$store.commit("shoWLoading");
+
+                const res = await fetch(this.$store.state.url.JADWAL_DONOR + "getview", {
+                    method: "POST",
+                    headers: {
+                        "content-type": "application/json",
+                        authorization: "kikensbatara " + localStorage.token
+                    },
+                    body: JSON.stringify({
+                        data_ke: this.page_first,
+                        cari_value: this.cari_value,
+                        page_limit: this.page_limit
+                    })
                 });
+
+                const res_data = await res.json();
+
+                this.list_data = res_data.data || [];
+                this.total = res_data.total || 0;
+                this.page_last = Math.ceil(this.total / this.page_limit) || 1;
+
+                // update counts untuk semua jadwal yang ter-load (paralel)
+                if (Array.isArray(this.list_data) && this.list_data.length) {
+                    const promises = this.list_data.map(item => this.fetchParticipantsCount(item.id));
+                    await Promise.all(promises);
+                }
+
+                this.$store.commit("hideLoading");
+            } catch (err) {
+                console.error("❌ Error getView Jadwal Donor:", err);
+                this.$store.commit("hideLoading");
+            }
         },
 
         addData() {
@@ -764,6 +781,9 @@ export default {
                 this.participants = json.data || [];
                 console.log('Participants updated:', this.participants);
 
+                this.$set(this.participantsCount, this.currentJadwal.id, (this.participants || []).length);
+
+
                 // 2) ambil seluruh pendonor dari tabel pendonor_darah untuk opsi select
                 // GANTI endpoint di bawah jika nama endpoint Anda berbeda
                 // contoh asumsi: this.$store.state.url.PENDONOR_DARAH + "list"
@@ -905,7 +925,28 @@ export default {
         onFilter(val, updateFn) {
             this.searchInput = val;  // Track input
             updateFn();  // Update opsi
-        }
+        },
+        async fetchParticipantsCount(jadwalId) {
+            if (!jadwalId) return;
+            try {
+                const res = await fetch(this.$store.state.url.JADWAL_DONOR + "getParticipants", {
+                    method: "POST",
+                    headers: {
+                        "content-type": "application/json",
+                        authorization: "kikensbatara " + localStorage.token
+                    },
+                    body: JSON.stringify({ jadwal_id: jadwalId })
+                });
+                const json = await res.json();
+                const count = Array.isArray(json.data) ? json.data.length : 0;
+                // simpan ke map
+                this.$set(this.participantsCount, jadwalId, count);
+            } catch (err) {
+                console.error("❌ Error fetchParticipantsCount:", err);
+                this.$set(this.participantsCount, jadwalId, 0);
+            }
+        },
+
 
     },
 
