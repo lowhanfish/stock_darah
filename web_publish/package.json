@@ -11,6 +11,7 @@
   "dependencies": {
     "aos": "^2.3.4",
     "bootstrap": "^5.3.8",
+    "joi": "^18.0.1",
     "jquery": "^3.7.1",
     "jquery-circle-progress": "^1.2.2",
     "owl.carousel": "^2.3.4",
