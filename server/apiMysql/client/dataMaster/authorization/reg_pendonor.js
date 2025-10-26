@@ -673,6 +673,32 @@ router.post('/editPasswordPendonor', async (req, res) => {
   }
 });
 
+// Daftar pendonor ringkas untuk select (tanpa pagination)
+// GET /list
+router.get('/list', (req, res) => {
+  // opsional: filter only active / published
+  const sql = `
+    SELECT DISTINCT id, nama_lengkap AS nama_lengkap, golongan_darah, rhesus, no_hp
+    FROM pendonor_darah
+    WHERE status_verifikasi = 'active'
+    ORDER BY nama_lengkap ASC
+  `;
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching pendonor list:', err);
+      return res.status(500).json({ success: false, message: 'Terjadi kesalahan server' });
+    }
+    // kembalikan dalam bentuk yang mudah dipakai q-select: { id, label, raw? }
+    const data = (results || []).map(r => ({
+      id: r.id,
+      label: `${r.nama_lengkap} — ${r.golongan_darah || '-'}${r.rhesus || ''} — ${r.no_hp || '-'}`,
+      raw: r
+    }));
+    res.json({ success: true, data });
+  });
+});
+
+
 
 
 module.exports = router;
