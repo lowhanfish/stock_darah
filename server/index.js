@@ -53,6 +53,7 @@ app.use('/api/v1/checkAuth', middleware.isLoggedIn, checkAuth);
 // =================== SERVER =====================
 
 // =================== CLIENT =====================
+
 const berita = require('./apiMysql/client/berita');
 app.use('/api/v1/berita', middleware.isLoggedIn, berita);
 const dashboard = require('./apiMysql/client/dashboard');
