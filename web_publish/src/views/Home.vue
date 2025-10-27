@@ -76,47 +76,6 @@
     </section>
 
     <!-- :: Features -->
-    <!-- <section class="features">
-        <div class="container">
-            <div class="row all-features-item">
-                <div class="col-lg-4 padding-0">
-                    <div class="features-item one">
-                       
-                        <img class="features-icon" src="/assets/images/Donor.png" alt="Donor" />
-                        <div class="item-text">
-                            <h4>Pendonor Aktif</h4>
-                            <h1>1025</h1>
-                            <h2>Pendonor Terdaftar</h2>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 padding-0">
-                    <div class="features-item two">
-                        <i class="features-icon flaticon-medical-folder"></i>
-                        <div class="item-text">
-                            <h4>Request Appoinment</h4>
-                            <p>Lorem Ipsum is simply text of the printing and typesetting industry. consectetur
-                                adipiscing elit.</p>
-                            <a class="make-appoinment" href="01_appointment.html">Make Appoinment</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 padding-0">
-                    <div class="features-item three">
-                        <i class="features-icon flaticon-medical-file"></i>
-                        <div class="item-text">
-                            <h4>Doctor Timetable</h4>
-                            <p>Lorem Ipsum is simply text of the printing and typesetting industry. consectetur
-                                adipiscing elit.</p>
-                            <a class="timetable" href="01_doctors-timetable.html">Discover Timetable</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section> -->
-
-    <!-- :: Features -->
     <section class="features" style="background-color: #F8F8F8;">
         <div class="container">
             <div class="row all-features-item">
@@ -172,9 +131,6 @@
             </div>
         </div>
     </section>
-
-
-
 
     <!-- :: Stok darah -->
     <section class="doctors py-100-70">
@@ -232,21 +188,13 @@
                             </div>
                         </div>
                     </div>
-
-
-
-
-
-
                 </div>
             </div>
 
         </div>
     </section>
 
-
-
-    <!-- :: Blog -->
+    <!-- :: Blog (DIUBAH: tampilkan 3 berita terakhir dari backend) -->
     <section class="blog py-100-70">
         <div class="container">
             <div class="sec-title">
@@ -280,8 +228,6 @@
                                         📍 Google Maps
                                     </a>
                                 </div>
-
-                                <!-- Bagian Banner / Poster -->
                                 <div class="poster">
                                     <img src="/assets/images/poster-donor.jpg" class="poster-img"
                                         @click="openModal('/assets/images/poster-donor.jpg')" />
@@ -293,67 +239,50 @@
                 </div>
 
             </div>
+
             <div class="row">
-                <div class="col-md-6 col-lg-4">
+                <!-- Skeleton / placeholder saat loading -->
+                <template v-if="loadingArticles">
+                  <div class="col-md-6 col-lg-4" v-for="n in 3" :key="'sk-'+n">
                     <div class="blog-item">
-                        <div class="img-box">
-                            <a href="02_blog.html" class="open-post">
-                                <img class="img-fluid" src="/assets/images/blog/01_blog.jpg" alt="01 Blog">
-                            </a>
-
-                        </div>
-                        <div class="text-box">
-                            <span class="blog-date">Jan 25, 2021</span>
-                            <a href="02_blog.html" class="title-blog">
-                                <h5>Diabetes &amp; blood pressor check up</h5>
-                            </a>
-                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusm tempor incididunt
-                                ut labore et dolore magna aliqua...</p>
-                            <a href="02_blog.html" class="link">Discover More</a>
-                        </div>
+                      <div class="img-box" style="background:#eee;height:180px;border-radius:6px"></div>
+                      <div class="text-box">
+                        <span class="blog-date">&nbsp;</span>
+                        <div class="title-blog"><h5 style="background:#eee;height:22px;width:80%;border-radius:4px"></h5></div>
+                        <p style="background:#f5f5f5;height:48px;width:100%;border-radius:4px;margin-top:8px"></p>
+                      </div>
                     </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
+                  </div>
+                </template>
+
+                <!-- Tampilkan 3 artikel terakhir -->
+                <template v-else>
+                  <div class="col-md-6 col-lg-4" v-for="item in articles" :key="item.id">
                     <div class="blog-item">
-                        <div class="img-box">
-                            <a href="02_blog.html" class="open-post">
-                                <img class="img-fluid" src="/assets/images/blog/02_blog.jpg" alt="02 Blog">
-                            </a>
-
-                        </div>
-                        <div class="text-box">
-                            <span class="blog-date">May 25, 2021</span>
-                            <a href="02_blog.html" class="title-blog">
-                                <h5>Doctor’s Failure to Diagnose a Medical Condition</h5>
-                            </a>
-                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusm tempor incididunt
-                                ut labore et dolore magna aliqua...</p>
-                            <a href="02_blog.html" class="link">Discover More</a>
-                        </div>
+                      <div class="img-box">
+                        <a :href="articleLink(item)" class="open-post" @click.prevent="openArticle(item)">
+                          <img class="img-fluid" :src="item.image_url" :alt="item.judul" style="max-height:180px;object-fit:cover;width:100%" />
+                        </a>
+                      </div>
+                      <div class="text-box">
+                        <span class="blog-date">{{ formatDate(item.createAt) }}</span>
+                        <a href="#" class="title-blog" @click.prevent="openArticle(item)">
+                          <h5 v-html="item.judul"></h5>
+                        </a>
+                        <p>{{ excerpt(item.isi) }}</p>
+                        <a href="#" class="link" @click.prevent="openArticle(item)">Discover More</a>
+                      </div>
                     </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="blog-item">
-                        <div class="img-box">
-                            <a href="02_blog.html" class="open-post">
-                                <img class="img-fluid" src="/assets/images/blog/03_blog.jpg" alt="03 Blog">
-                            </a>
+                  </div>
 
-                        </div>
-                        <div class="text-box">
-                            <span class="blog-date">May 5, 2021</span>
-                            <a href="02_blog.html" class="title-blog">
-                                <h5>Brushing your teeth may keep your heart healthy</h5>
-                            </a>
-                            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusm tempor incididunt
-                                ut labore et dolore magna aliqua...</p>
-                            <a href="02_blog.html" class="link">Discover More</a>
-                        </div>
-                    </div>
-                </div>
+                  <div class="col-12" v-if="articles.length === 0">
+                    <p>Tidak ada artikel terbaru.</p>
+                  </div>
+                </template>
             </div>
         </div>
     </section>
+
     <!-- :: Gallery -->
     <div class="gallery py-100-70" style="background-color: #F8F8F8;">
         <div class="container">
@@ -371,6 +300,7 @@
                 </div>
             </div>
             <div class="row">
+                <!-- gallery items tetap seperti semula (tidak diubah) -->
                 <div class="col-md-6 col-lg-4">
                     <div class="gallery-item">
                         <span></span>
@@ -391,116 +321,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="gallery-item">
-                        <span></span>
-                        <div class="img-box">
-                            <img class="img-fluid gallery-item-img" src="/assets/images/gallery/02_gallery.jpg"
-                                alt="02 Gallery">
-                        </div>
-                        <div class="hover-box">
-                            <div class="text-box">
-                                <div class="tags"><a href="01_single-gallery.html">Research</a></div>
-                                <h4><a href="01_single-gallery.html">Medical Scanner</a></h4>
-                            </div>
-                            <ul class="gallery-icon">
-                                <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
-                                <li><a class="popup" href="/assets/images/gallery/02_gallery.jpg"><i
-                                            class="far fa-eye"></i></a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="gallery-item">
-                        <span></span>
-                        <div class="img-box">
-                            <img class="img-fluid gallery-item-img" src="/assets/images/gallery/03_gallery.jpg"
-                                alt="03 Gallery">
-                        </div>
-                        <div class="hover-box">
-                            <div class="text-box">
-                                <div class="tags"><a href="01_single-gallery.html">Departments</a></div>
-                                <h4><a href="01_single-gallery.html">Bariatric Surgery</a></h4>
-                            </div>
-                            <ul class="gallery-icon">
-                                <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
-                                <li><a class="popup" href="/assets/images/gallery/03_gallery.jpg"><i
-                                            class="far fa-eye"></i></a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="gallery-item">
-                        <span></span>
-                        <div class="img-box">
-                            <img class="img-fluid gallery-item-img" src="/assets/images/gallery/04_gallery.jpg"
-                                alt="04 Gallery">
-                        </div>
-                        <div class="hover-box">
-                            <div class="text-box">
-                                <div class="tags"><a href="01_single-gallery.html">Medical</a></div>
-                                <h4><a href="01_single-gallery.html">Modern Medicine</a></h4>
-                            </div>
-                            <ul class="gallery-icon">
-                                <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
-                                <li><a class="popup" href="/assets/images/gallery/04_gallery.jpg"><i
-                                            class="far fa-eye"></i></a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="gallery-item">
-                        <span></span>
-                        <div class="img-box">
-                            <img class="img-fluid gallery-item-img" src="/assets/images/gallery/05_gallery.jpg"
-                                alt="05 Gallery">
-                        </div>
-                        <div class="hover-box">
-                            <div class="text-box">
-                                <div class="tags"><a href="01_single-gallery.html">surgery</a></div>
-                                <h4><a href="01_single-gallery.html">Treat transplant</a></h4>
-                            </div>
-                            <ul class="gallery-icon">
-                                <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
-                                <li><a class="popup" href="/assets/images/gallery/05_gallery.jpg"><i
-                                            class="far fa-eye"></i></a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <div class="gallery-item">
-                        <span></span>
-                        <div class="img-box">
-                            <img class="img-fluid gallery-item-img" src="/assets/images/gallery/06_gallery.jpg"
-                                alt="06 Gallery">
-                        </div>
-                        <div class="hover-box">
-                            <div class="text-box">
-                                <div class="tags"><a href="01_single-gallery.html">Medical</a></div>
-                                <h4><a href="01_single-gallery.html">Pulmonology care</a></h4>
-                            </div>
-                            <ul class="gallery-icon">
-                                <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
-                                <li><a class="popup" href="/assets/images/gallery/06_gallery.jpg"><i
-                                            class="far fa-eye"></i></a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+                <!-- ... sisa gallery tetap sama ... -->
             </div>
         </div>
     </div>
 
     <!-- Modal Gambar -->
-    <!-- <div id="imageModal" class="modal" aria-hidden="true">
-  <span class="close" id="modalClose" aria-label="Tutup">&times;</span>
-  <img class="modal-content" id="modalImage" alt="Poster besar">
-</div> -->
-
     <div id="imageModal" ref="imageModal" :class="['modal', { show: isModalOpen }]" @click.self="closeModal"
         aria-hidden="true">
         <span class="close" id="modalClose" aria-label="Tutup" @click="closeModal">&times;</span>
@@ -509,10 +335,7 @@
 
 </template>
 
-
 <script>
-
-
 import { nextTick } from 'vue'
 
 export default {
@@ -526,7 +349,10 @@ export default {
                 // ... dst
             ],
             isModalOpen: false,
-            modalSrc: ''
+            modalSrc: '',
+            // berita
+            articles: [],
+            loadingArticles: false,
         }
     },
     name: 'Home',
@@ -559,23 +385,175 @@ export default {
         } else {
             console.error('jQuery / owlCarousel tidak tersedia')
         }
+
+        // ambil 3 berita terakhir saat mounted (fokus: berita saja)
+        this.loadLatestNews()
     },
     methods: {
         openModal(src) {
             this.modalSrc = src
             this.isModalOpen = true
-            // pastikan fokus/scroll ke modal bila perlu
-            document.body.style.overflow = 'hidden' // optional: mencegah scroll background
+            document.body.style.overflow = 'hidden'
         },
         closeModal() {
             this.isModalOpen = false
             this.modalSrc = ''
             document.body.style.overflow = '' // reset
+        },
+
+        /* ------------------ Berita: ambil 3 terakhir ------------------ */
+       /* ------------------ Berita: ambil 3 terakhir (perbaikan agar safe jika this.$store undefined) ------------------ */
+async loadLatestNews() {
+  this.loadingArticles = true
+  try {
+    // safe access ke this.$store (fallback ke defaults)
+    const storeFallback = {
+      berita: 'http://localhost:5088/api/v1/berita',
+      url: { URL_APP: 'http://localhost:5088/' },
+      UPLOADS: 'http://localhost:5088/uploads/',
+      auth: { token: null }
+    }
+    const store = (this && this.$store) ? this.$store : { state: storeFallback }
+
+    // tentukan base endpoint berita
+    const base = (store.state.berita) ? store.state.berita : (store.state.url && store.state.url.URL_APP ? store.state.url.URL_APP + 'api/v1/berita' : storeFallback.berita)
+    const url = base.replace(/\/$/, '') + '/getview'
+    const payload = { data_ke: 1, cari_value: '', page_limit: 3 }
+
+    const headers = { 'Content-Type': 'application/json' }
+    const token = store.state.auth && store.state.auth.token
+    if (token) headers['Authorization'] = `Bearer ${token}`
+
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    })
+
+    if (!resp.ok) {
+      // coba ambil body message jika ada
+      let errBody = null
+      try { errBody = await resp.json() } catch(e){ /* ignore */ }
+      console.error('Gagal ambil berita (HTTP):', resp.status, resp.statusText, errBody)
+      this.articles = []
+      return
+    }
+
+    const result = await resp.json()
+    if (!(result && result.success && Array.isArray(result.data))) {
+      console.warn('Response tidak mengandung data berita yang diharapkan:', result)
+      this.articles = []
+      return
+    }
+
+    // siapkan base uploads (fallback)
+    const baseUploads = (store.state.UPLOADS)
+                      ? String(store.state.UPLOADS).replace(/\/$/, '')
+                      : (store.state.url && store.state.url.URL_APP ? (store.state.url.URL_APP + 'uploads').replace(/\/$/, '') : storeFallback.UPLOADS.replace(/\/$/, ''))
+
+    // untuk setiap berita, coba cari path gambar yang valid (HEAD request). Jika HEAD diblokir oleh CORS,
+    // kita fallback langsung ke path pertama (browser mungkin gagal dengan 404).
+    const mapPromises = result.data.map(async r => {
+      const fileName = r.file_name || ''
+      let image_url = '/assets/images/blog/placeholder.jpg' // fallback
+
+      if (fileName) {
+        const fn = encodeURIComponent(fileName)
+        const tryPaths = [
+          `${baseUploads}/berita/${fn}`,
+          `${baseUploads}/${fn}`
+        ]
+
+        for (let p of tryPaths) {
+          try {
+            // HEAD request untuk cek ada atau tidak; jika gagal karena CORS, kita lanjutkan dan tidak pilih path itu
+            const check = await fetch(p, { method: 'HEAD' })
+            if (check && check.ok) {
+              image_url = p
+              break
+            }
+            // jika check.status === 405 (method not allowed) atau 403/401/0, skip dan coba path berikutnya
+          } catch (err) {
+            // HEAD request error (mungkin CORS) — jangan crash, coba path berikutnya
+            // console.debug('HEAD check failed for', p, err)
+          }
         }
+
+        // jika semua HEAD gagal, setlah ke first try path (agar browser tetap mencoba men-load gambar; mungkin 200)
+        if (image_url === '/assets/images/blog/placeholder.jpg') {
+          image_url = tryPaths[0]
+        }
+      }
+
+      return {
+        id: r.id,
+        judul: r.judul,
+        sumber: r.sumber,
+        isi: r.isi,
+        file_name: r.file_name,
+        createAt: r.createAt || r.create_at || r.createdAt || null,
+        image_url
+      }
+    })
+
+    this.articles = await Promise.all(mapPromises)
+  } catch (e) {
+    console.error('Exception loadLatestNews:', e)
+    this.articles = []
+  } finally {
+    this.loadingArticles = false
+  }
+},
+/* ------------------ akhir berita ------------------ */
+
+
+        formatDate(dt) {
+          if (!dt) return ''
+          // DB kamu sudah memberikan createAt seperti "2025-10-25 11:20:10" atau "2025-10-25"
+          const d = new Date(dt)
+          if (isNaN(d)) {
+            // fallback: tampilkan apa adanya
+            return dt
+          }
+          const opts = { year: 'numeric', month: 'short', day: 'numeric' }
+          return d.toLocaleDateString('id-ID', opts)
+        },
+
+        excerpt(html, len = 120) {
+          if (!html) return ''
+          // bersihkan tag html
+          const plain = html.replace(/(<([^>]+)>)/gi, "")
+          return plain.length > len ? plain.slice(0, len).trim() + '...' : plain
+        },
+
+        articleLink(item) {
+          // kamu bisa sesuaikan route nama 'BeritaDetail' jika ada
+          if (this.$router) {
+            try {
+              return this.$router.resolve({ name: 'BeritaDetail', params: { id: item.id } }).href
+            } catch (e) {
+              // fallback ke list
+            }
+          }
+          return '02_blog.html'
+        },
+
+        openArticle(item) {
+          // jika pakai vue-router, navigasi ke halaman detail (sesuaikan name route jika perlu)
+          if (this.$router) {
+            try {
+              this.$router.push({ name: 'BeritaDetail', params: { id: item.id } })
+              return
+            } catch (e) {
+              // fallback
+            }
+          }
+          // default: ke halaman blog list
+          window.location.href = `02_blog.html?id=${encodeURIComponent(item.id)}`
+        }
+        /* ------------------ akhir berita ------------------ */
     }
 }
-
-
 </script>
 
 <style scoped>

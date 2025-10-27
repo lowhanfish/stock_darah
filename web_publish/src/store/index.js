@@ -1,6 +1,6 @@
 import { createStore } from 'vuex'
 
-var URL_APP = 'http://localhost:5028/'  
+var URL_APP = 'http://localhost:5088/'  
 
 export default createStore({
   state: { 
@@ -9,6 +9,8 @@ export default createStore({
     },
     BASE_URL: URL_APP,  
     UPLOADS: URL_APP + 'uploads/',
+    berita : URL_APP +"api/v1/berita",
+    
     
     
     auth: {
