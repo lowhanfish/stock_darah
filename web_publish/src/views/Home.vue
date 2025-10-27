@@ -261,33 +261,34 @@
                         <a class="btn-1 sec-btn" href="02_blog.html">Jelajahi Artikel Kami</a>
                     </div>
                     <div class="col-lg-4">
-                        <div class="features-opening-hours">
+                        <div class="features-opening-hours" style="position: relative;">
+                            <div class="status-badge status-aktif">Aktif</div>
                             <div class="header-icon-title">
-    <img src="/assets/images/donasi.png" alt="Donor Icon" style="height: 100px;" class="flaticon-globe" />
-    <h4>Jadwal Donor Darah</h4>
-  </div>
-  <div class="content-row">
-    <!-- Bagian Jadwal -->
-    <div class="schedule">
-      <p><strong>Nama Kegiatan:</strong><br> Donor Darah Peduli Sesama</p>
-      <p><strong>Tanggal:</strong><br> 1 – 3 November 2025</p>
-      <p><strong>Waktu:</strong><br> 08.00 – 15.00 WITA</p>
-      <p><strong>Lokasi:</strong><br> RSUD KONUT</p>
-    </div>
+                                <img src="/assets/images/donasi.png" alt="Donor Icon" style="height: 100px;"
+                                    class="flaticon-globe" />
+                                <h4>Jadwal Donor Darah</h4>
+                            </div>
 
-    <!-- Bagian Banner / Poster -->
-    <div class="poster">
-        <img src="/assets/images/poster-donor.jpg" class="poster-img" @click="openModal('/assets/images/poster-donor.jpg')" />
+                            <div class="content-row">
+                                <div class="schedule">
+                                    <p><strong>Nama Kegiatan:</strong><br> Donor Darah Peduli Sesama</p>
+                                    <p><strong>Tanggal:</strong><br> 1 – 3 November 2025</p>
+                                    <p><strong>Waktu:</strong><br> 08.00 – 15.00 WITA</p>
+                                    <p><strong>Lokasi:</strong><br> RSUD KONUT</p>
+                                    <a href="https://www.google.com/maps?q=RSUD+Konawe+Utara" target="_blank"
+                                        class="btn-map">
+                                        📍 Google Maps
+                                    </a>
+                                </div>
 
-    </div>
-
-    
-  </div>
-
-
+                                <!-- Bagian Banner / Poster -->
+                                <div class="poster">
+                                    <img src="/assets/images/poster-donor.jpg" class="poster-img"
+                                        @click="openModal('/assets/images/poster-donor.jpg')" />
+                                </div>
+                            </div>
                         </div>
                     </div>
-
 
                 </div>
 
@@ -494,16 +495,17 @@
         </div>
     </div>
 
-      <!-- Modal Gambar -->
-<!-- <div id="imageModal" class="modal" aria-hidden="true">
+    <!-- Modal Gambar -->
+    <!-- <div id="imageModal" class="modal" aria-hidden="true">
   <span class="close" id="modalClose" aria-label="Tutup">&times;</span>
   <img class="modal-content" id="modalImage" alt="Poster besar">
 </div> -->
 
-<div id="imageModal" ref="imageModal" :class="['modal', { show: isModalOpen }]" @click.self="closeModal" aria-hidden="true">
-  <span class="close" id="modalClose" aria-label="Tutup" @click="closeModal">&times;</span>
-  <img class="modal-content" ref="modalImage" :src="modalSrc" alt="Poster besar" />
-</div>
+    <div id="imageModal" ref="imageModal" :class="['modal', { show: isModalOpen }]" @click.self="closeModal"
+        aria-hidden="true">
+        <span class="close" id="modalClose" aria-label="Tutup" @click="closeModal">&times;</span>
+        <img class="modal-content" ref="modalImage" :src="modalSrc" alt="Poster besar" />
+    </div>
 
 </template>
 
@@ -524,7 +526,7 @@ export default {
                 // ... dst
             ],
             isModalOpen: false,
-      modalSrc: ''
+            modalSrc: ''
         }
     },
     name: 'Home',
@@ -559,18 +561,18 @@ export default {
         }
     },
     methods: {
-    openModal(src) {
-      this.modalSrc = src
-      this.isModalOpen = true
-      // pastikan fokus/scroll ke modal bila perlu
-      document.body.style.overflow = 'hidden' // optional: mencegah scroll background
-    },
-    closeModal() {
-      this.isModalOpen = false
-      this.modalSrc = ''
-      document.body.style.overflow = '' // reset
+        openModal(src) {
+            this.modalSrc = src
+            this.isModalOpen = true
+            // pastikan fokus/scroll ke modal bila perlu
+            document.body.style.overflow = 'hidden' // optional: mencegah scroll background
+        },
+        closeModal() {
+            this.isModalOpen = false
+            this.modalSrc = ''
+            document.body.style.overflow = '' // reset
+        }
     }
-  }
 }
 
 
@@ -579,50 +581,58 @@ export default {
 <style scoped>
 /* Modal backdrop */
 .modal {
-  display: none;
-  position: fixed;
-  z-index: 9999;              /* tingkat tinggi supaya di atas elemen lain */
-  left: 0; top: 0;
-  width: 100%; height: 100%;
-  padding: 60px;
-  box-sizing: border-box;
-  background-color: rgba(0,0,0,0.85);
-  align-items: center;
-  justify-content: center;
-  -webkit-tap-highlight-color: transparent;
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    /* tingkat tinggi supaya di atas elemen lain */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    padding: 60px;
+    box-sizing: border-box;
+    background-color: rgba(0, 0, 0, 0.85);
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* Toggle tampil */
 .modal.show {
-  display: flex;
+    display: flex;
 }
 
 /* Gambar modal */
 .modal-content {
-  display: block;
-  width: auto; height: auto;
-  max-width: 90vw; max-height: 90vh;
-  object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
-  z-index: 10000;
-  pointer-events: auto;
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    pointer-events: auto;
 }
 
 /* Tombol close */
 .close {
-  position: absolute;
-  top: 18px; right: 22px;
-  color: #ff0000;
-  font-size: 36px;
-  font-weight: bold;
-  cursor: pointer;
-  z-index: 10001;            /* harus lebih tinggi dari gambar */
-  user-select: none;
-  pointer-events: auto;      /* pastikan menerima klik */
-  background: transparent;
-  padding: 6px 10px;
-  border-radius: 6px;
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    color: #ff0000;
+    font-size: 36px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10001;
+    /* harus lebih tinggi dari gambar */
+    user-select: none;
+    pointer-events: auto;
+    /* pastikan menerima klik */
+    background: transparent;
+    padding: 6px 10px;
+    border-radius: 6px;
 }
 
 /* Jika ada plugin yg mengatur pointer-events: none atau overlay di dalam modal,
@@ -630,6 +640,58 @@ export default {
 
 /* Responsive */
 @media (max-width: 480px) {
-  .close { font-size: 30px; right: 14px; top: 12px; }
+    .close {
+        font-size: 30px;
+        right: 14px;
+        top: 12px;
+    }
+}
+
+/* Tombol Maps */
+.btn-map {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 14px;
+    background-color: #ffd4d4;
+    color: #f70505;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-map:hover {
+    background-color: #c62828;
+    color: #ffffff;
+}
+
+/* Badge Status */
+.status-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* Warna berdasarkan status */
+.status-aktif {
+    background-color: #28a745;
+    /* Hijau */
+}
+
+.status-selesai {
+    background-color: #007bff;
+    /* Biru */
+}
+
+.status-batal {
+    background-color: #dc3545;
+    /* Merah */
 }
 </style>

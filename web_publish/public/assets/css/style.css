@@ -1404,9 +1404,9 @@ p {
 
 .features-opening-hours .header-icon-title {
     display: flex;
-    align-items: center;      /* rata tengah vertikal */
-    gap: 15px;                /* jarak antar gambar dan teks */
-    margin-bottom: 15px;
+    align-items: center;     
+    gap: 15px;              
+    margin-bottom: 0!important;
   }
 
 .features-opening-hours {
@@ -1428,11 +1428,11 @@ p {
   color:#ffffff!important;
 }
 
-/* Kontainer jadwal + poster sejajar */
 .features-opening-hours .content-row {
     display: flex;
-    align-items: stretch; /* agar tinggi sejajar */
+    align-items: stretch; 
     gap: 20px;
+    margin-top: 0px!important;
   }
   
   /* Jadwal */
@@ -1492,7 +1492,7 @@ p {
     font-size: 40px;
     line-height: 1;
     color: #FFF;
-    margin-bottom: 25px;
+    margin-bottom: 2px;
     display: inline-block;
 }
 .features-opening-hours:hover .flaticon-globe{
