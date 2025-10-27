@@ -179,7 +179,7 @@
     <!-- :: Stok darah -->
     <section class="doctors py-100-70">
         <img src="/assets/images/virus.png" alt="dekor virus" class="decor decor-right" />
-         <img src="/assets/images/cells.png" alt="dekor sel darah" class="decor decor-left" />
+        <img src="/assets/images/cells.png" alt="dekor sel darah" class="decor decor-left" />
 
 
         <div class="container">
@@ -191,9 +191,10 @@
 
                     </div>
                     <div class="col-lg-5">
-                        <p class="sec-explain">Pantau status ketersediaan darah di wilayah Anda secara real-time. Kami menyediakan 
+                        <p class="sec-explain">Pantau status ketersediaan darah di wilayah Anda secara real-time. Kami
+                            menyediakan
                             data terkini mengenai semua golongan darah untuk layanan medis darurat.</p>
-                            
+
                         <a class="btn-1 sec-btn" href="01_doctors.html">Cek Ketersediaan Golongan Darah</a>
                     </div>
                 </div>
@@ -214,9 +215,9 @@
                                         <div class="blood-label">
                                             <div class="type-text">{{ b.type }}</div>
                                             <div :class="['badge',
-                                                b.status === 'Tersedia' ? 'badge-available' :
-                                                b.status === 'Rendah' ? 'badge-low' :
-                                                b.status === 'Kritis' ? 'badge-critical' : 'badge-default']">
+                            b.status === 'Tersedia' ? 'badge-available' :
+                                b.status === 'Rendah' ? 'badge-low' :
+                                    b.status === 'Kritis' ? 'badge-critical' : 'badge-default']">
                                                 {{ b.status }}
                                             </div>
                                         </div>
@@ -243,22 +244,53 @@
         </div>
     </section>
 
-    
+
 
     <!-- :: Blog -->
     <section class="blog py-100-70">
         <div class="container">
             <div class="sec-title">
                 <div class="row">
-                    <div class="col-lg-5">
+                    <div class="col-lg-4">
                         <h2>Artikel Terbaru</h2>
                         <h3>Kegiatan dan Edukasi Kesehatan Terkini</h3>
                     </div>
-                    <div class="col-lg-5">
-                        <p class="sec-explain">Ikuti berita tentang seminar medis, kampanye kesehatan masyarakat, dan tips lifestyle dari tim dokter berpengalaman kami. Selalu update demi hidup sehat Anda..</p>
+                    <div class="col-lg-4">
+                        <p class="sec-explain">Ikuti berita tentang seminar medis, kampanye kesehatan masyarakat, dan
+                            tips lifestyle dari tim dokter berpengalaman kami. Selalu update demi hidup sehat Anda..</p>
                         <a class="btn-1 sec-btn" href="02_blog.html">Jelajahi Artikel Kami</a>
                     </div>
+                    <div class="col-lg-4">
+                        <div class="features-opening-hours">
+                            <div class="header-icon-title">
+    <img src="/assets/images/donasi.png" alt="Donor Icon" style="height: 100px;" class="flaticon-globe" />
+    <h4>Jadwal Donor Darah</h4>
+  </div>
+  <div class="content-row">
+    <!-- Bagian Jadwal -->
+    <div class="schedule">
+      <p><strong>Nama Kegiatan:</strong><br> Donor Darah Peduli Sesama</p>
+      <p><strong>Tanggal:</strong><br> 1 – 3 November 2025</p>
+      <p><strong>Waktu:</strong><br> 08.00 – 15.00 WITA</p>
+      <p><strong>Lokasi:</strong><br> RSUD KONUT</p>
+    </div>
+
+    <!-- Bagian Banner / Poster -->
+    <div class="poster">
+        <img src="/assets/images/poster-donor.jpg" class="poster-img" @click="openModal('/assets/images/poster-donor.jpg')" />
+
+    </div>
+
+    
+  </div>
+
+
+                        </div>
+                    </div>
+
+
                 </div>
+
             </div>
             <div class="row">
                 <div class="col-md-6 col-lg-4">
@@ -267,7 +299,7 @@
                             <a href="02_blog.html" class="open-post">
                                 <img class="img-fluid" src="/assets/images/blog/01_blog.jpg" alt="01 Blog">
                             </a>
-                            
+
                         </div>
                         <div class="text-box">
                             <span class="blog-date">Jan 25, 2021</span>
@@ -286,7 +318,7 @@
                             <a href="02_blog.html" class="open-post">
                                 <img class="img-fluid" src="/assets/images/blog/02_blog.jpg" alt="02 Blog">
                             </a>
-                            
+
                         </div>
                         <div class="text-box">
                             <span class="blog-date">May 25, 2021</span>
@@ -305,7 +337,7 @@
                             <a href="02_blog.html" class="open-post">
                                 <img class="img-fluid" src="/assets/images/blog/03_blog.jpg" alt="03 Blog">
                             </a>
-                            
+
                         </div>
                         <div class="text-box">
                             <span class="blog-date">May 5, 2021</span>
@@ -322,136 +354,163 @@
         </div>
     </section>
     <!-- :: Gallery -->
-    <div class="gallery py-100-70"  style="background-color: #F8F8F8;">
-            <div class="container">
-                <div class="sec-title">
-                    <div class="row">
-                        <div class="col-lg-5">
-                            <h2>Feature's Gallery</h2>
-                            <h3>Momen Pelayanan dan Aksi Sosial Terbaik Kami</h3>
+    <div class="gallery py-100-70" style="background-color: #F8F8F8;">
+        <div class="container">
+            <div class="sec-title">
+                <div class="row">
+                    <div class="col-lg-5">
+                        <h2>Feature's Gallery</h2>
+                        <h3>Momen Pelayanan dan Aksi Sosial Terbaik Kami</h3>
+                    </div>
+                    <div class="col-lg-5">
+                        <p class="sec-explain">Kami mengabadikan setiap momen komitmen kami, mulai dari bakti sosial,
+                            kampanye kesehatan masyarakat, hingga event edukasi medis yang kami selenggarakan.</p>
+                        <a class="btn-1 sec-btn" href="01_gallery.html">View All Gallery</a>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 col-lg-4">
+                    <div class="gallery-item">
+                        <span></span>
+                        <div class="img-box">
+                            <img class="img-fluid gallery-item-img" src="/assets/images/gallery/01_gallery.jpg"
+                                alt="01 Gallery">
                         </div>
-                        <div class="col-lg-5">
-                            <p class="sec-explain">Kami mengabadikan setiap momen komitmen kami, mulai dari bakti sosial, kampanye kesehatan masyarakat, hingga event edukasi medis yang kami selenggarakan.</p>
-                            <a class="btn-1 sec-btn" href="01_gallery.html">View All Gallery</a>
+                        <div class="hover-box">
+                            <div class="text-box">
+                                <div class="tags"><a href="01_single-gallery.html">surgery</a></div>
+                                <h4><a href="01_single-gallery.html">Complete surgery</a></h4>
+                            </div>
+                            <ul class="gallery-icon">
+                                <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
+                                <li><a class="popup" href="/assets/images/gallery/01_gallery.jpg"><i
+                                            class="far fa-eye"></i></a></li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-6 col-lg-4">
-                        <div class="gallery-item">
-                            <span></span>
-                            <div class="img-box">
-                                <img class="img-fluid gallery-item-img" src="/assets/images/gallery/01_gallery.jpg" alt="01 Gallery">
+                <div class="col-md-6 col-lg-4">
+                    <div class="gallery-item">
+                        <span></span>
+                        <div class="img-box">
+                            <img class="img-fluid gallery-item-img" src="/assets/images/gallery/02_gallery.jpg"
+                                alt="02 Gallery">
+                        </div>
+                        <div class="hover-box">
+                            <div class="text-box">
+                                <div class="tags"><a href="01_single-gallery.html">Research</a></div>
+                                <h4><a href="01_single-gallery.html">Medical Scanner</a></h4>
                             </div>
-                            <div class="hover-box">
-                                <div class="text-box">
-                                    <div class="tags"><a href="01_single-gallery.html">surgery</a></div>
-                                    <h4><a href="01_single-gallery.html">Complete surgery</a></h4>
-                                </div>
-                                <ul class="gallery-icon">
-                                    <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
-                                    <li><a class="popup" href="/assets/images/gallery/01_gallery.jpg"><i class="far fa-eye"></i></a></li>
-                                </ul>
-                            </div>
+                            <ul class="gallery-icon">
+                                <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
+                                <li><a class="popup" href="/assets/images/gallery/02_gallery.jpg"><i
+                                            class="far fa-eye"></i></a></li>
+                            </ul>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="gallery-item">
-                            <span></span>
-                            <div class="img-box">
-                                <img class="img-fluid gallery-item-img" src="/assets/images/gallery/02_gallery.jpg" alt="02 Gallery">
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="gallery-item">
+                        <span></span>
+                        <div class="img-box">
+                            <img class="img-fluid gallery-item-img" src="/assets/images/gallery/03_gallery.jpg"
+                                alt="03 Gallery">
+                        </div>
+                        <div class="hover-box">
+                            <div class="text-box">
+                                <div class="tags"><a href="01_single-gallery.html">Departments</a></div>
+                                <h4><a href="01_single-gallery.html">Bariatric Surgery</a></h4>
                             </div>
-                            <div class="hover-box">
-                                <div class="text-box">
-                                    <div class="tags"><a href="01_single-gallery.html">Research</a></div>
-                                    <h4><a href="01_single-gallery.html">Medical Scanner</a></h4>
-                                </div>
-                                <ul class="gallery-icon">
-                                    <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
-                                    <li><a class="popup" href="/assets/images/gallery/02_gallery.jpg"><i class="far fa-eye"></i></a></li>
-                                </ul>
-                            </div>
+                            <ul class="gallery-icon">
+                                <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
+                                <li><a class="popup" href="/assets/images/gallery/03_gallery.jpg"><i
+                                            class="far fa-eye"></i></a></li>
+                            </ul>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="gallery-item">
-                            <span></span>
-                            <div class="img-box">
-                                <img class="img-fluid gallery-item-img" src="/assets/images/gallery/03_gallery.jpg" alt="03 Gallery">
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="gallery-item">
+                        <span></span>
+                        <div class="img-box">
+                            <img class="img-fluid gallery-item-img" src="/assets/images/gallery/04_gallery.jpg"
+                                alt="04 Gallery">
+                        </div>
+                        <div class="hover-box">
+                            <div class="text-box">
+                                <div class="tags"><a href="01_single-gallery.html">Medical</a></div>
+                                <h4><a href="01_single-gallery.html">Modern Medicine</a></h4>
                             </div>
-                            <div class="hover-box">
-                                <div class="text-box">
-                                    <div class="tags"><a href="01_single-gallery.html">Departments</a></div>
-                                    <h4><a href="01_single-gallery.html">Bariatric Surgery</a></h4>
-                                </div>
-                                <ul class="gallery-icon">
-                                    <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
-                                    <li><a class="popup" href="/assets/images/gallery/03_gallery.jpg"><i class="far fa-eye"></i></a></li>
-                                </ul>
-                            </div>
+                            <ul class="gallery-icon">
+                                <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
+                                <li><a class="popup" href="/assets/images/gallery/04_gallery.jpg"><i
+                                            class="far fa-eye"></i></a></li>
+                            </ul>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="gallery-item">
-                            <span></span>
-                            <div class="img-box">
-                                <img class="img-fluid gallery-item-img" src="/assets/images/gallery/04_gallery.jpg" alt="04 Gallery">
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="gallery-item">
+                        <span></span>
+                        <div class="img-box">
+                            <img class="img-fluid gallery-item-img" src="/assets/images/gallery/05_gallery.jpg"
+                                alt="05 Gallery">
+                        </div>
+                        <div class="hover-box">
+                            <div class="text-box">
+                                <div class="tags"><a href="01_single-gallery.html">surgery</a></div>
+                                <h4><a href="01_single-gallery.html">Treat transplant</a></h4>
                             </div>
-                            <div class="hover-box">
-                                <div class="text-box">
-                                    <div class="tags"><a href="01_single-gallery.html">Medical</a></div>
-                                    <h4><a href="01_single-gallery.html">Modern Medicine</a></h4>
-                                </div>
-                                <ul class="gallery-icon">
-                                    <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
-                                    <li><a class="popup" href="/assets/images/gallery/04_gallery.jpg"><i class="far fa-eye"></i></a></li>
-                                </ul>
-                            </div>
+                            <ul class="gallery-icon">
+                                <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
+                                <li><a class="popup" href="/assets/images/gallery/05_gallery.jpg"><i
+                                            class="far fa-eye"></i></a></li>
+                            </ul>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="gallery-item">
-                            <span></span>
-                            <div class="img-box">
-                                <img class="img-fluid gallery-item-img" src="/assets/images/gallery/05_gallery.jpg" alt="05 Gallery">
-                            </div>
-                            <div class="hover-box">
-                                <div class="text-box">
-                                    <div class="tags"><a href="01_single-gallery.html">surgery</a></div>
-                                    <h4><a href="01_single-gallery.html">Treat transplant</a></h4>
-                                </div>
-                                <ul class="gallery-icon">
-                                    <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
-                                    <li><a class="popup" href="/assets/images/gallery/05_gallery.jpg"><i class="far fa-eye"></i></a></li>
-                                </ul>
-                            </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="gallery-item">
+                        <span></span>
+                        <div class="img-box">
+                            <img class="img-fluid gallery-item-img" src="/assets/images/gallery/06_gallery.jpg"
+                                alt="06 Gallery">
                         </div>
-                    </div>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="gallery-item">
-                            <span></span>
-                            <div class="img-box">
-                                <img class="img-fluid gallery-item-img" src="/assets/images/gallery/06_gallery.jpg" alt="06 Gallery">
+                        <div class="hover-box">
+                            <div class="text-box">
+                                <div class="tags"><a href="01_single-gallery.html">Medical</a></div>
+                                <h4><a href="01_single-gallery.html">Pulmonology care</a></h4>
                             </div>
-                            <div class="hover-box">
-                                <div class="text-box">
-                                    <div class="tags"><a href="01_single-gallery.html">Medical</a></div>
-                                    <h4><a href="01_single-gallery.html">Pulmonology care</a></h4>
-                                </div>
-                                <ul class="gallery-icon">
-                                    <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
-                                    <li><a class="popup" href="/assets/images/gallery/06_gallery.jpg"><i class="far fa-eye"></i></a></li>
-                                </ul>
-                            </div>
+                            <ul class="gallery-icon">
+                                <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
+                                <li><a class="popup" href="/assets/images/gallery/06_gallery.jpg"><i
+                                            class="far fa-eye"></i></a></li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+      <!-- Modal Gambar -->
+<!-- <div id="imageModal" class="modal" aria-hidden="true">
+  <span class="close" id="modalClose" aria-label="Tutup">&times;</span>
+  <img class="modal-content" id="modalImage" alt="Poster besar">
+</div> -->
+
+<div id="imageModal" ref="imageModal" :class="['modal', { show: isModalOpen }]" @click.self="closeModal" aria-hidden="true">
+  <span class="close" id="modalClose" aria-label="Tutup" @click="closeModal">&times;</span>
+  <img class="modal-content" ref="modalImage" :src="modalSrc" alt="Poster besar" />
+</div>
+
 </template>
 
 
 <script>
+
+
 import { nextTick } from 'vue'
 
 export default {
@@ -463,7 +522,9 @@ export default {
                 { type: 'B', count: 10, status: 'Rendah', image: '/assets/images/bb.png', updated: '21/9/2025, 01.45.34' },
                 { type: 'O', count: 10, status: 'Rendah', image: '/assets/images/oo.png', updated: '21/9/2025, 01.45.34' },
                 // ... dst
-            ]
+            ],
+            isModalOpen: false,
+      modalSrc: ''
         }
     },
     name: 'Home',
@@ -496,6 +557,79 @@ export default {
         } else {
             console.error('jQuery / owlCarousel tidak tersedia')
         }
+    },
+    methods: {
+    openModal(src) {
+      this.modalSrc = src
+      this.isModalOpen = true
+      // pastikan fokus/scroll ke modal bila perlu
+      document.body.style.overflow = 'hidden' // optional: mencegah scroll background
+    },
+    closeModal() {
+      this.isModalOpen = false
+      this.modalSrc = ''
+      document.body.style.overflow = '' // reset
     }
+  }
 }
+
+
 </script>
+
+<style scoped>
+/* Modal backdrop */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;              /* tingkat tinggi supaya di atas elemen lain */
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  padding: 60px;
+  box-sizing: border-box;
+  background-color: rgba(0,0,0,0.85);
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Toggle tampil */
+.modal.show {
+  display: flex;
+}
+
+/* Gambar modal */
+.modal-content {
+  display: block;
+  width: auto; height: auto;
+  max-width: 90vw; max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+  z-index: 10000;
+  pointer-events: auto;
+}
+
+/* Tombol close */
+.close {
+  position: absolute;
+  top: 18px; right: 22px;
+  color: #ff0000;
+  font-size: 36px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 10001;            /* harus lebih tinggi dari gambar */
+  user-select: none;
+  pointer-events: auto;      /* pastikan menerima klik */
+  background: transparent;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+/* Jika ada plugin yg mengatur pointer-events: none atau overlay di dalam modal,
+   pastikan close tetap menerima klik (pointer-events:auto sudah di atas) */
+
+/* Responsive */
+@media (max-width: 480px) {
+  .close { font-size: 30px; right: 14px; top: 12px; }
+}
+</style>

@@ -60,5 +60,28 @@
 
     <!-- Vite inject -->
     <script type="module" src="/src/main.js"></script>
+
+    <!-- <script>
+      function openModal(src) {
+        const modal = document.getElementById("imageModal");
+        const modalImg = document.getElementById("modalImage");
+        modalImg.src = src;
+        modal.classList.add("show");  // Tambah class "show" untuk menampilkan modal dengan centering
+      }
+      
+      function closeModal() {
+        const modal = document.getElementById("imageModal");
+        modal.classList.remove("show");  // Hapus class "show" untuk menyembunyikan modal
+      }
+      // Tambah event listener untuk tombol close
+      document.getElementById("modalClose").addEventListener("click", closeModal);
+      // Opsional: Klik di luar gambar untuk close modal (klik di backdrop)
+      document.getElementById("imageModal").addEventListener("click", function(event) {
+        if (event.target === this) {  // Pastikan klik di backdrop, bukan di gambar
+          closeModal();
+        }
+      });
+    </script> -->
+    
   </body>
 </html>

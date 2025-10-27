@@ -1391,6 +1391,103 @@ p {
     margin-top: -151px;
     z-index: 1;
 }
+.features-opening-hours{
+    background-color: #13ADE5;
+    background-image: linear-gradient(180deg, #ff0c0c, #f25f5f)!important;
+    border-radius: 3px;
+    padding: 50px 40px;
+    position: relative;
+    overflow: hidden;
+    margin-top: -151px;
+    z-index: 1;
+}
+
+.features-opening-hours .header-icon-title {
+    display: flex;
+    align-items: center;      /* rata tengah vertikal */
+    gap: 15px;                /* jarak antar gambar dan teks */
+    margin-bottom: 15px;
+  }
+
+.features-opening-hours {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.features-opening-hours i {
+  font-size: 36px;
+  color: #e74c3c;
+  margin-bottom: 10px;
+}
+
+.features-opening-hours h4 {
+  font-weight: 700 !important;
+  margin-bottom: 15px;
+  color:#ffffff!important;
+}
+
+/* Kontainer jadwal + poster sejajar */
+.features-opening-hours .content-row {
+    display: flex;
+    align-items: stretch; /* agar tinggi sejajar */
+    gap: 20px;
+  }
+  
+  /* Jadwal */
+  .features-opening-hours .schedule {
+    flex: 1;
+    background: #f3eeee;
+    padding: 15px;
+    border-radius: 8px;
+  }
+  
+  /* Poster */
+  .features-opening-hours .poster {
+    flex: 1;
+    display: flex;
+    align-items: center; /* agar gambar rata tengah vertikal */
+    justify-content: center;
+  }
+  
+  .features-opening-hours .poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+
+  .poster img:hover {
+    transform: scale(1.03);
+  }
+
+  /* --- Modal Style --- */
+
+
+  .poster img {
+    height: auto;
+  }
+  
+  /* Responsive untuk layar kecil */
+  @media (max-width: 768px) {
+    .features-opening-hours .content-row {
+      flex-direction: column;
+    }
+  
+    .features-opening-hours .poster img {
+      height: auto;
+    }
+  }
+
+.features-opening-hours .schedule p {
+  margin-bottom: 8px!important;
+  line-height: 1.5!important;
+  color: #f62828;
+}
+
 .features-opening-hours .flaticon-globe{
     font-size: 40px;
     line-height: 1;

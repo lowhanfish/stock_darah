@@ -10,6 +10,7 @@ export default createStore({
     BASE_URL: URL_APP,  
     UPLOADS: URL_APP + 'uploads/',
     
+    
     auth: {
       token: localStorage.getItem('token') || null, 
       profile: localStorage.getItem('profile') ? JSON.parse(localStorage.getItem('profile')) : null,
