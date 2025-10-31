@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 
 
 import Home from '../views/Home.vue'
+import Pendonor from "../views/Pendonor.vue";
 // import Berita from "../views/Berita.vue";
 // import Beritaisi from "../views/Beritaisi.vue";
 
@@ -25,6 +26,11 @@ const routes = [
     path: '/login',
     name: 'login',
     component: login
+  },
+  {
+    path: '/Pendonor',
+    name: 'Pendonor Aktif',
+    component: Pendonor
   },
   
  
