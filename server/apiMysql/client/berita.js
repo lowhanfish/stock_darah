@@ -187,4 +187,24 @@ router.post('/removeData', (req, res) => {
 });
 
 
+router.post("/uploadImage", upload.single("file"), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "Tidak ada file yang diunggah" });
+    }
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(req.file.mimetype)) {
+      const filePath = path.join(__dirname, "../../uploads", req.file.filename);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      return res.status(400).json({ success: false, message: "Hanya file gambar yang diperbolehkan" });
+    }
+    const file_name = req.file.filename;
+    res.json({ success: true, file_name });
+  } catch (e) {
+    console.error("❌ Exception uploadImage:", e);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+});
+
+
 module.exports = router;

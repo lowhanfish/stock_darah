@@ -11,14 +11,10 @@ var uniqid = require('uniqid');
 const { log } = require('console');
 const router = express.Router();
 
-// Asumsi tabel database bernama 'jadwal_donor' dengan kolom:
-// id (primary key, auto increment), nama_kegiatan, tanggal_mulai, tanggal_selesai, jam, lokasi, map_link, keterangan, file_name, jumlah_terdaftar, status
-
-// Helper function untuk format tanggal ke 'YYYY-MM-DD'
 function formatDate(dateString) {
     if (!dateString) return null;
     try {
-        // Kalau formatnya sudah 'YYYY-MM-DD', langsung kembalikan saja
+      
         if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
 
         const date = new Date(dateString);
@@ -32,7 +28,6 @@ function formatDate(dateString) {
 }
 
 
-// Route untuk getview (mengambil data jadwal donor dengan pagination dan pencarian)
 router.post('/getview', (req, res) => {
     const { data_ke, cari_value, page_limit } = req.body;
     const offset = (data_ke - 1) * page_limit;
@@ -72,13 +67,13 @@ router.post('/getview', (req, res) => {
     });
 });
 
-// Route untuk addData (menambah jadwal donor baru)
+
 router.post('/addData', upload.single('file_name'), (req, res) => {
     const { nama_kegiatan, tanggal_mulai, tanggal_selesai, jam, lokasi, map_link, keterangan, jumlah_terdaftar, status } = req.body;
     let file_name = null;
 
     if (req.file) {
-        file_name = req.file.filename; // Asumsi multer menyimpan file dengan nama unik
+        file_name = req.file.filename;
     }
 
     const tanggal_mulai_formatted = formatDate(tanggal_mulai);
@@ -101,7 +96,7 @@ router.post('/addData', upload.single('file_name'), (req, res) => {
     });
 });
 
-// Route untuk editData (mengupdate jadwal donor)
+
 router.post('/editData', upload.single('file_name'), (req, res) => {
     const {
         id,
@@ -114,25 +109,50 @@ router.post('/editData', upload.single('file_name'), (req, res) => {
         keterangan,
         jumlah_terdaftar,
         status,
-        file_name: existingFile
+        file_name: existingFile // nama file lama dikirim dari client jika tidak upload baru
     } = req.body;
 
-    let file_name = existingFile;
+    // pilihan default: pakai existingFile jika tidak ada upload baru
+    let file_name = existingFile || '';
 
-    // 🔹 Pastikan status dikonversi jadi angka (kalau dari object atau string)
+    // kalau ada file baru dari multer -> gunakan itu
+    if (req.file && req.file.filename) {
+        file_name = req.file.filename; // sesuaikan jika Anda menyimpan dengan req.file.originalname
+        // opsional: hapus file lama dari storage jika ada dan file lama berbeda
+        if (existingFile && existingFile !== file_name) {
+            const uploadsDir = path.join(__dirname, '..', 'public', 'uploads'); // sesuaikan path sesuai project Anda
+            const oldPath = path.join(uploadsDir, existingFile);
+            fs.unlink(oldPath, (err) => {
+                if (err) {
+                    // jangan gagalkan update hanya karena gagal hapus file lama
+                    console.warn('Gagal menghapus file lama:', oldPath, err.message);
+                } else {
+                    console.log('File lama dihapus:', oldPath);
+                }
+            });
+        }
+    }
+
+    // parse status lebih sederhana dan robust
     let status_value = 1;
     try {
         if (typeof status === 'object') {
             status_value = Number(status.value || status.id || 1);
         } else {
-            // jika dikirim sebagai string (termasuk JSON string)
-            status_value = Number(JSON.parse(status)) || Number(status) || 1;
+            // bila status adalah stringified json atau plain string number
+            const maybe = (String(status || '')).trim();
+            // coba parse JSON (untuk safety), fallback ke Number
+            try {
+                const parsed = JSON.parse(maybe);
+                status_value = Number(parsed) || Number(maybe) || 1;
+            } catch (_) {
+                status_value = Number(maybe) || 1;
+            }
         }
-    } catch {
+    } catch (e) {
         status_value = Number(status) || 1;
     }
 
-    // 🔹 Format tanggal seperti semula
     const tanggal_mulai_formatted = formatDate(tanggal_mulai);
     const tanggal_selesai_formatted = formatDate(tanggal_selesai);
 
@@ -140,7 +160,6 @@ router.post('/editData', upload.single('file_name'), (req, res) => {
         return res.status(400).json({ success: false, message: 'Format tanggal tidak valid' });
     }
 
-    // 🔹 Query tetap sama, hanya ganti variabel `status_value`
     const query = `
         UPDATE jadwal_donor
         SET nama_kegiatan = ?, tanggal_mulai = ?, tanggal_selesai = ?, jam = ?, lokasi = ?, map_link = ?, keterangan = ?, file_name = ?, jumlah_terdaftar = ?, status = ?
@@ -155,7 +174,7 @@ router.post('/editData', upload.single('file_name'), (req, res) => {
         keterangan || '',
         file_name,
         jumlah_terdaftar || null,
-        status_value, // 👈 ini diganti
+        status_value,
         id
     ];
 
@@ -169,15 +188,14 @@ router.post('/editData', upload.single('file_name'), (req, res) => {
             return res.status(404).json({ success: false, message: 'Data tidak ditemukan' });
         }
 
-        res.json({ success: true, message: 'Status berhasil diubah' });
+        // pesan lebih general dan jelas
+        res.json({ success: true, message: 'Data berhasil diubah' });
     });
 });
 
-// Route untuk removeData (menghapus jadwal donor)
 router.post('/removeData', (req, res) => {
     const { id } = req.body;
 
-    // Ambil file_name dulu untuk menghapus file
     const selectQuery = `SELECT file_name FROM jadwal_donor WHERE id = ?`;
     db.query(selectQuery, [id], (err, results) => {
         if (err) {
@@ -191,7 +209,6 @@ router.post('/removeData', (req, res) => {
 
         const file_name = results[0].file_name;
 
-        // Hapus file jika ada
         if (file_name) {
             const filePath = path.join(__dirname, '../../uploads', file_name);
             if (fs.existsSync(filePath)) {
@@ -199,7 +216,6 @@ router.post('/removeData', (req, res) => {
             }
         }
 
-        // Hapus data dari database
         const deleteQuery = `DELETE FROM jadwal_donor WHERE id = ?`;
         db.query(deleteQuery, [id], (err, result) => {
             if (err) {
@@ -232,13 +248,10 @@ router.post('/getParticipants', (req, res) => {
     });
 });
 
-// Tambah peserta ke jadwal (mengaitkan pendonor_darah ke jadwal)
-// POST { jadwal_id, pendonor_id }
 router.post('/addParticipant', (req, res) => {
     const { jadwal_id, pendonor_id } = req.body;
     if (!jadwal_id || !pendonor_id) return res.status(400).json({ success: false, message: 'jadwal_id dan pendonor_id diperlukan' });
 
-    // cek apakah pendonor ada
     db.query('SELECT id, nama_lengkap FROM pendonor_darah WHERE id = ?', [pendonor_id], (err, pendRes) => {
         if (err) {
             console.error('Error checking pendonor:', err);
@@ -248,7 +261,6 @@ router.post('/addParticipant', (req, res) => {
             return res.status(404).json({ success: false, message: 'Pendonor tidak ditemukan' });
         }
 
-        // cek apakah sudah terdaftar di jadwal ini
         db.query('SELECT id FROM jadwal_peserta WHERE jadwal_id = ? AND pendonor_id = ?', [jadwal_id, pendonor_id], (err, existRes) => {
             if (err) {
                 console.error('Error checking existing peserta:', err);
@@ -258,7 +270,6 @@ router.post('/addParticipant', (req, res) => {
                 return res.status(400).json({ success: false, message: 'Pendonor sudah terdaftar pada jadwal ini' });
             }
 
-            // insert relasi
             const insertQuery = 'INSERT INTO jadwal_peserta (jadwal_id, pendonor_id, created_at) VALUES (?, ?, NOW())';
             db.query(insertQuery, [jadwal_id, pendonor_id], (err, insertResult) => {
                 if (err) {
@@ -271,8 +282,7 @@ router.post('/addParticipant', (req, res) => {
     });
 });
 
-// Hapus peserta dari jadwal (berdasarkan id di jadwal_peserta)
-// POST { id }
+
 router.post('/removeParticipant', (req, res) => {
     const { id } = req.body;
     if (!id) return res.status(400).json({ success: false, message: 'id peserta diperlukan' });

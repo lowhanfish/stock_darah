@@ -72,18 +72,24 @@ app.use('/api/v1/reg_masyarakat', reg_masyarakat);
 const jadwal_donor = require('./apiMysql/client/jadwal_donor');
 app.use('/api/v1/jadwal_donor', middleware.isLoggedIn, jadwal_donor);
 
-
-
-
-
-
-
 // =================== CLIENT =====================
 
 
 
 
 // =================== PUBLISH =====================
+
+const homeDarah = require('./apiMysql/publish/homeDarah');
+app.use('/api/v1/publish/homeDarah', homeDarah);
+
+const beritaPublish = require('./apiMysql/publish/beritaPublish');
+app.use('/api/v1/publish/beritaPublish', beritaPublish);
+
+const jadwalPublish = require('./apiMysql/publish/jadwalPublish');
+app.use('/api/v1/publish/jadwalPublish', jadwalPublish);
+
+const pendonorPublish = require('./apiMysql/publish/pendonorPublish');
+app.use('/api/v1/publish/pendonorPublish', pendonorPublish);
 
 
 
