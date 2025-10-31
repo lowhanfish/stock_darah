@@ -9,6 +9,7 @@ export default createStore({
     URL : {
       HOME: URL_APP + 'api/v1/publish/homeDarah/',
       JADWAL: URL_APP + 'api/v1/publish/jadwalPublish/',
+      DONOR_PUBLISH : URL_APP +"api/v1/publish/pendonorPublish/",
       berita : URL_APP +"api/v1/berita",
 
     },
