@@ -1,0 +1,6 @@
+{
+  "appId": "com.capacitor.donordarah",
+  "appName": "Unit Donor Darah",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

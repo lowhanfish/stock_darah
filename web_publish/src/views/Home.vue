@@ -85,7 +85,7 @@
                         <div class="card-content">
                             <div class="card-left">
                                 <h4 class="card-title">Pendonor Aktif</h4>
-                                <div class="card-number">1.025</div>
+                                <div class="card-number">{{ jumlahPendonor }}</div>
                                 <div class="card-sub">Pendonor Terdaftar</div>
                             </div>
 
@@ -194,7 +194,7 @@
         </div>
     </section>
 
-    <!-- :: Blog (DIUBAH: tampilkan 3 berita terakhir dari backend) -->
+    <!-- :: Blog (3 berita terakhir dari this.list_berita) -->
     <section class="blog py-100-70">
         <div class="container">
             <div class="sec-title">
@@ -204,84 +204,106 @@
                         <h3>Kegiatan dan Edukasi Kesehatan Terkini</h3>
                     </div>
                     <div class="col-lg-4">
-                        <p class="sec-explain">Ikuti berita tentang seminar medis, kampanye kesehatan masyarakat, dan
-                            tips lifestyle dari tim dokter berpengalaman kami. Selalu update demi hidup sehat Anda..</p>
-                        <a class="btn-1 sec-btn" href="02_blog.html">Jelajahi Artikel Kami</a>
+                        <p class="sec-explain">
+                            Ikuti berita tentang kegiatan, kampanye kesehatan, dan tips dari tim kami. Selalu update
+                            demi hidup sehat Anda.
+                        </p>
+                        <a class="btn-1 sec-btn" href="/berita">Jelajahi Artikel Kami</a>
                     </div>
+
+
                     <div class="col-lg-4">
+
                         <div class="features-opening-hours" style="position: relative;">
-                            <div class="status-badge status-aktif">Aktif</div>
+                            <div :class="['status-badge', jadwalStatusClass]">{{ jadwalStatusText }}</div>
                             <div class="header-icon-title">
                                 <img src="/assets/images/donasi.png" alt="Donor Icon" style="height: 100px;"
                                     class="flaticon-globe" />
                                 <h4>Jadwal Donor Darah</h4>
                             </div>
 
-                            <div class="content-row">
+
+                            <div class="content-row" v-if="loading">Memuat jadwal...</div>
+                            <div class="content-row" v-else>
+
                                 <div class="schedule">
-                                    <p><strong>Nama Kegiatan:</strong><br> Donor Darah Peduli Sesama</p>
-                                    <p><strong>Tanggal:</strong><br> 1 – 3 November 2025</p>
-                                    <p><strong>Waktu:</strong><br> 08.00 – 15.00 WITA</p>
-                                    <p><strong>Lokasi:</strong><br> RSUD KONUT</p>
-                                    <a href="https://www.google.com/maps?q=RSUD+Konawe+Utara" target="_blank"
-                                        class="btn-map">
-                                        📍 Google Maps
-                                    </a>
+                                    <p><strong>Nama Kegiatan:</strong><br> {{ jadwal.nama_kegiatan || '—' }}</p>
+                                    <p><strong>Tanggal:</strong><br>
+                                        <span
+                                            v-if="jadwal.tanggal_mulai && jadwal. tanggal_selesai && jadwal.tanggal_mulai !== jadwal.tanggal_selesai">
+                                            {{ (UMUM.tglConvert(jadwal.tanggal_mulai)?.tgl) ||
+                            UMUM.tglConvert(jadwal.tanggal_mulai) || '' }}
+                                            –
+                                            {{ (UMUM.tglConvert(jadwal.tanggal_selesai)?.tgl) ||
+                            UMUM.tglConvert(jadwal.tanggal_selesai) || '' }}
+                                        </span>
+                                        <span v-else-if="jadwal.tanggal_mulai">
+                                            {{ (UMUM.tglConvert(jadwal.tanggal_mulai)?.tgl) ||
+                            UMUM.tglConvert(jadwal.tanggal_mulai) || '' }}
+                                        </span>
+                                        <span v-else>—</span>
+                                    </p>
+
+                                    <p><strong>Waktu:</strong><br> {{ jadwal.jam || '—' }} WITA</p>
+                                    <p><strong>Lokasi:</strong><br> {{ jadwal.lokasi || '—' }}</p>
+                                    <a v-if="jadwal.map_link" :href="jadwal.map_link" target="_blank" rel="noopener"
+                                        class="btn-map">📍 Google Maps</a>
                                 </div>
                                 <div class="poster">
-                                    <img src="/assets/images/poster-donor.jpg" class="poster-img"
-                                        @click="openModal('/assets/images/poster-donor.jpg')" />
+                                    <img v-if="poster" :src="poster" class="poster-img" @click="openModal(poster)"
+                                        :alt="'Poster ' + (jadwal?.nama_kegiatan || 'Donor Darah')" />
+                                    <div v-else class="no-poster">Tidak ada poster</div>
                                 </div>
+
+
+
                             </div>
                         </div>
                     </div>
-
                 </div>
-
             </div>
 
             <div class="row">
-                <!-- Skeleton / placeholder saat loading -->
-                <template v-if="loadingArticles">
-                  <div class="col-md-6 col-lg-4" v-for="n in 3" :key="'sk-'+n">
+                <div class="col-md-6 col-lg-4" v-for="data in list_berita" :key="data.id">
                     <div class="blog-item">
-                      <div class="img-box" style="background:#eee;height:180px;border-radius:6px"></div>
-                      <div class="text-box">
-                        <span class="blog-date">&nbsp;</span>
-                        <div class="title-blog"><h5 style="background:#eee;height:22px;width:80%;border-radius:4px"></h5></div>
-                        <p style="background:#f5f5f5;height:48px;width:100%;border-radius:4px;margin-top:8px"></p>
-                      </div>
-                    </div>
-                  </div>
-                </template>
+                        <div class="img-box">
+                            <a @click.prevent="pushKe(data.id)" href="javascript:void(0)" class="open-post"
+                                :title="data.judul">
+                                <img v-if="data.file_name" class="img-fluid" :src="file_path + data.file_name"
+                                    :alt="data.judul" style="
+                                        width: 100%;
+                                        height: 300px;
+                                        object-fit: cover;
+                                        object-position: center;
+                                        border-radius: 6px;
+                                        display: block;
+                                        margin: 0 auto;
+                                    ">
 
-                <!-- Tampilkan 3 artikel terakhir -->
-                <template v-else>
-                  <div class="col-md-6 col-lg-4" v-for="item in articles" :key="item.id">
-                    <div class="blog-item">
-                      <div class="img-box">
-                        <a :href="articleLink(item)" class="open-post" @click.prevent="openArticle(item)">
-                          <img class="img-fluid" :src="item.image_url" :alt="item.judul" style="max-height:180px;object-fit:cover;width:100%" />
-                        </a>
-                      </div>
-                      <div class="text-box">
-                        <span class="blog-date">{{ formatDate(item.createAt) }}</span>
-                        <a href="#" class="title-blog" @click.prevent="openArticle(item)">
-                          <h5 v-html="item.judul"></h5>
-                        </a>
-                        <p>{{ excerpt(item.isi) }}</p>
-                        <a href="#" class="link" @click.prevent="openArticle(item)">Discover More</a>
-                      </div>
-                    </div>
-                  </div>
+                            </a>
 
-                  <div class="col-12" v-if="articles.length === 0">
-                    <p>Tidak ada artikel terbaru.</p>
-                  </div>
-                </template>
+
+                        </div>
+
+                        <div class="text-box">
+                            <span class="blog-date">
+                                {{ (UMUM.tglConvert(data.createAt)?.tgl) || UMUM.tglConvert(data.createAt) || '' }}
+                            </span>
+                            <a @click.prevent="pushKe(data.id)" href="javascript:void(0)" class="title-blog"
+                                :title="data.judul">
+                                <h5>{{ truncateText(data.judul, 80) }}</h5>
+                            </a>
+                            <p v-html="truncateText(data.isi || '', 120)"></p>
+                            <a @click.prevent="pushKe(data.id)" href="javascript:void(0)" class="link">Baca
+                                selengkapnya</a>
+                        </div>
+                    </div>
+                </div>
             </div>
+
         </div>
     </section>
+
 
     <!-- :: Gallery -->
     <div class="gallery py-100-70" style="background-color: #F8F8F8;">
@@ -336,10 +358,13 @@
 </template>
 
 <script>
+import UMUM from '../library/umum.js';
+import { useStore } from "vuex";
 import { nextTick } from 'vue'
 
 export default {
     data() {
+        const store = useStore();
         return {
             bloods: [
                 { type: 'A', count: 45, status: 'Tersedia', image: '/assets/images/aa.png', updated: '21/9/2025, 01.45.34' },
@@ -350,13 +375,130 @@ export default {
             ],
             isModalOpen: false,
             modalSrc: '',
-            // berita
-            articles: [],
-            loadingArticles: false,
+            list_berita: [],
+            file_path: '',
+            UMUM: UMUM,
+            jadwal: null,     // hanya 1 jadwal terbaru
+            poster: null,     // url poster (jika ada)
+            loading: true,
+            jumlahPendonor: 0,
+
         }
     },
     name: 'Home',
+    methods: {
+        getListBerita: function () {
+            this.cek_load_data_list = true;
+            fetch(this.$store.state.URL.HOME + "beritaHome", {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json"
+                }
+            })
+                .then(res => res.json())
+                .then(res_data => {
+
+
+                    this.list_berita = res_data;
+
+
+                    this.cek_load_data_list = false;
+                })
+                .catch(err => {
+                    console.error("❌ Error getListBerita:", err);
+                    this.cek_load_data_list = false;
+                });
+        },
+
+        async loadJadwal() {
+            this.loading = true;
+            try {
+                const res = await fetch(this.$store.state.URL.JADWAL + "viewData", {
+                    method: "GET",
+                    headers: { "Accept": "application/json" }
+                });
+                if (!res.ok) throw new Error("Gagal mengambil data jadwal");
+
+                const json = await res.json();
+                const list = Array.isArray(json.data) ? json.data : Array.isArray(json) ? json : [];
+                this.jadwal = list.length ? list[0] : null;
+
+                // ambil poster (kalau ada)
+                this.poster = this.jadwal?.file_name
+                    ? this.file_path + this.jadwal.file_name
+                    : null;
+            } catch (err) {
+                console.error("loadJadwal error:", err);
+                this.jadwal = null;
+                this.poster = null;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        getJumlahPendonor: function () {
+        fetch(this.$store.state.URL.HOME + "jumlahPendonor", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json"
+            }
+        })
+            .then(res => res.json())
+            .then(res_data => {
+                this.jumlahPendonor = res_data.jumlah || 0;
+                console.log(res_data);
+            })
+            .catch(err => {
+                console.error("❌ Error getJumlahPendonor:", err);
+                this.jumlahPendonor = 0;
+            });
+    },
+
+
+
+        openModal(src) {
+            this.modalSrc = src
+            this.isModalOpen = true
+            document.body.style.overflow = 'hidden'
+        },
+        closeModal() {
+            this.isModalOpen = false
+            this.modalSrc = ''
+            document.body.style.overflow = '' // reset
+        },
+
+        routerKe(id) {
+            this.$router.push(`/Kegiatancsrisi/${id}`);
+        },
+        pushKe(id) {
+            this.$router.push(`/Beritaisi/${id}`);
+        },
+        truncateText(html, maxLength) {
+            // Buang tag HTML untuk menghitung panjang teks saja
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            const text = div.textContent || div.innerText || '';
+
+            // Potong teks
+            const truncated = text.length > maxLength
+                ? text.substring(0, maxLength) + '...'
+                : text;
+
+            // Kembalikan lagi dalam format HTML aman (tanpa potong tag di tengah)
+            return truncated;
+        }
+
+
+    },
+
+
     async mounted() {
+
+        this.getJumlahPendonor();
+        const uploads = this.$store?.state?.UPLOADS || '/uploads/';
+        this.file_path = uploads.endsWith('/') ? uploads : uploads + '/';
+        this.getListBerita();
+        this.loadJadwal();
         await nextTick()
         const el = this.$refs.heroCarousel
         if (!el) {
@@ -386,173 +528,43 @@ export default {
             console.error('jQuery / owlCarousel tidak tersedia')
         }
 
-        // ambil 3 berita terakhir saat mounted (fokus: berita saja)
-        this.loadLatestNews()
     },
-    methods: {
-        openModal(src) {
-            this.modalSrc = src
-            this.isModalOpen = true
-            document.body.style.overflow = 'hidden'
-        },
-        closeModal() {
-            this.isModalOpen = false
-            this.modalSrc = ''
-            document.body.style.overflow = '' // reset
-        },
+    computed: {
+        jadwalStatusText() {
+            if (!this.jadwal) return '—';
 
-        /* ------------------ Berita: ambil 3 terakhir ------------------ */
-       /* ------------------ Berita: ambil 3 terakhir (perbaikan agar safe jika this.$store undefined) ------------------ */
-async loadLatestNews() {
-  this.loadingArticles = true
-  try {
-    // safe access ke this.$store (fallback ke defaults)
-    const storeFallback = {
-      berita: 'http://localhost:5088/api/v1/berita',
-      url: { URL_APP: 'http://localhost:5088/' },
-      UPLOADS: 'http://localhost:5088/uploads/',
-      auth: { token: null }
-    }
-    const store = (this && this.$store) ? this.$store : { state: storeFallback }
-
-    // tentukan base endpoint berita
-    const base = (store.state.berita) ? store.state.berita : (store.state.url && store.state.url.URL_APP ? store.state.url.URL_APP + 'api/v1/berita' : storeFallback.berita)
-    const url = base.replace(/\/$/, '') + '/getview'
-    const payload = { data_ke: 1, cari_value: '', page_limit: 3 }
-
-    const headers = { 'Content-Type': 'application/json' }
-    const token = store.state.auth && store.state.auth.token
-    if (token) headers['Authorization'] = `Bearer ${token}`
-
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(payload),
-    })
-
-    if (!resp.ok) {
-      // coba ambil body message jika ada
-      let errBody = null
-      try { errBody = await resp.json() } catch(e){ /* ignore */ }
-      console.error('Gagal ambil berita (HTTP):', resp.status, resp.statusText, errBody)
-      this.articles = []
-      return
-    }
-
-    const result = await resp.json()
-    if (!(result && result.success && Array.isArray(result.data))) {
-      console.warn('Response tidak mengandung data berita yang diharapkan:', result)
-      this.articles = []
-      return
-    }
-
-    // siapkan base uploads (fallback)
-    const baseUploads = (store.state.UPLOADS)
-                      ? String(store.state.UPLOADS).replace(/\/$/, '')
-                      : (store.state.url && store.state.url.URL_APP ? (store.state.url.URL_APP + 'uploads').replace(/\/$/, '') : storeFallback.UPLOADS.replace(/\/$/, ''))
-
-    // untuk setiap berita, coba cari path gambar yang valid (HEAD request). Jika HEAD diblokir oleh CORS,
-    // kita fallback langsung ke path pertama (browser mungkin gagal dengan 404).
-    const mapPromises = result.data.map(async r => {
-      const fileName = r.file_name || ''
-      let image_url = '/assets/images/blog/placeholder.jpg' // fallback
-
-      if (fileName) {
-        const fn = encodeURIComponent(fileName)
-        const tryPaths = [
-          `${baseUploads}/berita/${fn}`,
-          `${baseUploads}/${fn}`
-        ]
-
-        for (let p of tryPaths) {
-          try {
-            // HEAD request untuk cek ada atau tidak; jika gagal karena CORS, kita lanjutkan dan tidak pilih path itu
-            const check = await fetch(p, { method: 'HEAD' })
-            if (check && check.ok) {
-              image_url = p
-              break
+            switch (this.jadwal.status) {
+                case 1:
+                case '1': // Sertakan string '1' jika data dari API berupa string
+                    return 'Aktif';
+                case 2:
+                case '2': // Sertakan string '2' jika data dari API berupa string
+                    return 'Selesai';
+                case 3:
+                case '3': // Sertakan string '3' jika data dari API berupa string
+                    return 'Dibatalkan';
+                default:
+                    return 'Tidak Diketahui';
             }
-            // jika check.status === 405 (method not allowed) atau 403/401/0, skip dan coba path berikutnya
-          } catch (err) {
-            // HEAD request error (mungkin CORS) — jangan crash, coba path berikutnya
-            // console.debug('HEAD check failed for', p, err)
-          }
-        }
-
-        // jika semua HEAD gagal, setlah ke first try path (agar browser tetap mencoba men-load gambar; mungkin 200)
-        if (image_url === '/assets/images/blog/placeholder.jpg') {
-          image_url = tryPaths[0]
-        }
-      }
-
-      return {
-        id: r.id,
-        judul: r.judul,
-        sumber: r.sumber,
-        isi: r.isi,
-        file_name: r.file_name,
-        createAt: r.createAt || r.create_at || r.createdAt || null,
-        image_url
-      }
-    })
-
-    this.articles = await Promise.all(mapPromises)
-  } catch (e) {
-    console.error('Exception loadLatestNews:', e)
-    this.articles = []
-  } finally {
-    this.loadingArticles = false
-  }
-},
-/* ------------------ akhir berita ------------------ */
-
-
-        formatDate(dt) {
-          if (!dt) return ''
-          // DB kamu sudah memberikan createAt seperti "2025-10-25 11:20:10" atau "2025-10-25"
-          const d = new Date(dt)
-          if (isNaN(d)) {
-            // fallback: tampilkan apa adanya
-            return dt
-          }
-          const opts = { year: 'numeric', month: 'short', day: 'numeric' }
-          return d.toLocaleDateString('id-ID', opts)
         },
+        jadwalStatusClass() {
+            if (!this.jadwal) return 'status-default';
 
-        excerpt(html, len = 120) {
-          if (!html) return ''
-          // bersihkan tag html
-          const plain = html.replace(/(<([^>]+)>)/gi, "")
-          return plain.length > len ? plain.slice(0, len).trim() + '...' : plain
-        },
-
-        articleLink(item) {
-          // kamu bisa sesuaikan route nama 'BeritaDetail' jika ada
-          if (this.$router) {
-            try {
-              return this.$router.resolve({ name: 'BeritaDetail', params: { id: item.id } }).href
-            } catch (e) {
-              // fallback ke list
+            switch (this.jadwal.status) {
+                case 1:
+                case '1':
+                    return 'status-aktif';
+                case 2:
+                case '2':
+                    return 'status-selesai';
+                case 3:
+                case '3':
+                    return 'status-batal';
+                default:
+                    return 'status-default';
             }
-          }
-          return '02_blog.html'
-        },
-
-        openArticle(item) {
-          // jika pakai vue-router, navigasi ke halaman detail (sesuaikan name route jika perlu)
-          if (this.$router) {
-            try {
-              this.$router.push({ name: 'BeritaDetail', params: { id: item.id } })
-              return
-            } catch (e) {
-              // fallback
-            }
-          }
-          // default: ke halaman blog list
-          window.location.href = `02_blog.html?id=${encodeURIComponent(item.id)}`
         }
-        /* ------------------ akhir berita ------------------ */
-    }
+    },
 }
 </script>
 

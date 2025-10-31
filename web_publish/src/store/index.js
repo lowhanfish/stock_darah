@@ -4,12 +4,14 @@ var URL_APP = 'http://localhost:5088/'
 
 export default createStore({
   state: { 
-    url: {
-      URL_APP: URL_APP  
-    },
     BASE_URL: URL_APP,  
     UPLOADS: URL_APP + 'uploads/',
-    berita : URL_APP +"api/v1/berita",
+    URL : {
+      HOME: URL_APP + 'api/v1/publish/homeDarah/',
+      JADWAL: URL_APP + 'api/v1/publish/jadwalPublish/',
+      berita : URL_APP +"api/v1/berita",
+
+    },
     
     
     
