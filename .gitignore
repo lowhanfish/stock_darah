@@ -7,7 +7,7 @@
 # Build output (dist, build, public, www, dll)
 **/dist/
 **/build/
-**/public/
+# **/public/
 **/www/
 **/.output/
 
