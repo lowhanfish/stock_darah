@@ -3462,9 +3462,9 @@ li.ui-timepicker-selected, .ui-timepicker-list li:hover, .ui-timepicker-list .ui
 }
 .pagination-area .pagination li.active,
 .pagination-area .pagination li:hover{
-    background-color: #13ADE5;
+    background-color: #e93636!important;
     color: #FFF;
-    border-color: #13ADE5;
+    border-color: #e93636;
 }
 
 /* :: Single Blog */
