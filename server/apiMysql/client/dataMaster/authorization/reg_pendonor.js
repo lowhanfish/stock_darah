@@ -1,0 +1,749 @@
+const express = require('express');
+const router = express.Router();
+const db = require('../../../../db/MySql/umum');
+const bcrypt = require('bcryptjs');
+var upload = require('../../../../db/multer/image');
+const path = require('path');
+const fs = require('fs');
+
+router.get('/kabupaten', (req, res) => {
+  const provinsiId = 74;
+  const sql = `
+    SELECT kabupaten_id AS id, nama_kabupaten AS label
+    FROM master_kabupaten
+    WHERE provinsi_id = ?
+    ORDER BY nama_kabupaten ASC
+  `;
+  db.query(sql, [provinsiId], (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching kabupaten:', err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+    res.json({
+      success: true,
+      data: results
+    });
+  });
+});
+
+router.get('/kecamatan', (req, res) => {
+  const kabupatenId = req.query.kabupaten_id;
+  if (!kabupatenId) {
+    return res.status(400).json({ success: false, error: 'kabupaten_id is required' });
+  }
+  const sql = `
+    SELECT kecamatan_id AS id, nama_kecamatan AS label
+    FROM master_kecamatan
+    WHERE kabupaten_id = ?
+    ORDER BY nama_kecamatan ASC
+  `;
+  db.query(sql, [kabupatenId], (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching kecamatan:', err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+    res.json({
+      success: true,
+      data: results
+    });
+  });
+});
+
+router.get('/deskel', (req, res) => {
+  const kecamatanId = req.query.kecamatan_id;
+  if (!kecamatanId) {
+    return res.status(400).json({ success: false, error: 'kecamatan_id is required' });
+  }
+  const sql = `
+    SELECT des_kel_id AS id, nama_des_kel AS label
+    FROM master_des_kel
+    WHERE kecamatan_id = ?
+    ORDER BY nama_des_kel ASC
+  `;
+  db.query(sql, [kecamatanId], (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching desa/kelurahan:', err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+    res.json({
+      success: true,
+      data: results
+    });
+  });
+});
+router.post("/getview", (req, res) => {
+  const { page_limit, data_ke, cari_value } = req.body;
+
+  const limit = parseInt(page_limit) || 10;
+  const offset = parseInt(data_ke) || 0;
+  const search = cari_value ? `%${cari_value}%` : '%';
+
+  const countSql = `
+    SELECT COUNT(*) AS total FROM pendonor_darah pd
+    JOIN users u ON pd.users_id = u.id
+    WHERE pd.nama_lengkap LIKE ? 
+       OR pd.nik LIKE ?
+       OR u.username LIKE ? 
+       OR pd.golongan_darah LIKE ? 
+       OR pd.no_hp LIKE ?
+       OR pd.email LIKE ?
+  `;
+
+  const dataSql = `
+    SELECT 
+      pd.id,
+      pd.nama_lengkap,
+      pd.nik,
+      pd.tanggal_lahir,
+      pd.jenis_kelamin,
+      pd.golongan_darah,
+      pd.rhesus,
+      pd.kabupaten_id,
+      mkab.nama_kabupaten,
+      pd.kecamatan_id,
+      mkec.nama_kecamatan,
+      pd.des_kel_id,
+      mdkel.nama_des_kel,
+      pd.alamat,
+      pd.email,
+      pd.no_hp,
+      pd.riwayat_penyakit,
+      pd.terakhir_donor,
+      pd.stokdarah_konut,
+      pd.bersedia_dipublikasikan,
+      pd.foto_profil,
+      pd.dokumen_pendukung,
+      pd.status_verifikasi,
+      u.username,
+      u.id AS users_id
+    FROM pendonor_darah pd
+    JOIN users u ON pd.users_id = u.id
+    LEFT JOIN master_kabupaten mkab ON pd.kabupaten_id = mkab.kabupaten_id
+    LEFT JOIN master_kecamatan mkec ON pd.kecamatan_id = mkec.kecamatan_id
+    LEFT JOIN master_des_kel mdkel ON pd.des_kel_id = mdkel.des_kel_id
+    WHERE pd.nama_lengkap LIKE ? 
+       OR pd.nik LIKE ?
+       OR u.username LIKE ? 
+       OR pd.golongan_darah LIKE ? 
+       OR pd.no_hp LIKE ?
+       OR pd.email LIKE ?
+    ORDER BY pd.created_at DESC
+    LIMIT ? OFFSET ?
+  `;
+
+  db.query(countSql, [search, search, search, search, search, search], (err, countResult) => {
+    if (err) {
+      console.error("❌ Error count pendonor:", err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+
+    const total_data = countResult[0].total;
+
+    db.query(dataSql, [search, search, search, search, search, search, limit, offset], (err2, dataResult) => {
+      if (err2) {
+        console.error("❌ Error get pendonor:", err2);
+        return res.status(500).json({ success: false, error: err2.message });
+      }
+
+      res.json({
+        success: true,
+        data: dataResult,
+        jml_data: dataResult.length,
+        total_data
+      });
+    });
+  });
+});
+
+router.post("/addData", upload.fields([
+  { name: 'foto_profil', maxCount: 1 },
+  { name: 'dokumen_pendukung', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const {
+      username,
+      password,
+      nama_lengkap,
+      nik,
+      tanggal_lahir,
+      jenis_kelamin,
+      golongan_darah,
+      rhesus,
+      kabupaten_id,
+      kecamatan_id,
+      des_kel_id,
+      alamat,
+      email,
+      no_hp,
+      riwayat_penyakit,
+      terakhir_donor,
+      stokdarah_konut,
+      bersedia_dipublikasikan
+    } = req.body;
+
+    // Validasi required fields (sudah ada nik)
+    if (!username || !password || !nama_lengkap || !tanggal_lahir || !jenis_kelamin || !golongan_darah || !nik) {
+      return res.status(400).json({
+        success: false,
+        message: "Field wajib harus diisi! (username, password, nama lengkap, tanggal lahir, jenis kelamin, golongan darah, nik)"
+      });
+    }
+
+    // Validasi username & password (seperti sebelumnya)
+    if (username.trim().length < 6) {
+      return res.status(400).json({ success: false, message: 'Username harus minimal 6 karakter' });
+    }
+    if (password.trim().length < 6) {
+      return res.status(400).json({ success: false, message: 'Password harus minimal 6 karakter' });
+    }
+    if (!/^\d{16}$/.test(nik)) {
+      return res.status(400).json({
+        success: false,
+        message: "NIK tidak valid. Harus berupa 16 digit angka"
+      });
+    }
+    const nik_clean = nik.trim(); // Clean NIK (asumsi sudah valid)
+
+    const nama_lengkap_clean = nama_lengkap.trim().substring(0, 255);
+    const alamat_clean = alamat ? alamat.trim().substring(0, 255) : null;
+    const email_clean = email ? email.trim().substring(0, 150) : null;
+    const no_hp_clean = no_hp ? no_hp.trim().substring(0, 25) : null;
+    const riwayat_penyakit_clean = riwayat_penyakit ? riwayat_penyakit.trim() : null;
+    let golongan_darah_clean = golongan_darah.trim();
+    const validGolongan = ['A', 'B', 'AB', 'O'];
+    if (!validGolongan.includes(golongan_darah_clean)) {
+      return res.status(400).json({
+        success: false,
+        message: `Golongan darah tidak valid. Pilih salah satu: ${validGolongan.join(', ')} (1-2 huruf saja)`
+      });
+    }
+    if (golongan_darah_clean.length > 2) {
+      golongan_darah_clean = golongan_darah_clean.substring(0, 2);
+      console.warn('⚠️ Golongan darah dipotong: ', golongan_darah_clean);
+    }
+
+    let rhesus_clean = rhesus ? rhesus.trim() : null;
+    if (rhesus_clean) {
+      const validRhesus = ['+', '-'];
+      if (!validRhesus.includes(rhesus_clean)) {
+        return res.status(400).json({
+          success: false,
+          message: `Rhesus tidak valid. Pilih '+' atau '-' (atau kosongkan jika tidak tahu)`
+        });
+      }
+
+      if (rhesus_clean.length > 1) {
+        rhesus_clean = rhesus_clean.substring(0, 1);
+        console.warn('⚠️ Rhesus dipotong: ', rhesus_clean);
+      }
+    }
+
+    let jenis_kelamin_clean = jenis_kelamin.trim();
+    const validJenisKelamin = ['L', 'P'];
+    if (!validJenisKelamin.includes(jenis_kelamin_clean)) {
+      return res.status(400).json({
+        success: false,
+        message: `Jenis kelamin tidak valid. Pilih 'L' (Laki-laki) atau 'P' (Perempuan)`
+      });
+    }
+    if (jenis_kelamin_clean.length > 1) {
+      jenis_kelamin_clean = jenis_kelamin_clean.substring(0, 1);
+      console.warn('⚠️ Jenis kelamin dipotong: ', jenis_kelamin_clean);
+    }
+
+    // Stokdarah_konut: Pastikan integer (INT(2), 0-99)
+    const stokdarah_konut_clean = stokdarah_konut ? parseInt(stokdarah_konut) : 4;
+    if (isNaN(stokdarah_konut_clean) || stokdarah_konut_clean < 0 || stokdarah_konut_clean > 99) {
+      return res.status(400).json({
+        success: false,
+        message: 'Stok darah konut tidak valid (harus 0-99, default 4)'
+      });
+    }
+
+    // Bersedia dipublikasikan: TINYINT(1), 0 atau 1
+    const bersedia_dipublikasikan_clean = bersedia_dipublikasikan ? parseInt(bersedia_dipublikasikan) : 1;
+    if (![0, 1].includes(bersedia_dipublikasikan_clean)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Bersedia dipublikasikan harus 0 (tidak) atau 1 (ya)'
+      });
+    }
+
+    // Cek username unik (seperti sebelumnya)
+    const checkUserSql = `SELECT id FROM users WHERE username = ?`;
+    db.query(checkUserSql, [username.trim()], async (err, results) => {
+      if (err) {
+        console.error("❌ Error cek username:", err);
+        return res.status(500).json({ success: false, error: err.message });
+      }
+      if (results.length > 0) {
+        return res.status(400).json({ success: false, message: "Username sudah digunakan!" });
+      }
+
+      // Tambahan: Cek NIK unik di pendonor_darah
+      const checkNikSql = `SELECT id FROM pendonor_darah WHERE nik = ?`;
+      db.query(checkNikSql, [nik_clean], async (nikErr, nikResults) => {
+        if (nikErr) {
+          console.error("❌ Error cek NIK:", nikErr);
+          return res.status(500).json({ success: false, error: nikErr.message });
+        }
+        if (nikResults.length > 0) {
+          return res.status(400).json({ success: false, message: "NIK sudah digunakan oleh pendonor lain!" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password.trim(), 12);
+
+        const sqlUser = `
+          INSERT INTO users (username, password, email, hp, nama, jabatan, stokdarah_konut, createdAt)
+          VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+        `;
+        const userJabatan = 'Pendonor';
+        db.query(sqlUser, [username.trim(), hashedPassword, email_clean, no_hp_clean, nama_lengkap_clean, userJabatan, stokdarah_konut_clean], (err, resultUser) => {
+          if (err) {
+            console.error("❌ Insert user error:", err);
+            return res.status(500).json({ success: false, error: err.message });
+          }
+
+          const users_id = resultUser.insertId;
+
+          let foto_profil = null;
+          let dokumen_pendukung = null;
+          if (req.files) {
+            if (req.files['foto_profil'] && req.files['foto_profil'][0]) {
+              foto_profil = req.files['foto_profil'][0].filename;
+            }
+            if (req.files['dokumen_pendukung'] && req.files['dokumen_pendukung'][0]) {
+              dokumen_pendukung = req.files['dokumen_pendukung'][0].filename;
+            }
+          }
+
+          // Tambahan: nik_clean di pendonorData (setelah nama_lengkap_clean)
+          const pendonorData = [
+            users_id,
+            nama_lengkap_clean,
+            nik_clean,
+            tanggal_lahir,
+            jenis_kelamin_clean,
+            golongan_darah_clean,
+            rhesus_clean,
+            kabupaten_id ? parseInt(kabupaten_id) : null,
+            kecamatan_id ? parseInt(kecamatan_id) : null,
+            des_kel_id ? parseInt(des_kel_id) : null,
+            alamat_clean,
+            email_clean,
+            no_hp_clean,
+            riwayat_penyakit_clean,
+            terakhir_donor || null,
+            stokdarah_konut_clean,
+            bersedia_dipublikasikan_clean,
+            foto_profil,
+            dokumen_pendukung,
+            new Date()
+          ];
+
+          const sqlPendonor = `
+            INSERT INTO pendonor_darah (
+              users_id, nama_lengkap, nik, tanggal_lahir, jenis_kelamin, golongan_darah, rhesus,
+              kabupaten_id, kecamatan_id, des_kel_id, alamat, email, no_hp,
+              riwayat_penyakit, terakhir_donor, stokdarah_konut, bersedia_dipublikasikan,
+              foto_profil, dokumen_pendukung, created_at, status_verifikasi
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
+          `;
+
+          db.query(sqlPendonor, pendonorData, (err2, resultPendonor) => {
+            if (err2) {
+              console.error("❌ Insert pendonor_darah error:", err2);
+              console.error("SQL Error details:", err2.sqlMessage);
+              // Rollback users
+              const deleteUserSql = `DELETE FROM users WHERE id = ?`;
+              db.query(deleteUserSql, [users_id]);
+              return res.status(500).json({ success: false, error: err2.message });
+            }
+
+            res.json({
+              success: true,
+              message: "Pendonor berhasil ditambahkan 🎉",
+              users_id,
+              pendonor_id: resultPendonor.insertId,
+              data: { nama_lengkap: nama_lengkap_clean, golongan_darah: golongan_darah_clean }
+            });
+          });
+        });
+      });
+    });
+
+  } catch (error) {
+    console.error("🔥 Error tambah pendonor:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post("/editData", upload.fields([
+  { name: 'foto_profil', maxCount: 1 },
+  { name: 'dokumen_pendukung', maxCount: 1 }
+]), async (req, res) => {
+  try {
+    const {
+      id,
+      users_id,
+      username,
+      nama_lengkap,
+      nik,
+      tanggal_lahir,
+      jenis_kelamin,
+      golongan_darah,
+      rhesus,
+      kabupaten_id,
+      kecamatan_id,
+      des_kel_id,
+      alamat,
+      email,
+      no_hp,
+      riwayat_penyakit,
+      terakhir_donor,
+      stokdarah_konut,
+      bersedia_dipublikasikan
+    } = req.body;
+
+    if (!id || !users_id) {
+      return res.status(400).json({ success: false, message: 'ID pendonor dan users_id wajib diisi untuk update.' });
+    }
+
+    const nama_lengkap_clean = nama_lengkap ? nama_lengkap.trim().substring(0, 255) : null;
+    const alamat_clean = alamat ? alamat.trim().substring(0, 255) : null;
+    const email_clean = email ? email.trim().substring(0, 150) : null;
+    const no_hp_clean = no_hp ? no_hp.trim().substring(0, 25) : null;
+    const riwayat_penyakit_clean = riwayat_penyakit ? riwayat_penyakit.trim() : null;
+
+    // Tambahan: Validasi dan clean NIK (opsional di edit; jika diisi, harus valid 16 digit)
+    let nik_clean = null;
+    if (nik) {
+      if (!/^\d{16}$/.test(nik)) {
+        return res.status(400).json({
+          success: false,
+          message: "NIK tidak valid. Harus berupa 16 digit angka (atau kosongkan jika tidak diubah)"
+        });
+      }
+      nik_clean = nik.trim();
+    }
+
+    let golongan_darah_clean = golongan_darah ? golongan_darah.trim() : null;
+    if (golongan_darah_clean && golongan_darah_clean.length > 2) {
+      golongan_darah_clean = golongan_darah_clean.substring(0, 2);
+    }
+
+    let rhesus_clean = rhesus ? rhesus.trim() : null;
+    if (rhesus_clean && rhesus_clean.length > 1) {
+      rhesus_clean = rhesus_clean.substring(0, 1);
+    }
+
+    let jenis_kelamin_clean = jenis_kelamin ? jenis_kelamin.trim() : null;
+    if (jenis_kelamin_clean && jenis_kelamin_clean.length > 1) {
+      jenis_kelamin_clean = jenis_kelamin_clean.substring(0, 1);
+    }
+
+    const stokdarah_konut_clean = stokdarah_konut ? parseInt(stokdarah_konut) : 4;
+    const bersedia_dipublikasikan_clean = bersedia_dipublikasikan ? parseInt(bersedia_dipublikasikan) : 1;
+
+    const getOldFilesSql = 'SELECT foto_profil, dokumen_pendukung, nik FROM pendonor_darah WHERE id = ?';
+    db.query(getOldFilesSql, [id], (err, results) => {
+      if (err) {
+        console.error('❌ Error fetching old pendonor files:', err);
+        return res.status(500).json({ success: false, error: err.message });
+      }
+      if (results.length === 0) {
+        return res.status(404).json({ success: false, message: 'Data pendonor tidak ditemukan.' });
+      }
+
+      const existingNik = results[0].nik;
+
+      if (nik_clean && nik_clean !== existingNik) {
+        const checkNikSql = `SELECT id FROM pendonor_darah WHERE nik = ? AND id != ?`;
+        db.query(checkNikSql, [nik_clean, id], (nikErr, nikResults) => {
+          if (nikErr) {
+            console.error("❌ Error cek NIK uniqueness:", nikErr);
+            return res.status(500).json({ success: false, error: nikErr.message });
+          }
+          if (nikResults.length > 0) {
+            return res.status(400).json({ success: false, message: "NIK sudah digunakan oleh pendonor lain!" });
+          }
+          // Jika unik, lanjut ke update (lanjutkan di nested callback di bawah)
+          proceedToUpdate(existingNik, results[0]);
+        });
+      } else {
+        // Jika tidak ada perubahan NIK atau kosong, lanjut langsung
+        proceedToUpdate(existingNik, results[0]);
+      }
+
+      function proceedToUpdate(existingNik, oldData) {
+        let oldFotoProfil = oldData.foto_profil;
+        let oldDokumenPendukung = oldData.dokumen_pendukung;
+
+        let newFotoProfil = oldFotoProfil;
+        let newDokumenPendukung = oldDokumenPendukung;
+
+        if (req.files) {
+          if (req.files['foto_profil'] && req.files['foto_profil'][0]) {
+            newFotoProfil = req.files['foto_profil'][0].filename;
+            if (oldFotoProfil && oldFotoProfil !== newFotoProfil) {
+              const oldFilePath = path.join(__dirname, '../../../../uploads', oldFotoProfil);
+              fs.unlink(oldFilePath, (unlinkErr) => {
+                if (unlinkErr) console.warn('⚠️ Gagal hapus foto profil lama:', unlinkErr);
+              });
+            }
+          }
+          if (req.files['dokumen_pendukung'] && req.files['dokumen_pendukung'][0]) {
+            newDokumenPendukung = req.files['dokumen_pendukung'][0].filename;
+            if (oldDokumenPendukung && oldDokumenPendukung !== newDokumenPendukung) {
+              const oldFilePath = path.join(__dirname, '../../../../uploads', oldDokumenPendukung);
+              fs.unlink(oldFilePath, (unlinkErr) => {
+                if (unlinkErr) console.warn('⚠️ Gagal hapus dokumen pendukung lama:', unlinkErr);
+              });
+            }
+          }
+        }
+
+        // Tambahan: nik = ? di SET clause (setelah nama_lengkap)
+        const updatePendonorSql = `
+          UPDATE pendonor_darah SET
+            nama_lengkap = ?,
+            nik = ?,
+            tanggal_lahir = ?,
+            jenis_kelamin = ?,
+            golongan_darah = ?,
+            rhesus = ?,
+            kabupaten_id = ?,
+            kecamatan_id = ?,
+            des_kel_id = ?,
+            alamat = ?,
+            email = ?,
+            no_hp = ?,
+            riwayat_penyakit = ?,
+            terakhir_donor = ?,
+            stokdarah_konut = ?,
+            bersedia_dipublikasikan = ?,
+            foto_profil = ?,
+            dokumen_pendukung = ?
+          WHERE id = ?
+        `;
+
+        // Tambahan: nik_clean di data array (setelah nama_lengkap_clean)
+        const pendonorData = [
+          nama_lengkap_clean,
+          nik_clean, // <-- Ditambahkan di sini
+          tanggal_lahir,
+          jenis_kelamin_clean,
+          golongan_darah_clean,
+          rhesus_clean,
+          kabupaten_id ? parseInt(kabupaten_id) : null,
+          kecamatan_id ? parseInt(kecamatan_id) : null,
+          des_kel_id ? parseInt(des_kel_id) : null,
+          alamat_clean,
+          email_clean,
+          no_hp_clean,
+          riwayat_penyakit_clean,
+          terakhir_donor || null,
+          stokdarah_konut_clean,
+          bersedia_dipublikasikan_clean,
+          newFotoProfil,
+          newDokumenPendukung,
+          id
+        ];
+
+        db.query(updatePendonorSql, pendonorData, (updateErr) => {
+          if (updateErr) {
+            console.error('❌ Error updating pendonor_darah:', updateErr);
+            return res.status(500).json({ success: false, error: updateErr.message });
+          }
+
+          if (username) {
+            const checkUsernameSql = `SELECT id FROM users WHERE username = ? AND id != ?`;
+            db.query(checkUsernameSql, [username.trim(), users_id], (checkErr, checkResults) => {
+              if (checkErr) {
+                console.error("❌ Error checking username uniqueness:", checkErr);
+                return res.status(500).json({ success: false, error: checkErr.message });
+              }
+              if (checkResults.length > 0) {
+                return res.status(400).json({ success: false, message: "Username sudah digunakan oleh user lain!" });
+              }
+
+              const updateUserSql = 'UPDATE users SET username = ?, email = ?, hp = ?, nama = ?, stokdarah_konut = ? WHERE id = ?';
+              db.query(updateUserSql, [username.trim(), email_clean, no_hp_clean, nama_lengkap_clean, stokdarah_konut_clean, users_id], (userErr) => {
+                if (userErr) {
+                  console.error('❌ Error updating user data:', userErr);
+                  return res.status(500).json({ success: false, error: userErr.message });
+                }
+                res.json({ success: true, message: 'Data pendonor diupdate.' });
+              });
+            });
+          } else {
+            const updateUserSql = 'UPDATE users SET email = ?, hp = ?, nama = ?, stokdarah_konut = ? WHERE id = ?';
+            db.query(updateUserSql, [email_clean, no_hp_clean, nama_lengkap_clean, stokdarah_konut_clean, users_id], (userErr) => {
+              if (userErr) {
+                console.error('❌ Error updating user data (no username change):', userErr);
+                return res.status(500).json({ success: false, error: userErr.message });
+              }
+              res.json({ success: true, message: 'Data pendonor berhasil diupdate.' });
+            });
+          }
+        });
+      }
+    });
+
+  } catch (error) {
+    console.error("🔥 Error edit pendonor:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+
+router.post('/removePendonor', (req, res) => {
+  const { id, users_id } = req.body;
+
+  if (!id || !users_id) {
+    return res.status(400).json({ success: false, message: 'ID pendonor dan users_id wajib diisi.' });
+  }
+
+  const getOldFilesSql = 'SELECT foto_profil, dokumen_pendukung FROM pendonor_darah WHERE id = ?';
+  db.query(getOldFilesSql, [id], (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching old pendonor files for deletion:', err);
+      return res.status(500).json({ success: false, message: 'Database error saat mengambil file lama.' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, message: 'Data pendonor tidak ditemukan.' });
+    }
+
+    const oldFotoProfil = results[0].foto_profil;
+    const oldDokumenPendukung = results[0].dokumen_pendukung;
+
+    const deletePendonorSql = 'DELETE FROM pendonor_darah WHERE id = ?';
+    db.query(deletePendonorSql, [id], (delErr) => {
+      if (delErr) {
+        console.error('❌ Error deleting pendonor_darah:', delErr);
+        return res.status(500).json({ success: false, message: 'Gagal menghapus data pendonor.' });
+      }
+
+      const deleteUserSql = 'DELETE FROM users WHERE id = ?';
+      db.query(deleteUserSql, [users_id], (userErr) => {
+        if (userErr) {
+          console.error('❌ Error deleting user associated with pendonor:', userErr);
+
+        }
+        if (oldFotoProfil) {
+          const filePath = path.join(__dirname, '../../../../uploads', oldFotoProfil);
+          fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) console.warn('⚠️ Gagal hapus foto profil lama:', unlinkErr);
+          });
+        }
+        if (oldDokumenPendukung) {
+          const filePath = path.join(__dirname, '../../../../uploads', oldDokumenPendukung);
+          fs.unlink(filePath, (unlinkErr) => {
+            if (unlinkErr) console.warn('⚠️ Gagal hapus dokumen pendukung lama:', unlinkErr);
+          });
+        }
+
+        return res.json({ success: true, message: 'Data pendonor berhasil dihapus.' });
+      });
+    });
+  });
+});
+
+router.post('/editPasswordPendonor', async (req, res) => {
+  const { users_id, password } = req.body;
+  if (!users_id || !password) {
+    return res.status(400).json({ success: false, message: 'users_id dan password wajib diisi.' });
+  }
+  try {
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const updateSql = 'UPDATE users SET password = ? WHERE id = ?';
+    db.query(updateSql, [hashedPassword, users_id], (err, result) => {
+      if (err) {
+        console.error('❌ Error updating pendonor password:', err);
+        return res.status(500).json({ success: false, message: 'Gagal mengubah password.' });
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
+      }
+      return res.json({ success: true, message: 'Password berhasil diubah.' });
+    });
+  } catch (error) {
+    console.error('🔥 Error hashing password for pendonor:', error);
+    return res.status(500).json({ success: false, message: 'Terjadi kesalahan server.' });
+  }
+});
+
+// Daftar pendonor ringkas untuk select (tanpa pagination)
+// GET /list
+router.get('/list', (req, res) => {
+  // opsional: filter only active / published
+  const sql = `
+    SELECT DISTINCT id, nama_lengkap AS nama_lengkap, golongan_darah, rhesus, no_hp
+    FROM pendonor_darah
+    WHERE status_verifikasi = 'active'
+    ORDER BY nama_lengkap ASC
+  `;
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('❌ Error fetching pendonor list:', err);
+      return res.status(500).json({ success: false, message: 'Terjadi kesalahan server' });
+    }
+    // kembalikan dalam bentuk yang mudah dipakai q-select: { id, label, raw? }
+    const data = (results || []).map(r => ({
+      id: r.id,
+      label: `${r.nama_lengkap} — ${r.golongan_darah || '-'}${r.rhesus || ''} — ${r.no_hp || '-'}`,
+      raw: r
+    }));
+    res.json({ success: true, data });
+  });
+});
+
+// -----------------------------------------------------------------------------
+// POST /getHistoryByPendonor
+// Mengembalikan riwayat jadwal yang pernah diikuti oleh pendonor (join jadwal_peserta -> jadwal_donor)
+// Body: { pendonor_id }  (juga menerima users_id atau id sebagai fallback)
+// -----------------------------------------------------------------------------
+router.post('/getHistoryByPendonor', (req, res) => {
+  const pendonorId = req.body.pendonor_id || req.body.users_id || req.body.id;
+  if (!pendonorId) {
+    return res.status(400).json({ success: false, message: 'pendonor_id (atau users_id) wajib diisi' });
+  }
+
+  const sql = `
+    SELECT
+      jd.id AS jadwal_id,
+      jd.nama_kegiatan,
+      jd.tanggal_mulai,
+      jd.tanggal_selesai,
+      jd.lokasi
+    FROM jadwal_peserta jp
+    JOIN jadwal_donor jd ON jp.jadwal_id = jd.id
+    WHERE jp.pendonor_id = ?
+    GROUP BY jd.id
+    ORDER BY jd.tanggal_mulai DESC
+  `;
+
+  db.query(sql, [pendonorId], (err, results) => {
+    if (err) {
+      console.error('❌ Error getHistoryByPendonor:', err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+
+    // Pastikan format konsisten untuk frontend
+    const data = (results || []).map(r => ({
+      jadwal_id: r.jadwal_id,
+      nama_kegiatan: r.nama_kegiatan,
+      tanggal_mulai: r.tanggal_mulai,
+      tanggal_selesai: r.tanggal_selesai,
+      lokasi: r.lokasi
+    }));
+
+    return res.json({ success: true, data });
+  });
+});
+
+
+
+
+
+module.exports = router;

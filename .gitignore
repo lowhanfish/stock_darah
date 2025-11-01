@@ -1,0 +1,107 @@
+# =====================================================
+# 🌐 GLOBAL SETTINGS
+# =====================================================
+# Node modules (semua proyek)
+**/node_modules/
+
+# Build output (dist, build, public, www, dll)
+**/dist/
+**/build/
+**/public/
+**/www/
+**/.output/
+
+# Cache (Vite, Vue, Quasar, Babel, ESLint, dll)
+**/.cache/
+**/.vite/
+**/.quasar/
+**/.nuxt/
+**/.temp/
+**/.eslintcache
+**/.tscache
+**/.turbo/
+**/.next/
+**/.svelte-kit/
+**/.angular/
+**/.parcel-cache/
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS-specific
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# Editor-specific
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files (jangan pernah commit .env!)
+.env
+.env.*
+!.env.example
+
+# Temporary & lock files
+*.pid
+*.seed
+*.pid.lock
+*.bak
+*.tmp
+*.temp
+*.orig
+*.rej
+*.old
+*.swp
+*.lock
+
+# =====================================================
+# 🧩 ADMIN (Vue + Quasar)
+# =====================================================
+admin/dist/
+admin/.quasar/
+admin/.cache/
+admin/src-cordova/
+admin/src-capacitor/
+admin/src-electron/
+
+# =====================================================
+# 🧠 WEB PUBLISH (Vue 3 + Vite + Capacitor)
+# =====================================================
+web_publish/dist/
+web_publish/.vite/
+web_publish/.cache/
+web_publish/node_modules/
+web_publish/capacitor.config.json
+web_publish/android/
+web_publish/ios/
+
+# =====================================================
+# ⚙️ SERVER (Node.js / Express)
+# =====================================================
+server/node_modules/
+server/logs/
+server/tmp/
+server/uploads/
+server/.cache/
+server/.env
+server/.env.*
+
+# =====================================================
+# 🔧 Miscellaneous
+# =====================================================
+# Lock files (opsional jika lintas package manager)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# OS backup files
+*.bak
+*.backup
+*~
