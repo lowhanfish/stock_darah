@@ -52,6 +52,18 @@ const routes = [
     component: () => import('../views/informasi/jadwal_donor.vue'),
     beforeEnter: isLoggedIn,
   },
+  {
+    path: '/permintaan_darah',
+    name: 'Permintaan Darah',
+    component: () => import('../views/darah/permintaan_darah.vue'),
+    beforeEnter: isLoggedIn,
+  },
+  {
+    path: '/stok_darah',
+    name: 'Stok Darah',
+    component: () => import('../views/darah/stok_darah.vue'),
+    beforeEnter: isLoggedIn,
+  },
 
 
   {
@@ -98,9 +110,9 @@ const routes = [
   },
 
   {
-    path: '/subidcsr',
-    name: 'subidcsr',
-    component: () => import('../views/dataMaster/subidcsr.vue'),
+    path: '/komponen',
+    name: 'Komponen Darah',
+    component: () => import('../views/dataMaster/komponen.vue'),
     beforeEnter: isLoggedIn,
   },
 

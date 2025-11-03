@@ -52,7 +52,7 @@
                         <td>{{ data.nama_lengkap }}</td>
                         <td>{{ data.nik }}</td>
                         <td>{{ UMUM.tglConvert(data.tanggal_lahir) }}</td>
-                        <td>{{ data.golongan_darah }}</td>
+                        <td>{{ data.golongan_darah }} {{ data.rhesus }}</td>
                         <td>{{ data.no_hp }}</td>
                         <td>{{ data.jenis_kelamin }}</td>
                         <td>{{ data.username }}</td>
