@@ -35,19 +35,13 @@ export default new Vuex.Store({
 
       
       DASHBOARD : URL + 'api/v1/dashboard/',
-      URL_DM_BID : URL + 'api/v1/dm_bid/',
-      DATA_MITRA : URL + 'api/v1/data_mitra/',
-      KEGIATAN_CSR : URL + 'api/v1/kegiatan_csr/',
-      LIST_PENGAJUAN : URL + 'api/v1/list_pengajuan/',
-      LIST_PENGAJUAN_FORCE : URL + 'api/v1/list_pengajuan_force/',
-      FORCEMAJEURE : URL + 'api/v1/forceMajeure/',
+      
       BERITA : URL + 'api/v1/berita/',
-
-
       REGIS_MEDIS : URL + 'api/v1/reg_tenagamedis/',
       REGIS_DONOR : URL + 'api/v1/reg_pendonor/',
       REGIS_MASYARAKAT : URL + 'api/v1/reg_masyarakat/',
       REGIS_ADMIN_BDRS : URL + 'api/v1/reg_admin/',
+      KOMPONEN : URL + 'api/v1/komponen/',
 
       JADWAL_DONOR : URL + 'api/v1/jadwal_donor/'
 

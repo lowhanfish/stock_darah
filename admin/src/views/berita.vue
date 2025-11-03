@@ -72,7 +72,7 @@
             <q-btn dense round color="primary" icon="visibility" @click="openLihat(data)">
               <q-tooltip content-class="bg-blue-7">Lihat Data</q-tooltip>
             </q-btn>
-          </td> <!-- Act -->
+          </td>
         </tr>
 
       </table>
