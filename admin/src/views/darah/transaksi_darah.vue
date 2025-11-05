@@ -129,6 +129,52 @@
                 </form>
             </q-card>
         </q-dialog>
+
+
+        <!-- ===================== MODAL EDIT ===================== -->
+        <q-dialog v-model="mdl_edit" persistent>
+            <q-card class="mdl-md">
+                <q-card-section class="bg-orange text-white">
+                    <div class="text-h6 h_modalhead">Edit Transaksi Darah</div>
+                </q-card-section>
+
+                <form @submit.prevent="editData">
+                    <q-card-section class="q-pt-none">
+                        <span class="h_lable">Golongan Darah</span>
+                        <q-select v-model="form_edit.golongan_darah" outlined square :dense="true"
+                            class="bg-white margin_btn" :options="['A', 'B', 'O', 'AB']" required />
+
+                        <span class="h_lable">Rhesus</span>
+                        <q-select v-model="form_edit.rhesus" outlined square :dense="true" class="bg-white margin_btn"
+                            :options="['+', '-']" required />
+
+                        <span class="h_lable">Komponen Darah</span>
+                        <q-select v-model="form_edit.komponen_id" outlined square :dense="true"
+                            class="bg-white margin_btn" :options="list_komponen" option-value="id"
+                            option-label="nama_komponen" emit-value map-options required />
+
+                        <span class="h_lable">Jumlah (Kantong)</span>
+                        <q-input v-model.number="form_edit.jumlah" type="number" outlined square :dense="true"
+                            class="bg-white margin_btn" required />
+
+                        <span class="h_lable">Tipe Transaksi</span>
+                        <q-select v-model="form_edit.tipe_transaksi" outlined square :dense="true"
+                            class="bg-white margin_btn" :options="['masuk', 'keluar']" required />
+
+                        <span class="h_lable">Keterangan</span>
+                        <q-input v-model="form_edit.keterangan" type="textarea" outlined square :dense="true"
+                            class="bg-white margin_btn" />
+                    </q-card-section>
+
+                    <q-card-actions class="bg-grey-4 mdl-footer" align="right">
+                        <q-btn :loading="btn_edit" color="primary" type="submit" label="Simpan Perubahan" />
+                        <q-btn label="Batal" color="negative" v-close-popup />
+                    </q-card-actions>
+                </form>
+            </q-card>
+        </q-dialog>
+
+
     </div>
 </template>
 
@@ -137,6 +183,15 @@ export default {
     data() {
         return {
             form: {
+                golongan_darah: '',
+                rhesus: '',
+                komponen_id: null,
+                jumlah: 0,
+                tipe_transaksi: '',
+                keterangan: ''
+            },
+            form_edit: {
+                id_transaksi: '',
                 golongan_darah: '',
                 rhesus: '',
                 komponen_id: null,
@@ -155,7 +210,9 @@ export default {
             cari_value: '',
 
             mdl_add: false,
-            btn_add: false
+            btn_add: false,
+            mdl_edit: false,
+            btn_edit: false,
         }
     },
     methods: {
@@ -250,6 +307,61 @@ export default {
                 keterangan: ''
             }
         },
+
+        // 🔹 Buka modal edit dan isi data
+        openEdit(data) {
+            this.form_edit = {
+                id_transaksi: data.id_transaksi,
+                golongan_darah: data.golongan_darah,
+                rhesus: data.rhesus,
+                komponen_id: data.komponen_id,
+                jumlah: data.jumlah,
+                tipe_transaksi: data.tipe_transaksi,
+                keterangan: data.keterangan
+            };
+            this.mdl_edit = true;
+        },
+
+        // 🔹 Kirim perubahan ke backend
+        editData() {
+            this.btn_edit = true;
+
+            fetch(this.$store.state.url.TRANSAKSI + "editData", {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json",
+                    authorization: "kikensbatara " + localStorage.token
+                },
+                body: JSON.stringify(this.form_edit)
+            })
+                .then(res => res.json())
+                .then(res_data => {
+                    if (res_data.success) {
+                        this.$q.notify({
+                            type: "positive",
+                            message: res_data.message || "Transaksi darah berhasil diperbarui"
+                        });
+                        this.mdl_edit = false;
+                        this.getView();
+                    } else {
+                        this.$q.notify({
+                            type: "negative",
+                            message: res_data.message || "Gagal memperbarui transaksi"
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error("Error editData:", err);
+                    this.$q.notify({
+                        type: "negative",
+                        message: "Terjadi kesalahan saat memperbarui data"
+                    });
+                })
+                .finally(() => {
+                    this.btn_edit = false;
+                });
+        },
+
 
         indexing(idx) {
             return ((this.page_first - 1) * this.page_limit) + idx
