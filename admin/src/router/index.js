@@ -64,6 +64,12 @@ const routes = [
     component: () => import('../views/darah/stok_darah.vue'),
     beforeEnter: isLoggedIn,
   },
+  {
+    path: '/transaksi_darah',
+    name: 'Transaksi Darah',
+    component: () => import('../views/darah/transaksi_darah.vue'),
+    beforeEnter: isLoggedIn,
+  },
 
 
   {

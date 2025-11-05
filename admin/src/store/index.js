@@ -37,11 +37,13 @@ export default new Vuex.Store({
       DASHBOARD : URL + 'api/v1/dashboard/',
       
       BERITA : URL + 'api/v1/berita/',
+      STOK : URL + 'api/v1/stok_darah/',
       REGIS_MEDIS : URL + 'api/v1/reg_tenagamedis/',
       REGIS_DONOR : URL + 'api/v1/reg_pendonor/',
       REGIS_MASYARAKAT : URL + 'api/v1/reg_masyarakat/',
       REGIS_ADMIN_BDRS : URL + 'api/v1/reg_admin/',
       KOMPONEN : URL + 'api/v1/komponen/',
+      TRANSAKSI : URL + 'api/v1/transaksi_darah/',
 
       JADWAL_DONOR : URL + 'api/v1/jadwal_donor/'
 
