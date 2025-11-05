@@ -6,21 +6,50 @@ const db = require('../../../db/MySql/umum'); // koneksi database
 // 🔹 GET: Lihat semua transaksi darah
 // ===================================================
 router.get('/view', (req, res) => {
-  const sql = `
-    SELECT t.*, k.nama_komponen 
-    FROM transaksi_darah t
-    LEFT JOIN komponen_darah k ON t.komponen_id = k.id
-    ORDER BY t.tanggal DESC
-  `;
-
-  db.query(sql, (err, result) => {
-    if (err) {
-      console.error('Error ambil transaksi:', err);
-      return res.status(500).json({ success: false, message: 'Gagal ambil data transaksi' });
-    }
-    res.json({ success: true, data: result });
+    // Ambil parameter query dari URL
+    const page = parseInt(req.query.page) || 1;      // halaman sekarang
+    const limit = parseInt(req.query.limit) || 10;   // jumlah per halaman
+    const offset = (page - 1) * limit;               // mulai dari data ke berapa
+  
+    const countSql = `SELECT COUNT(*) AS total FROM transaksi_darah`;
+  
+    // Hitung total data dulu
+    db.query(countSql, (err, countResult) => {
+      if (err) {
+        console.error('Error count transaksi:', err);
+        return res.status(500).json({ success: false, message: 'Gagal menghitung data transaksi' });
+      }
+  
+      const total = countResult[0].total;
+      const totalPages = Math.ceil(total / limit);
+  
+      // Ambil data sesuai halaman
+      const dataSql = `
+        SELECT t.*, k.nama_komponen 
+        FROM transaksi_darah t
+        LEFT JOIN komponen_darah k ON t.komponen_id = k.id
+        ORDER BY t.tanggal DESC
+        LIMIT ? OFFSET ?
+      `;
+  
+      db.query(dataSql, [limit, offset], (err2, dataResult) => {
+        if (err2) {
+          console.error('Error ambil transaksi:', err2);
+          return res.status(500).json({ success: false, message: 'Gagal ambil data transaksi' });
+        }
+  
+        res.json({
+          success: true,
+          page,
+          limit,
+          total_data: total,
+          total_pages: totalPages,
+          data: dataResult
+        });
+      });
+    });
   });
-});
+  
 
 
 // ===================================================
