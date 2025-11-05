@@ -73,6 +73,10 @@ const jadwal_donor = require('./apiMysql/client/jadwal_donor');
 app.use('/api/v1/jadwal_donor', middleware.isLoggedIn, jadwal_donor);
 const komponen = require('./apiMysql/client/dataMaster/komponen');
 app.use('/api/v1/komponen', middleware.isLoggedIn, komponen);
+const stok_darah = require('./apiMysql/client/stok_darah');
+app.use('/api/v1/stok_darah', middleware.isLoggedIn, stok_darah);
+const transaksi_darah = require('./apiMysql/client/manajemen_darah/transaksi_darah');
+app.use('/api/v1/transaksi_darah', middleware.isLoggedIn, transaksi_darah);
 
 // =================== CLIENT =====================
 
