@@ -128,4 +128,110 @@ router.delete('/delete/:id', (req, res) => {
   });
 });
 
+
+router.post('/editData', (req, res) => {
+    const {
+      id_transaksi,
+      golongan_darah,
+      rhesus,
+      komponen_id,
+      jumlah,
+      tipe_transaksi,
+      keterangan
+    } = req.body;
+  
+    if (!id_transaksi || !golongan_darah || !rhesus || !komponen_id || !jumlah || !tipe_transaksi) {
+      return res.status(400).json({ success: false, message: 'Data tidak lengkap' });
+    }
+  
+    // 1️⃣ Ambil data transaksi lama dulu
+    const getOldSql = `SELECT * FROM transaksi_darah WHERE id_transaksi = ?`;
+    db.query(getOldSql, [id_transaksi], (err, resultOld) => {
+      if (err) {
+        console.error('Error ambil data lama:', err);
+        return res.status(500).json({ success: false, message: 'Gagal ambil data transaksi lama' });
+      }
+  
+      if (resultOld.length === 0) {
+        return res.status(404).json({ success: false, message: 'Data transaksi tidak ditemukan' });
+      }
+  
+      const oldData = resultOld[0];
+  
+      // 2️⃣ Kembalikan stok sesuai transaksi lama (revert dulu)
+      let revertSql = '';
+      let revertParams = [];
+  
+      if (oldData.tipe_transaksi === 'masuk') {
+        revertSql = `
+          UPDATE stok_darah 
+          SET jumlah_stok = GREATEST(jumlah_stok - ?, 0), tanggal_update = NOW()
+          WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
+        `;
+        revertParams = [oldData.jumlah, oldData.golongan_darah, oldData.rhesus, oldData.komponen_id];
+      } else if (oldData.tipe_transaksi === 'keluar') {
+        revertSql = `
+          UPDATE stok_darah 
+          SET jumlah_stok = jumlah_stok + ?, tanggal_update = NOW()
+          WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
+        `;
+        revertParams = [oldData.jumlah, oldData.golongan_darah, oldData.rhesus, oldData.komponen_id];
+      }
+  
+      db.query(revertSql, revertParams, (err2) => {
+        if (err2) {
+          console.error('Error revert stok:', err2);
+          return res.status(500).json({ success: false, message: 'Gagal revert stok lama' });
+        }
+  
+        // 3️⃣ Update data transaksi baru
+        const updateTransaksiSql = `
+          UPDATE transaksi_darah 
+          SET golongan_darah = ?, rhesus = ?, komponen_id = ?, jumlah = ?, 
+              tipe_transaksi = ?, keterangan = ?
+          WHERE id_transaksi = ?
+        `;
+  
+        db.query(
+          updateTransaksiSql,
+          [golongan_darah, rhesus, komponen_id, jumlah, tipe_transaksi, keterangan || null, id_transaksi],
+          (err3) => {
+            if (err3) {
+              console.error('Error update transaksi:', err3);
+              return res.status(500).json({ success: false, message: 'Gagal update transaksi' });
+            }
+  
+            // 4️⃣ Tambahkan efek transaksi baru ke stok
+            let applySql = '';
+            if (tipe_transaksi.toLowerCase() === 'masuk') {
+              applySql = `
+                UPDATE stok_darah 
+                SET jumlah_stok = jumlah_stok + ?, tanggal_update = NOW()
+                WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
+              `;
+            } else if (tipe_transaksi.toLowerCase() === 'keluar') {
+              applySql = `
+                UPDATE stok_darah 
+                SET jumlah_stok = GREATEST(jumlah_stok - ?, 0), tanggal_update = NOW()
+                WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
+              `;
+            }
+  
+            db.query(applySql, [jumlah, golongan_darah, rhesus, komponen_id], (err4) => {
+              if (err4) {
+                console.error('Error update stok baru:', err4);
+                return res.status(500).json({ success: false, message: 'Gagal update stok baru' });
+              }
+  
+              res.json({
+                success: true,
+                message: 'Transaksi darah berhasil diperbarui dan stok diperbarui ulang.'
+              });
+            });
+          }
+        );
+      });
+    });
+  });
+
 module.exports = router;
