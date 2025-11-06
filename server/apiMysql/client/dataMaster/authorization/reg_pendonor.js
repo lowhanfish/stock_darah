@@ -1,11 +1,68 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../../../../db/MySql/umum');
-const bcrypt = require('bcryptjs');
 var upload = require('../../../../db/multer/image');
 const path = require('path');
 const fs = require('fs');
 
+
+
+function formatDate(dateString) {
+  if (!dateString) return null;
+  try {
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
+
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  } catch (e) {
+    return null;
+  }
+}
+
+function toYMD(value) {
+  if (value === null || typeof value === 'undefined' || String(value).trim() === '') return null;
+
+  const s = String(value).trim();
+
+  // already YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+
+  // ISO datetime -> take date part
+  if (s.includes('T')) return s.split('T')[0];
+
+  // DD/MM/YYYY or DD-MM-YYYY -> convert
+  const dm = s.match(/^(\d{2})[\/-](\d{2})[\/-](\d{4})$/);
+  if (dm) {
+    return `${dm[3]}-${dm[2]}-${dm[1]}`;
+  }
+
+  // If value is Date object
+  if (value instanceof Date) {
+    const d = value;
+    const Y = d.getUTCFullYear();
+    const M = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const D = String(d.getUTCDate()).padStart(2, '0');
+    return `${Y}-${M}-${D}`;
+  }
+
+  // Fallback: try parse and use UTC components
+  const parsed = new Date(s);
+  if (!isNaN(parsed.getTime())) {
+    const Y = parsed.getUTCFullYear();
+    const M = String(parsed.getUTCMonth() + 1).padStart(2, '0');
+    const D = String(parsed.getUTCDate()).padStart(2, '0');
+    return `${Y}-${M}-${D}`;
+  }
+
+  return null;
+}
+
+
+// ================= Helper routes (kabupaten/kecamatan/deskel) =================
 router.get('/kabupaten', (req, res) => {
   const provinsiId = 74;
   const sql = `
@@ -19,10 +76,7 @@ router.get('/kabupaten', (req, res) => {
       console.error('❌ Error fetching kabupaten:', err);
       return res.status(500).json({ success: false, error: err.message });
     }
-    res.json({
-      success: true,
-      data: results
-    });
+    res.json({ success: true, data: results });
   });
 });
 
@@ -42,10 +96,7 @@ router.get('/kecamatan', (req, res) => {
       console.error('❌ Error fetching kecamatan:', err);
       return res.status(500).json({ success: false, error: err.message });
     }
-    res.json({
-      success: true,
-      data: results
-    });
+    res.json({ success: true, data: results });
   });
 });
 
@@ -65,12 +116,11 @@ router.get('/deskel', (req, res) => {
       console.error('❌ Error fetching desa/kelurahan:', err);
       return res.status(500).json({ success: false, error: err.message });
     }
-    res.json({
-      success: true,
-      data: results
-    });
+    res.json({ success: true, data: results });
   });
 });
+
+// ================== getview (list pendonor, tanpa join ke users) ==================
 router.post("/getview", (req, res) => {
   const { page_limit, data_ke, cari_value } = req.body;
 
@@ -80,10 +130,8 @@ router.post("/getview", (req, res) => {
 
   const countSql = `
     SELECT COUNT(*) AS total FROM pendonor_darah pd
-    JOIN users u ON pd.users_id = u.id
     WHERE pd.nama_lengkap LIKE ? 
        OR pd.nik LIKE ?
-       OR u.username LIKE ? 
        OR pd.golongan_darah LIKE ? 
        OR pd.no_hp LIKE ?
        OR pd.email LIKE ?
@@ -94,7 +142,7 @@ router.post("/getview", (req, res) => {
       pd.id,
       pd.nama_lengkap,
       pd.nik,
-      pd.tanggal_lahir,
+      DATE_FORMAT(pd.tanggal_lahir, '%Y-%m-%d') AS tanggal_lahir, 
       pd.jenis_kelamin,
       pd.golongan_darah,
       pd.rhesus,
@@ -108,22 +156,19 @@ router.post("/getview", (req, res) => {
       pd.email,
       pd.no_hp,
       pd.riwayat_penyakit,
-      pd.terakhir_donor,
+      DATE_FORMAT(pd.terakhir_donor, '%Y-%m-%d') AS terakhir_donor, 
       pd.stokdarah_konut,
       pd.bersedia_dipublikasikan,
       pd.foto_profil,
       pd.dokumen_pendukung,
       pd.status_verifikasi,
-      u.username,
-      u.id AS users_id
+      pd.created_at
     FROM pendonor_darah pd
-    JOIN users u ON pd.users_id = u.id
     LEFT JOIN master_kabupaten mkab ON pd.kabupaten_id = mkab.kabupaten_id
     LEFT JOIN master_kecamatan mkec ON pd.kecamatan_id = mkec.kecamatan_id
     LEFT JOIN master_des_kel mdkel ON pd.des_kel_id = mdkel.des_kel_id
     WHERE pd.nama_lengkap LIKE ? 
        OR pd.nik LIKE ?
-       OR u.username LIKE ? 
        OR pd.golongan_darah LIKE ? 
        OR pd.no_hp LIKE ?
        OR pd.email LIKE ?
@@ -131,7 +176,7 @@ router.post("/getview", (req, res) => {
     LIMIT ? OFFSET ?
   `;
 
-  db.query(countSql, [search, search, search, search, search, search], (err, countResult) => {
+  db.query(countSql, [search, search, search, search, search], (err, countResult) => {
     if (err) {
       console.error("❌ Error count pendonor:", err);
       return res.status(500).json({ success: false, error: err.message });
@@ -139,7 +184,7 @@ router.post("/getview", (req, res) => {
 
     const total_data = countResult[0].total;
 
-    db.query(dataSql, [search, search, search, search, search, search, limit, offset], (err2, dataResult) => {
+    db.query(dataSql, [search, search, search, search, search, limit, offset], (err2, dataResult) => {
       if (err2) {
         console.error("❌ Error get pendonor:", err2);
         return res.status(500).json({ success: false, error: err2.message });
@@ -155,14 +200,13 @@ router.post("/getview", (req, res) => {
   });
 });
 
+// ================== addData (tanpa buat user) ==================
 router.post("/addData", upload.fields([
   { name: 'foto_profil', maxCount: 1 },
   { name: 'dokumen_pendukung', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const {
-      username,
-      password,
       nama_lengkap,
       nik,
       tanggal_lahir,
@@ -177,39 +221,33 @@ router.post("/addData", upload.fields([
       no_hp,
       riwayat_penyakit,
       terakhir_donor,
-      stokdarah_konut,
-      bersedia_dipublikasikan
+      bersedia_dipublikasikan,
+      stokdarah_konut // tambahkan agar bisa diterima dari body
     } = req.body;
 
-    // Validasi required fields (sudah ada nik)
-    if (!username || !password || !nama_lengkap || !tanggal_lahir || !jenis_kelamin || !golongan_darah || !nik) {
-      return res.status(400).json({
-        success: false,
-        message: "Field wajib harus diisi! (username, password, nama lengkap, tanggal lahir, jenis kelamin, golongan darah, nik)"
-      });
+    let tanggal_lahir_clean = null;
+    if (tanggal_lahir && String(tanggal_lahir).trim() !== '') {
+      const tf = formatDate(tanggal_lahir);
+      tanggal_lahir_clean = tf ? toYMD(tf) : null;
+      if (!tanggal_lahir_clean) {
+        return res.status(400).json({ success: false, message: 'Format tanggal_lahir tidak valid' });
+      }
     }
 
-    // Validasi username & password (seperti sebelumnya)
-    if (username.trim().length < 6) {
-      return res.status(400).json({ success: false, message: 'Username harus minimal 6 karakter' });
-    }
-    if (password.trim().length < 6) {
-      return res.status(400).json({ success: false, message: 'Password harus minimal 6 karakter' });
-    }
-    if (!/^\d{16}$/.test(nik)) {
+    if (!nik || !/^\d{16}$/.test(nik)) {
       return res.status(400).json({
         success: false,
         message: "NIK tidak valid. Harus berupa 16 digit angka"
       });
     }
-    const nik_clean = nik.trim(); // Clean NIK (asumsi sudah valid)
+    const nik_clean = nik.trim();
 
-    const nama_lengkap_clean = nama_lengkap.trim().substring(0, 255);
+    const nama_lengkap_clean = nama_lengkap ? nama_lengkap.trim().substring(0, 255) : null;
     const alamat_clean = alamat ? alamat.trim().substring(0, 255) : null;
     const email_clean = email ? email.trim().substring(0, 150) : null;
     const no_hp_clean = no_hp ? no_hp.trim().substring(0, 25) : null;
     const riwayat_penyakit_clean = riwayat_penyakit ? riwayat_penyakit.trim() : null;
-    let golongan_darah_clean = golongan_darah.trim();
+    let golongan_darah_clean = golongan_darah ? golongan_darah.trim() : '';
     const validGolongan = ['A', 'B', 'AB', 'O'];
     if (!validGolongan.includes(golongan_darah_clean)) {
       return res.status(400).json({
@@ -231,14 +269,13 @@ router.post("/addData", upload.fields([
           message: `Rhesus tidak valid. Pilih '+' atau '-' (atau kosongkan jika tidak tahu)`
         });
       }
-
       if (rhesus_clean.length > 1) {
         rhesus_clean = rhesus_clean.substring(0, 1);
         console.warn('⚠️ Rhesus dipotong: ', rhesus_clean);
       }
     }
 
-    let jenis_kelamin_clean = jenis_kelamin.trim();
+    let jenis_kelamin_clean = jenis_kelamin ? jenis_kelamin.trim() : '';
     const validJenisKelamin = ['L', 'P'];
     if (!validJenisKelamin.includes(jenis_kelamin_clean)) {
       return res.status(400).json({
@@ -251,7 +288,6 @@ router.post("/addData", upload.fields([
       console.warn('⚠️ Jenis kelamin dipotong: ', jenis_kelamin_clean);
     }
 
-    // Stokdarah_konut: Pastikan integer (INT(2), 0-99)
     const stokdarah_konut_clean = stokdarah_konut ? parseInt(stokdarah_konut) : 4;
     if (isNaN(stokdarah_konut_clean) || stokdarah_konut_clean < 0 || stokdarah_konut_clean > 99) {
       return res.status(400).json({
@@ -260,7 +296,6 @@ router.post("/addData", upload.fields([
       });
     }
 
-    // Bersedia dipublikasikan: TINYINT(1), 0 atau 1
     const bersedia_dipublikasikan_clean = bersedia_dipublikasikan ? parseInt(bersedia_dipublikasikan) : 1;
     if (![0, 1].includes(bersedia_dipublikasikan_clean)) {
       return res.status(400).json({
@@ -269,105 +304,71 @@ router.post("/addData", upload.fields([
       });
     }
 
-    // Cek username unik (seperti sebelumnya)
-    const checkUserSql = `SELECT id FROM users WHERE username = ?`;
-    db.query(checkUserSql, [username.trim()], async (err, results) => {
-      if (err) {
-        console.error("❌ Error cek username:", err);
-        return res.status(500).json({ success: false, error: err.message });
+    // Cek NIK unik di pendonor_darah
+    const checkNikSql = `SELECT id FROM pendonor_darah WHERE nik = ?`;
+    db.query(checkNikSql, [nik_clean], (nikErr, nikResults) => {
+      if (nikErr) {
+        console.error("❌ Error cek NIK:", nikErr);
+        return res.status(500).json({ success: false, error: nikErr.message });
       }
-      if (results.length > 0) {
-        return res.status(400).json({ success: false, message: "Username sudah digunakan!" });
+      if (nikResults.length > 0) {
+        return res.status(400).json({ success: false, message: "NIK sudah digunakan oleh pendonor lain!" });
       }
 
-      // Tambahan: Cek NIK unik di pendonor_darah
-      const checkNikSql = `SELECT id FROM pendonor_darah WHERE nik = ?`;
-      db.query(checkNikSql, [nik_clean], async (nikErr, nikResults) => {
-        if (nikErr) {
-          console.error("❌ Error cek NIK:", nikErr);
-          return res.status(500).json({ success: false, error: nikErr.message });
+      // handle files
+      let foto_profil = null;
+      let dokumen_pendukung = null;
+      if (req.files) {
+        if (req.files['foto_profil'] && req.files['foto_profil'][0]) {
+          foto_profil = req.files['foto_profil'][0].filename;
         }
-        if (nikResults.length > 0) {
-          return res.status(400).json({ success: false, message: "NIK sudah digunakan oleh pendonor lain!" });
+        if (req.files['dokumen_pendukung'] && req.files['dokumen_pendukung'][0]) {
+          dokumen_pendukung = req.files['dokumen_pendukung'][0].filename;
+        }
+      }
+
+      // Insert ke pendonor_darah (tanpa users)
+      const sqlPendonor = `
+        INSERT INTO pendonor_darah (
+          nama_lengkap, nik, tanggal_lahir, jenis_kelamin, golongan_darah, rhesus,
+          kabupaten_id, kecamatan_id, des_kel_id, alamat, email, no_hp,
+          riwayat_penyakit, terakhir_donor, stokdarah_konut, bersedia_dipublikasikan,
+          foto_profil, dokumen_pendukung, created_at, status_verifikasi
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 'active')
+      `;
+
+      const pendonorData = [
+        nama_lengkap_clean,
+        nik_clean,
+        tanggal_lahir_clean,
+        jenis_kelamin_clean,
+        golongan_darah_clean,
+        rhesus_clean,
+        kabupaten_id ? parseInt(kabupaten_id) : null,
+        kecamatan_id ? parseInt(kecamatan_id) : null,
+        des_kel_id ? parseInt(des_kel_id) : null,
+        alamat_clean,
+        email_clean,
+        no_hp_clean,
+        riwayat_penyakit_clean,
+        terakhir_donor || null,
+        stokdarah_konut_clean,
+        bersedia_dipublikasikan_clean,
+        foto_profil,
+        dokumen_pendukung
+      ];
+
+      db.query(sqlPendonor, pendonorData, (err2, resultPendonor) => {
+        if (err2) {
+          console.error("❌ Insert pendonor_darah error:", err2);
+          return res.status(500).json({ success: false, error: err2.message });
         }
 
-        const hashedPassword = await bcrypt.hash(password.trim(), 12);
-
-        const sqlUser = `
-          INSERT INTO users (username, password, email, hp, nama, jabatan, stokdarah_konut, createdAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
-        `;
-        const userJabatan = 'Pendonor';
-        db.query(sqlUser, [username.trim(), hashedPassword, email_clean, no_hp_clean, nama_lengkap_clean, userJabatan, stokdarah_konut_clean], (err, resultUser) => {
-          if (err) {
-            console.error("❌ Insert user error:", err);
-            return res.status(500).json({ success: false, error: err.message });
-          }
-
-          const users_id = resultUser.insertId;
-
-          let foto_profil = null;
-          let dokumen_pendukung = null;
-          if (req.files) {
-            if (req.files['foto_profil'] && req.files['foto_profil'][0]) {
-              foto_profil = req.files['foto_profil'][0].filename;
-            }
-            if (req.files['dokumen_pendukung'] && req.files['dokumen_pendukung'][0]) {
-              dokumen_pendukung = req.files['dokumen_pendukung'][0].filename;
-            }
-          }
-
-          // Tambahan: nik_clean di pendonorData (setelah nama_lengkap_clean)
-          const pendonorData = [
-            users_id,
-            nama_lengkap_clean,
-            nik_clean,
-            tanggal_lahir,
-            jenis_kelamin_clean,
-            golongan_darah_clean,
-            rhesus_clean,
-            kabupaten_id ? parseInt(kabupaten_id) : null,
-            kecamatan_id ? parseInt(kecamatan_id) : null,
-            des_kel_id ? parseInt(des_kel_id) : null,
-            alamat_clean,
-            email_clean,
-            no_hp_clean,
-            riwayat_penyakit_clean,
-            terakhir_donor || null,
-            stokdarah_konut_clean,
-            bersedia_dipublikasikan_clean,
-            foto_profil,
-            dokumen_pendukung,
-            new Date()
-          ];
-
-          const sqlPendonor = `
-            INSERT INTO pendonor_darah (
-              users_id, nama_lengkap, nik, tanggal_lahir, jenis_kelamin, golongan_darah, rhesus,
-              kabupaten_id, kecamatan_id, des_kel_id, alamat, email, no_hp,
-              riwayat_penyakit, terakhir_donor, stokdarah_konut, bersedia_dipublikasikan,
-              foto_profil, dokumen_pendukung, created_at, status_verifikasi
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
-          `;
-
-          db.query(sqlPendonor, pendonorData, (err2, resultPendonor) => {
-            if (err2) {
-              console.error("❌ Insert pendonor_darah error:", err2);
-              console.error("SQL Error details:", err2.sqlMessage);
-              // Rollback users
-              const deleteUserSql = `DELETE FROM users WHERE id = ?`;
-              db.query(deleteUserSql, [users_id]);
-              return res.status(500).json({ success: false, error: err2.message });
-            }
-
-            res.json({
-              success: true,
-              message: "Pendonor berhasil ditambahkan 🎉",
-              users_id,
-              pendonor_id: resultPendonor.insertId,
-              data: { nama_lengkap: nama_lengkap_clean, golongan_darah: golongan_darah_clean }
-            });
-          });
+        res.json({
+          success: true,
+          message: "Pendonor berhasil ditambahkan 🎉",
+          pendonor_id: resultPendonor.insertId,
+          data: { nama_lengkap: nama_lengkap_clean, golongan_darah: golongan_darah_clean }
         });
       });
     });
@@ -378,15 +379,14 @@ router.post("/addData", upload.fields([
   }
 });
 
+// ================== editData (tanpa ketergantungan users_id) ==================
 router.post("/editData", upload.fields([
   { name: 'foto_profil', maxCount: 1 },
   { name: 'dokumen_pendukung', maxCount: 1 }
-]), async (req, res) => {
+]), (req, res) => {
   try {
     const {
       id,
-      users_id,
-      username,
       nama_lengkap,
       nik,
       tanggal_lahir,
@@ -405,8 +405,8 @@ router.post("/editData", upload.fields([
       bersedia_dipublikasikan
     } = req.body;
 
-    if (!id || !users_id) {
-      return res.status(400).json({ success: false, message: 'ID pendonor dan users_id wajib diisi untuk update.' });
+    if (!id) {
+      return res.status(400).json({ success: false, message: 'ID pendonor wajib diisi untuk update.' });
     }
 
     const nama_lengkap_clean = nama_lengkap ? nama_lengkap.trim().substring(0, 255) : null;
@@ -415,7 +415,6 @@ router.post("/editData", upload.fields([
     const no_hp_clean = no_hp ? no_hp.trim().substring(0, 25) : null;
     const riwayat_penyakit_clean = riwayat_penyakit ? riwayat_penyakit.trim() : null;
 
-    // Tambahan: Validasi dan clean NIK (opsional di edit; jika diisi, harus valid 16 digit)
     let nik_clean = null;
     if (nik) {
       if (!/^\d{16}$/.test(nik)) {
@@ -442,10 +441,17 @@ router.post("/editData", upload.fields([
       jenis_kelamin_clean = jenis_kelamin_clean.substring(0, 1);
     }
 
-    const stokdarah_konut_clean = stokdarah_konut ? parseInt(stokdarah_konut) : 4;
-    const bersedia_dipublikasikan_clean = bersedia_dipublikasikan ? parseInt(bersedia_dipublikasikan) : 1;
+    const stokdarah_konut_clean = (typeof stokdarah_konut !== 'undefined' && stokdarah_konut !== null && String(stokdarah_konut).trim() !== '') ? parseInt(stokdarah_konut) : 4;
+    const bersedia_dipublikasikan_clean = (typeof bersedia_dipublikasikan !== 'undefined' && bersedia_dipublikasikan !== null && String(bersedia_dipublikasikan).trim() !== '') ? parseInt(bersedia_dipublikasikan) : 1;
 
-    const getOldFilesSql = 'SELECT foto_profil, dokumen_pendukung, nik FROM pendonor_darah WHERE id = ?';
+    // Ambil old data, pastikan tanggal dikembalikan sebagai 'YYYY-MM-DD' string
+    const getOldFilesSql = `
+      SELECT foto_profil, dokumen_pendukung, nik,
+        DATE_FORMAT(tanggal_lahir, '%Y-%m-%d') AS tanggal_lahir,
+        DATE_FORMAT(terakhir_donor, '%Y-%m-%d') AS terakhir_donor
+      FROM pendonor_darah
+      WHERE id = ?
+    `;
     db.query(getOldFilesSql, [id], (err, results) => {
       if (err) {
         console.error('❌ Error fetching old pendonor files:', err);
@@ -457,6 +463,7 @@ router.post("/editData", upload.fields([
 
       const existingNik = results[0].nik;
 
+      // cek uniqueness NIK bila berubah
       if (nik_clean && nik_clean !== existingNik) {
         const checkNikSql = `SELECT id FROM pendonor_darah WHERE nik = ? AND id != ?`;
         db.query(checkNikSql, [nik_clean, id], (nikErr, nikResults) => {
@@ -467,17 +474,19 @@ router.post("/editData", upload.fields([
           if (nikResults.length > 0) {
             return res.status(400).json({ success: false, message: "NIK sudah digunakan oleh pendonor lain!" });
           }
-          // Jika unik, lanjut ke update (lanjutkan di nested callback di bawah)
           proceedToUpdate(existingNik, results[0]);
         });
       } else {
-        // Jika tidak ada perubahan NIK atau kosong, lanjut langsung
         proceedToUpdate(existingNik, results[0]);
       }
 
       function proceedToUpdate(existingNik, oldData) {
         let oldFotoProfil = oldData.foto_profil;
         let oldDokumenPendukung = oldData.dokumen_pendukung;
+
+        // old tanggal sudah DI-FORMAT oleh query => string 'YYYY-MM-DD' atau null
+        const oldTanggalLahirStr = toYMD(oldData.tanggal_lahir);
+        const oldTerakhirDonorStr = toYMD(oldData.terakhir_donor);
 
         let newFotoProfil = oldFotoProfil;
         let newDokumenPendukung = oldDokumenPendukung;
@@ -503,7 +512,40 @@ router.post("/editData", upload.fields([
           }
         }
 
-        // Tambahan: nik = ? di SET clause (setelah nama_lengkap)
+        // === TANGGAL_LAHIR handling: hanya update jika client mengirim nilai baru ===
+        let newTanggalLahir;
+        if (typeof tanggal_lahir !== 'undefined' && tanggal_lahir !== null && String(tanggal_lahir).trim() !== '') {
+          const tf = formatDate(tanggal_lahir);
+          if (!tf) {
+            return res.status(400).json({ success: false, message: 'Format tanggal_lahir tidak valid' });
+          }
+          newTanggalLahir = toYMD(tf);
+          if (!newTanggalLahir) {
+            return res.status(400).json({ success: false, message: 'Format tanggal_lahir tidak valid (normalisasi gagal)' });
+          }
+        } else {
+          // client tidak mengirim tanggal_lahir -> pertahankan yang lama
+          newTanggalLahir = oldTanggalLahirStr;
+        }
+
+        // === terakhir_donor handling (opsional, sama pola) ===
+        let newTerakhirDonor;
+        if (typeof terakhir_donor !== 'undefined' && terakhir_donor !== null && String(terakhir_donor).trim() !== '') {
+          const td = formatDate(terakhir_donor);
+          if (!td) {
+            return res.status(400).json({ success: false, message: 'Format terakhir_donor tidak valid' });
+          }
+          newTerakhirDonor = toYMD(td);
+          if (!newTerakhirDonor) {
+            return res.status(400).json({ success: false, message: 'Format terakhir_donor tidak valid (normalisasi gagal)' });
+          }
+        } else {
+          newTerakhirDonor = oldTerakhirDonorStr;
+        }
+
+        // debug log (opsional) - hapus/comment di production
+        // console.log('UPDATE tanggal_lahir:', newTanggalLahir, ' terakhir_donor:', newTerakhirDonor);
+
         const updatePendonorSql = `
           UPDATE pendonor_darah SET
             nama_lengkap = ?,
@@ -527,11 +569,10 @@ router.post("/editData", upload.fields([
           WHERE id = ?
         `;
 
-        // Tambahan: nik_clean di data array (setelah nama_lengkap_clean)
         const pendonorData = [
           nama_lengkap_clean,
-          nik_clean, // <-- Ditambahkan di sini
-          tanggal_lahir,
+          nik_clean || existingNik,
+          newTanggalLahir,          // string YYYY-MM-DD atau null
           jenis_kelamin_clean,
           golongan_darah_clean,
           rhesus_clean,
@@ -542,7 +583,7 @@ router.post("/editData", upload.fields([
           email_clean,
           no_hp_clean,
           riwayat_penyakit_clean,
-          terakhir_donor || null,
+          newTerakhirDonor,         // string YYYY-MM-DD atau null
           stokdarah_konut_clean,
           bersedia_dipublikasikan_clean,
           newFotoProfil,
@@ -556,36 +597,7 @@ router.post("/editData", upload.fields([
             return res.status(500).json({ success: false, error: updateErr.message });
           }
 
-          if (username) {
-            const checkUsernameSql = `SELECT id FROM users WHERE username = ? AND id != ?`;
-            db.query(checkUsernameSql, [username.trim(), users_id], (checkErr, checkResults) => {
-              if (checkErr) {
-                console.error("❌ Error checking username uniqueness:", checkErr);
-                return res.status(500).json({ success: false, error: checkErr.message });
-              }
-              if (checkResults.length > 0) {
-                return res.status(400).json({ success: false, message: "Username sudah digunakan oleh user lain!" });
-              }
-
-              const updateUserSql = 'UPDATE users SET username = ?, email = ?, hp = ?, nama = ?, stokdarah_konut = ? WHERE id = ?';
-              db.query(updateUserSql, [username.trim(), email_clean, no_hp_clean, nama_lengkap_clean, stokdarah_konut_clean, users_id], (userErr) => {
-                if (userErr) {
-                  console.error('❌ Error updating user data:', userErr);
-                  return res.status(500).json({ success: false, error: userErr.message });
-                }
-                res.json({ success: true, message: 'Data pendonor diupdate.' });
-              });
-            });
-          } else {
-            const updateUserSql = 'UPDATE users SET email = ?, hp = ?, nama = ?, stokdarah_konut = ? WHERE id = ?';
-            db.query(updateUserSql, [email_clean, no_hp_clean, nama_lengkap_clean, stokdarah_konut_clean, users_id], (userErr) => {
-              if (userErr) {
-                console.error('❌ Error updating user data (no username change):', userErr);
-                return res.status(500).json({ success: false, error: userErr.message });
-              }
-              res.json({ success: true, message: 'Data pendonor berhasil diupdate.' });
-            });
-          }
+          return res.json({ success: true, message: 'Data pendonor berhasil diupdate.' });
         });
       }
     });
@@ -596,12 +608,12 @@ router.post("/editData", upload.fields([
   }
 });
 
-
+// ================== removePendonor (tidak lagi menghapus users) ==================
 router.post('/removePendonor', (req, res) => {
-  const { id, users_id } = req.body;
+  const { id } = req.body;
 
-  if (!id || !users_id) {
-    return res.status(400).json({ success: false, message: 'ID pendonor dan users_id wajib diisi.' });
+  if (!id) {
+    return res.status(400).json({ success: false, message: 'ID pendonor wajib diisi.' });
   }
 
   const getOldFilesSql = 'SELECT foto_profil, dokumen_pendukung FROM pendonor_darah WHERE id = ?';
@@ -624,59 +636,28 @@ router.post('/removePendonor', (req, res) => {
         return res.status(500).json({ success: false, message: 'Gagal menghapus data pendonor.' });
       }
 
-      const deleteUserSql = 'DELETE FROM users WHERE id = ?';
-      db.query(deleteUserSql, [users_id], (userErr) => {
-        if (userErr) {
-          console.error('❌ Error deleting user associated with pendonor:', userErr);
+      // Hanya hapus file-file; tidak menyentuh tabel users
+      if (oldFotoProfil) {
+        const filePath = path.join(__dirname, '../../../../uploads', oldFotoProfil);
+        fs.unlink(filePath, (unlinkErr) => {
+          if (unlinkErr) console.warn('⚠️ Gagal hapus foto profil lama:', unlinkErr);
+        });
+      }
+      if (oldDokumenPendukung) {
+        const filePath = path.join(__dirname, '../../../../uploads', oldDokumenPendukung);
+        fs.unlink(filePath, (unlinkErr) => {
+          if (unlinkErr) console.warn('⚠️ Gagal hapus dokumen pendukung lama:', unlinkErr);
+        });
+      }
 
-        }
-        if (oldFotoProfil) {
-          const filePath = path.join(__dirname, '../../../../uploads', oldFotoProfil);
-          fs.unlink(filePath, (unlinkErr) => {
-            if (unlinkErr) console.warn('⚠️ Gagal hapus foto profil lama:', unlinkErr);
-          });
-        }
-        if (oldDokumenPendukung) {
-          const filePath = path.join(__dirname, '../../../../uploads', oldDokumenPendukung);
-          fs.unlink(filePath, (unlinkErr) => {
-            if (unlinkErr) console.warn('⚠️ Gagal hapus dokumen pendukung lama:', unlinkErr);
-          });
-        }
-
-        return res.json({ success: true, message: 'Data pendonor berhasil dihapus.' });
-      });
+      return res.json({ success: true, message: 'Data pendonor berhasil dihapus.' });
     });
   });
 });
 
-router.post('/editPasswordPendonor', async (req, res) => {
-  const { users_id, password } = req.body;
-  if (!users_id || !password) {
-    return res.status(400).json({ success: false, message: 'users_id dan password wajib diisi.' });
-  }
-  try {
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const updateSql = 'UPDATE users SET password = ? WHERE id = ?';
-    db.query(updateSql, [hashedPassword, users_id], (err, result) => {
-      if (err) {
-        console.error('❌ Error updating pendonor password:', err);
-        return res.status(500).json({ success: false, message: 'Gagal mengubah password.' });
-      }
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ success: false, message: 'User tidak ditemukan.' });
-      }
-      return res.json({ success: true, message: 'Password berhasil diubah.' });
-    });
-  } catch (error) {
-    console.error('🔥 Error hashing password for pendonor:', error);
-    return res.status(500).json({ success: false, message: 'Terjadi kesalahan server.' });
-  }
-});
 
-// Daftar pendonor ringkas untuk select (tanpa pagination)
-// GET /list
+// ================== list dan history tetap (sesuai original, tanpa users) ==================
 router.get('/list', (req, res) => {
-  // opsional: filter only active / published
   const sql = `
     SELECT DISTINCT id, nama_lengkap AS nama_lengkap, golongan_darah, rhesus, no_hp
     FROM pendonor_darah
@@ -688,7 +669,6 @@ router.get('/list', (req, res) => {
       console.error('❌ Error fetching pendonor list:', err);
       return res.status(500).json({ success: false, message: 'Terjadi kesalahan server' });
     }
-    // kembalikan dalam bentuk yang mudah dipakai q-select: { id, label, raw? }
     const data = (results || []).map(r => ({
       id: r.id,
       label: `${r.nama_lengkap} — ${r.golongan_darah || '-'}${r.rhesus || ''} — ${r.no_hp || '-'}`,
@@ -698,15 +678,10 @@ router.get('/list', (req, res) => {
   });
 });
 
-// -----------------------------------------------------------------------------
-// POST /getHistoryByPendonor
-// Mengembalikan riwayat jadwal yang pernah diikuti oleh pendonor (join jadwal_peserta -> jadwal_donor)
-// Body: { pendonor_id }  (juga menerima users_id atau id sebagai fallback)
-// -----------------------------------------------------------------------------
 router.post('/getHistoryByPendonor', (req, res) => {
   const pendonorId = req.body.pendonor_id || req.body.users_id || req.body.id;
   if (!pendonorId) {
-    return res.status(400).json({ success: false, message: 'pendonor_id (atau users_id) wajib diisi' });
+    return res.status(400).json({ success: false, message: 'pendonor_id (atau id) wajib diisi' });
   }
 
   const sql = `
@@ -729,7 +704,6 @@ router.post('/getHistoryByPendonor', (req, res) => {
       return res.status(500).json({ success: false, error: err.message });
     }
 
-    // Pastikan format konsisten untuk frontend
     const data = (results || []).map(r => ({
       jadwal_id: r.jadwal_id,
       nama_kegiatan: r.nama_kegiatan,
@@ -741,9 +715,5 @@ router.post('/getHistoryByPendonor', (req, res) => {
     return res.json({ success: true, data });
   });
 });
-
-
-
-
 
 module.exports = router;

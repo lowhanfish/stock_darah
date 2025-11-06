@@ -6,15 +6,50 @@ const db = require('../../../db/MySql/umum'); // koneksi database
 // 🔹 GET: Lihat semua transaksi darah
 // ===================================================
 router.get('/view', (req, res) => {
-    // Ambil parameter query dari URL
     const page = parseInt(req.query.page) || 1;      // halaman sekarang
-    const limit = parseInt(req.query.limit) || 10;   // jumlah per halaman
-    const offset = (page - 1) * limit;               // mulai dari data ke berapa
+    const limit = parseInt(req.query.limit) || 10;   // jumlah data per halaman
+    const offset = (page - 1) * limit;
   
-    const countSql = `SELECT COUNT(*) AS total FROM transaksi_darah`;
+    // Ambil semua filter dari query
+    const cari_value_raw = req.query.cari_value || ''; // raw value (empty string berarti no-search)
+    const cari_value = cari_value_raw ? `%${cari_value_raw}%` : '%%';
+    const komponen_id = req.query.komponen_id || '';
+    const golongan_darah = req.query.golongan_darah || '';
+    const tipe_transaksi = req.query.tipe_transaksi || '';
   
-    // Hitung total data dulu
-    db.query(countSql, (err, countResult) => {
+    // Build dynamic filters & params
+    const filters = [];
+    const params = [];
+  
+    // always include keterangan search (using '%%' matches all)
+    filters.push('t.keterangan LIKE ?');
+    params.push(cari_value);
+  
+    if (komponen_id) {
+      filters.push('t.komponen_id = ?');
+      params.push(komponen_id);
+    }
+  
+    if (golongan_darah) {
+      filters.push('t.golongan_darah = ?');
+      params.push(golongan_darah);
+    }
+  
+    if (tipe_transaksi) {
+      filters.push('t.tipe_transaksi = ?');
+      params.push(tipe_transaksi);
+    }
+  
+    const whereClause = filters.length ? 'WHERE ' + filters.join(' AND ') : '';
+  
+    // COUNT query (use same whereClause and params)
+    const countSql = `
+      SELECT COUNT(*) AS total
+      FROM transaksi_darah t
+      ${whereClause}
+    `;
+  
+    db.query(countSql, params, (err, countResult) => {
       if (err) {
         console.error('Error count transaksi:', err);
         return res.status(500).json({ success: false, message: 'Gagal menghitung data transaksi' });
@@ -23,16 +58,21 @@ router.get('/view', (req, res) => {
       const total = countResult[0].total;
       const totalPages = Math.ceil(total / limit);
   
-      // Ambil data sesuai halaman
+      // DATA query — IMPORTANT: pass dataSql as first arg, params+limit+offset as second
       const dataSql = `
-        SELECT t.*, k.nama_komponen 
+        SELECT t.*, k.nama_komponen
         FROM transaksi_darah t
         LEFT JOIN komponen_darah k ON t.komponen_id = k.id
+        ${whereClause}
         ORDER BY t.tanggal DESC
         LIMIT ? OFFSET ?
       `;
   
-      db.query(dataSql, [limit, offset], (err2, dataResult) => {
+      const dataParams = params.slice(); // copy
+      dataParams.push(limit);
+      dataParams.push(offset);
+  
+      db.query(dataSql, dataParams, (err2, dataResult) => {
         if (err2) {
           console.error('Error ambil transaksi:', err2);
           return res.status(500).json({ success: false, message: 'Gagal ambil data transaksi' });
@@ -49,6 +89,7 @@ router.get('/view', (req, res) => {
       });
     });
   });
+  
   
 
 
