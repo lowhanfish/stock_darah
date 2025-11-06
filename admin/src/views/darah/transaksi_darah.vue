@@ -23,10 +23,44 @@
                 </div>
             </q-card-section>
 
-            <q-separator dark inset />
+        </q-card>
+
+            
+            <hr class="hrpagin2">
+
+            <!-- ================= FILTER ================= -->
+            <div class="row q-col-gutter-md">
+
+                <!-- Filter Komponen -->
+                <div class="col-12 col-md-4">
+                    <span class="h_lable">Komponen</span>
+                    <q-select v-model="filter.komponen_id" :options="list_komponen" option-label="nama_komponen"
+                        option-value="id" emit-value map-options outlined dense class="bg-white"
+                        @input="applyFilter" />
+                </div>
+
+                <!-- Filter Golongan Darah -->
+                <div class="col-12 col-md-4">
+                    <span class="h_lable">Golongan Darah</span>
+                    <q-select v-model="filter.golongan_darah" :options="['A', 'B', 'O', 'AB']" outlined dense
+                        class="bg-white" @input="applyFilter" />
+                </div>
+
+                <!-- Filter Tipe Transaksi -->
+                <div class="col-12 col-md-4">
+                    <span class="h_lable">Tipe Transaksi</span>
+                    <q-select v-model="filter.tipe_transaksi" :options="['masuk', 'keluar']" outlined dense
+                        class="bg-white" @input="applyFilter" />
+                </div>
+
+            </div>
+
+            <hr class="hrpagin2" />
+
+            <!-- <q-separator dark inset /> -->
 
             <!-- ================= TABLE ================= -->
-            <q-card-section>
+            
                 <div class="tbl_responsive">
                     <table width="100%">
                         <thead class="h_table_head main2x text-white">
@@ -83,8 +117,7 @@
                     <q-pagination v-model="page_first" :max="page_last" @input="getView" color="grey-6" :max-pages="4"
                         :direction-links="true" :boundary-links="true" />
                 </div>
-            </q-card-section>
-        </q-card>
+            
 
         <!-- ===================== MODAL ADD ===================== -->
         <q-dialog v-model="mdl_add" persistent>
@@ -244,7 +277,12 @@ export default {
 
             mdl_hapus: false,      // modal konfirmasi hapus
             btn_hapus: false,      // loading untuk tombol hapus
-            hapus_target: null     // menyimpan object transaksi yang akan dihapus
+            hapus_target: null,
+            filter: {
+                komponen_id: '',
+                golongan_darah: '',
+                tipe_transaksi: ''
+            }
 
         }
     },
@@ -254,7 +292,10 @@ export default {
             const query = new URLSearchParams({
                 page: this.page_first,
                 limit: this.page_limit,
-                cari_value: this.cari_value || ''
+                cari_value: this.cari_value || '',
+                komponen_id: this.filter.komponen_id || '',
+                golongan_darah: this.filter.golongan_darah || '',
+                tipe_transaksi: this.filter.tipe_transaksi || ''
             }).toString()
 
             fetch(this.$store.state.url.TRANSAKSI + "view?" + query, {
@@ -274,7 +315,8 @@ export default {
                         // jaga-jaga kalau page_current > page_last setelah filter/cari
                         if (this.page_first > this.page_last) this.page_first = this.page_last || 1
                     } else {
-                        this.$q.notify({ type: 'negative', message: res.message || 'Gagal memuat data transaksi darah' })
+                        this.$q.notify({ type: 'negative', message: res_data.message || 'Gagal memuat data transaksi darah' })
+
                     }
                 })
                 .catch(err => {
@@ -298,6 +340,8 @@ export default {
                 })
                 .catch(err => console.error("Error getKomponen:", err))
         },
+
+
 
         addData() {
             this.btn_add = true
@@ -460,7 +504,13 @@ export default {
         cari_data() {
             this.page_first = 1
             this.getView()
-        }
+        },
+
+        // 🔹 Terapkan filter
+        applyFilter() {
+            this.page_first = 1;
+            this.getView();
+        },
     },
 
     mounted() {
