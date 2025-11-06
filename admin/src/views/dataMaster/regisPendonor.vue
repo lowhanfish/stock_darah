@@ -41,7 +41,6 @@
                         <th width="10%">Golongan Darah</th>
                         <th width="10%">No HP</th>
                         <th width="10%">Jenis Kelamin</th>
-                        <th width="10%">username</th>
                         <th width="10%" class="text-center">Aksi</th>
                      </tr>
                   </thead>
@@ -55,7 +54,6 @@
                         <td>{{ data.golongan_darah }} {{ data.rhesus }}</td>
                         <td>{{ data.no_hp }}</td>
                         <td>{{ data.jenis_kelamin }}</td>
-                        <td>{{ data.username }}</td>
                         <td class="text-center">
                            <q-item-section>
                               <div class="text-white q-gutter-xs text-center">
@@ -69,11 +67,6 @@
 
                                           <q-item clickable v-close-popup @click="mdl_lihat = true, selectData(data)">
                                              <q-item-section>Lihat Detail</q-item-section>
-                                          </q-item>
-                                          <q-separator />
-                                          <q-item clickable v-close-popup
-                                             @click="mdl_password = true, selectData(data)">
-                                             <q-item-section>Edit Password</q-item-section>
                                           </q-item>
                                           <q-separator />
                                           <q-item clickable v-close-popup @click="editModal(data)">
@@ -221,21 +214,7 @@
                   <q-file v-model="form.dokumen_pendukung" label="Pilih Dokumen" accept=".pdf,application/pdf" outlined
                      square dense class="bg-white margin_btn" />
 
-                  <hr class="hrpagin2">
-
-                  <span class="h_lable ">Username</span>
-                  <q-input v-model="dataku.username" outlined square :dense="true" class="bg-white margin_btn" />
-
-
-                  <span class="h_lable ">Password</span>
-                  <q-input type="password" v-model="dataku.password" outlined square :dense="true"
-                     class="bg-white margin_btn" />
-
-                  <span class="h_lable ">Confirm Password</span>
-                  <q-input type="password" v-model="dataku.confirmPassword" outlined square :dense="true"
-                     class="bg-white margin_btn" />
-
-                  <hr class="hrpagin2">
+                 
 
                </q-card-section>
 
@@ -360,15 +339,7 @@
                   <div v-if="form.dokumen_pendukung_url" class="q-mb-md">
                      <a :href="form.dokumen_pendukung_url" target="_blank" rel="noopener">Lihat Dokumen Saat Ini</a>
                   </div>
-                  <hr class="hrpagin2">
-
-                  <span class="h_lable">Username</span>
-                  <q-input v-model="dataku.username" outlined square :dense="true" class="bg-white margin_btn"
-                     placeholder="Masukkan username baru jika ingin ubah" />
-
-
-                  <hr class="hrpagin2">
-
+               
                </q-card-section>
 
                <q-card-actions class="bg-grey-4 mdl-footer" align="right">
@@ -380,43 +351,7 @@
       </q-dialog>
 
 
-      <!-- ================================================= MODAL PASSWORD ================================================ -->
-      <!-- ===================== MODAL EDIT PASSWORD ===================== -->
-      <q-dialog v-model="mdl_password" persistent>
-         <q-card class="mdl-md">
-            <q-card-section class="bg-blue text-white">
-               <div class="text-h6 h_modalhead">Ubah Password Pendonor</div>
-            </q-card-section>
-
-            <form @submit.prevent="editDataPassword()">
-
-               <q-card-section class="q-pt-none">
-
-                  <hr class="hrpagin2">
-
-                  <span class="h_lable">Password Baru</span>
-                  <q-input v-model="dataku.password" :type="isPwd ? 'password' : 'text'" outlined square :dense="true"
-                     class="bg-white margin_btn" placeholder="Minimal 6 karakter" :loading="btn_password" />
-                  <q-toggle v-model="isPwd" icon="visibility" class="q-pt-none" />
-                  <hr>
-                  <span class="h_lable">Konfirmasi Password</span>
-                  <q-input v-model="dataku.confirmPassword" :type="isPwd2 ? 'password' : 'text'" outlined square
-                     :dense="true" class="bg-white margin_btn" placeholder="Ulangi password baru" />
-                  <q-toggle v-model="isPwd2" icon="visibility" class="q-pt-none" />
-
-                  <hr class="hrpagin2">
-
-               </q-card-section>
-
-               <q-card-actions class="bg-grey-4 mdl-footer" align="right">
-                  <q-btn :loading="btn_password" color="primary" type="submit" label="Ubah Password" />
-                  <q-btn label="Batal" color="negative" v-close-popup @click="resetPasswordForm" />
-               </q-card-actions>
-            </form>
-         </q-card>
-      </q-dialog>
-      <!-- ================================================= MODAL PASSWORD ================================================ -->
-      <!-- ================================================ MODAL HAPUS ================================================ -->
+       <!-- ================================================ MODAL HAPUS ================================================ -->
       <q-dialog v-model="mdl_hapus" persistent>
          <q-card class="mdl-sm">
             <q-card-section class="q-pt-none text-center orageGrad">
@@ -576,13 +511,6 @@
                            </div>
                         </div>
 
-                        <div class="row items-start q-gutter-sm detail-field">
-                           <q-icon name="account_circle" size="16px" color="grey-6" class="q-mt-xs" />
-                           <div class="col">
-                              <div class="text-caption text-grey-7 text-weight-medium q-mb-xs">Username</div>
-                              <div class="text-body1 text-weight-bold text-grey-9">{{ lihatData.username || '-' }}</div>
-                           </div>
-                        </div>
                      </div>
                   </div>
 
@@ -675,11 +603,9 @@ export default {
          UMUM: UMUM,
          isPwd: true,
          isPwd2: true,
-         btn_password: false,
 
          form: {
             id: null,
-            users_id: null,
             nama_lengkap: '',
             nik: '',
             tanggal_lahir: '',
@@ -726,13 +652,6 @@ export default {
          riwayatLoading: false,
 
 
-
-         mdl_password: false,
-         dataku: {
-            username: '',
-            password: '',
-            confirmPassword: ''
-         },
          errorMessage: '',
          mdl_lihat: false,
          lihatData: {
@@ -751,8 +670,6 @@ export default {
             des_kel_nama: '',
             foto_profil: '',
             dokumen_pendukung: '',
-            username: '',
-            users_id: '',
             id: '',
          },
       }
@@ -869,27 +786,8 @@ export default {
       async addData() {
          try {
 
-            if (this.dataku.password !== this.dataku.confirmPassword) {
-               this.$q.notify({
-                  type: 'negative',
-                  message: 'Password dan konfirmasi password tidak sama!'
-               });
-               return;
-            }
-            if (this.dataku.password.length < 6) {
-               this.$q.notify({
-                  type: 'negative',
-                  message: 'Password minimal 6 karakter!'
-               });
-               return;
-            }
-            if (!this.dataku.username) {
-               this.$q.notify({
-                  type: 'negative',
-                  message: 'Username wajib diisi!'
-               });
-               return;
-            }
+           
+           
 
             this.btn_add = true;
 
@@ -910,10 +808,6 @@ export default {
             formData.append('terakhir_donor', this.form.terakhir_donor || '');
             formData.append('stokdarah_konut', this.form.stokdarah_konut || 4);
             formData.append('bersedia_dipublikasikan', 1);
-
-
-            formData.append('username', this.dataku.username);
-            formData.append('password', this.dataku.password);
 
             // Append file
             if (this.form.foto_profil && this.form.foto_profil instanceof File) {
@@ -959,7 +853,6 @@ export default {
       editModal(data) {
          this.form = {
             id: data.id,
-            users_id: data.users_id || null,
             nama_lengkap: data.nama_lengkap || '',
             nik: data.nik || '',
             tanggal_lahir: data.tanggal_lahir || '',
@@ -983,17 +876,12 @@ export default {
          };
 
 
-         this.dataku.username = data.username || '';
-
          if (this.form.kabupaten_id) {
             this.loadKecamatan(this.form.kabupaten_id);
             if (this.form.kecamatan_id) {
                this.loadDeskel(this.form.kecamatan_id);
             }
          }
-
-         this.dataku.password = '';
-         this.dataku.confirmPassword = '';
 
          this.mdl_edit = true;
       },
@@ -1004,9 +892,7 @@ export default {
             if (!this.form.nama_lengkap || !this.form.tanggal_lahir || !this.form.jenis_kelamin || !this.form.golongan_darah) {
                throw new Error('Field wajib (Nama, TTL, Jenis Kelamin, Golongan Darah) harus diisi!');
             }
-            if (this.dataku.username && this.dataku.username.length < 6) {
-               throw new Error('Username minimal 6 karakter jika diubah!');
-            }
+           
             if (this.form.nik && this.form.nik.length < 16) {
                throw new Error('NIK harus berjumlah 16 angka!');
             }
@@ -1014,7 +900,6 @@ export default {
             const normalizedTanggalLahir = this.normalizeDate(this.form.tanggal_lahir);
             const payload = {
                id: this.form.id,
-               users_id: this.form.users_id,
                nama_lengkap: this.form.nama_lengkap,
                nik: this.form.nik,
                tanggal_lahir: normalizedTanggalLahir,
@@ -1031,7 +916,6 @@ export default {
                terakhir_donor: normalizedTerakhirDonor,
                stokdarah_konut: this.form.stokdarah_konut || 4,
                bersedia_dipublikasikan: this.form.bersedia_dipublikasikan ? 1 : 0,
-               username: this.dataku.username || '',
             };
 
             const hasNewFile = (this.form.foto_profil && this.form.foto_profil instanceof File) ||
@@ -1098,7 +982,6 @@ export default {
       resetForm() {
          this.form = {
             id: null,
-            users_id: null,
             nama_lengkap: '',
             nik: '',
             tanggal_lahir: '',
@@ -1120,11 +1003,7 @@ export default {
             stokdarah_konut: 4,
             bersedia_dipublikasikan: true,
          };
-         this.dataku = {
-            username: '',
-            password: '',
-            confirmPassword: ''
-         };
+       
          this.kecamatanOptions = [];
          this.deskelOptions = [];
          this.errorMessage = '';
@@ -1132,7 +1011,7 @@ export default {
 
       async hapusData() {
          // Validasi ID wajib
-         if (!this.form.id || !this.form.users_id) {
+         if (!this.form.id ) {
             this.$q.notify({
                type: 'negative',
                message: 'Data tidak valid. Silakan pilih ulang.'
@@ -1145,7 +1024,7 @@ export default {
          try {
             const payload = {
                id: this.form.id,
-               users_id: this.form.users_id
+             
             };
 
             const response = await fetch(this.$store.state.url.REGIS_DONOR + "removePendonor", {
@@ -1182,62 +1061,13 @@ export default {
       },
 
 
-      async editDataPassword() {
-         this.errorMessage = '';
-
-         if (!this.dataku.password || !this.dataku.confirmPassword) {
-            this.errorMessage = "Password dan Confirm Password wajib diisi!";
-            return;
-         }
-
-         if (this.dataku.password.length < 6) {
-            this.errorMessage = "Password minimal 6 karakter!";
-            return;
-         }
-
-         if (this.dataku.password !== this.dataku.confirmPassword) {
-            this.errorMessage = "Password dan Confirm Password tidak sama!";
-            return;
-         }
-
-         try {
-            const res = await fetch(this.$store.state.url.REGIS_DONOR + "editPasswordPendonor", {
-               method: "POST",
-               headers: {
-                  "Content-Type": "application/json",
-                  authorization: "kikensbatara " + localStorage.token
-               },
-               body: JSON.stringify({
-                  users_id: this.dataku.users_id,
-                  password: this.dataku.password
-               })
-            });
-
-            const data = await res.json();
-
-            if (res.ok && data.success) {
-               this.$q.notify({ type: "positive", message: data.message || "Password berhasil diubah!" });
-               this.mdl_password = false;
-               this.dataku.password = '';
-               this.dataku.confirmPassword = '';
-            } else {
-               this.errorMessage = data.message || "Gagal mengubah password!";
-            }
-         } catch (error) {
-            console.error(error);
-            this.errorMessage = "Terjadi kesalahan saat mengubah password.";
-         }
-      },
+      
       selectData(data) {
-         this.dataku = {
-            users_id: data.users_id,
-            password: '',
-            confirmPassword: ''
-         };
+        
          this.errorMessage = '';
          this.form = {
             ...data,
-            users_id: data.users_id,
+           
             id: data.id
          };
          this.lihatData = {
@@ -1252,30 +1082,18 @@ export default {
             alamat: data.alamat || '',
             riwayat_penyakit: data.riwayat_penyakit || '',
             terakhir_donor: data.terakhir_donor || '',
-            kabupaten_nama: data.kabupaten_nama || '',  // Asumsi dari backend; jika ID saja, fetch di sini
+            kabupaten_nama: data.kabupaten_nama || '',  
             kecamatan_nama: data.kecamatan_nama || '',
             des_kel_nama: data.des_kel_nama || '',
             foto_profil: data.foto_profil || '',
             dokumen_pendukung: data.dokumen_pendukung || '',
-            username: data.username || '',
-            users_id: data.users_id || '',
+          
             id: data.id || '',
          };
       },
 
-      resetPasswordForm() {
-         this.dataku.password = '';
-         this.dataku.confirmPassword = '';
-         this.dataku.users_id = null;
-         this.isPwd = true;
-         this.isPwd2 = true;
-         this.btn_password = false;
-         this.mdl_password = false;
-      },
-
       resetHapusForm() {
          this.form.id = null;
-         this.form.users_id = null;
          this.btn_hapus = false;
          this.mdl_hapus = false;
       },
@@ -1321,7 +1139,7 @@ export default {
          this.mdl_riwayat = true;
          this.riwayatLoading = true;
 
-         const pendonorId = pendonor?.id || pendonor?.pendonor_id || pendonor?.users_id;
+         const pendonorId = pendonor?.id || pendonor?.pendonor_id;
          if (!pendonorId) {
             this.$q.notify({ type: 'negative', message: 'ID pendonor tidak ditemukan' });
             this.riwayatLoading = false;
