@@ -174,6 +174,34 @@
             </q-card>
         </q-dialog>
 
+        <!-- ===================== MODAL HAPUS ===================== -->
+        <q-dialog v-model="mdl_hapus" persistent>
+            <q-card class="mdl-sm">
+                <q-card-section class="q-pt-none text-center orageGrad">
+                    <form @submit.prevent="confirmDelete">
+                        <br>
+                        <img src="img/alert.png" alt="" width="75"> <br>
+                        <span class="h_notifikasi">APAKAH ANDA YAKIN INGIN MENGHAPUS TRANSAKSI INI??</span>
+                        <div class="q-mt-md">
+                            <div><strong>{{ hapus_target ? hapus_target.golongan_darah + hapus_target.rhesus + ' — ' +
+                                (hapus_target.nama_komponen || '') : '' }}</strong></div>
+                            <div>Jumlah: {{ hapus_target ? hapus_target.jumlah : '' }}</div>
+                            <div class="q-mt-sm text-white">Tindakan ini akan mengubah stok darah sesuai transaksi yang
+                                dihapus.</div>
+                        </div>
+                        <br>
+                        <q-card-actions align="center">
+                            <q-btn label="Batal" size="sm" color="negative" v-close-popup
+                                @click="hapus_target = null" />
+                            &nbsp;
+                            <q-btn :loading="btn_hapus" type="submit" label="Hapus" size="sm" color="primary" />
+                        </q-card-actions>
+                    </form>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
+
+
 
     </div>
 </template>
@@ -213,6 +241,11 @@ export default {
             btn_add: false,
             mdl_edit: false,
             btn_edit: false,
+
+            mdl_hapus: false,      // modal konfirmasi hapus
+            btn_hapus: false,      // loading untuk tombol hapus
+            hapus_target: null     // menyimpan object transaksi yang akan dihapus
+
         }
     },
     methods: {
@@ -361,6 +394,50 @@ export default {
                     this.btn_edit = false;
                 });
         },
+
+        // buka modal hapus
+        openDelete(data) {
+            this.hapus_target = data;
+            this.mdl_hapus = true;
+        },
+
+        // konfirmasi hapus (panggil backend)
+        confirmDelete() {
+            if (!this.hapus_target || !this.hapus_target.id_transaksi) {
+                this.$q.notify({ type: 'negative', message: 'Tidak ada transaksi yang dipilih' });
+                return;
+            }
+
+            this.btn_hapus = true;
+
+            fetch(this.$store.state.url.TRANSAKSI + "delete/" + this.hapus_target.id_transaksi, {
+                method: "DELETE",
+                headers: {
+                    "content-type": "application/json",
+                    authorization: "kikensbatara " + localStorage.token
+                }
+            })
+                .then(res => res.json())
+                .then(res_data => {
+                    if (res_data.success) {
+                        this.$q.notify({ type: 'positive', message: res_data.message || 'Transaksi berhasil dihapus' });
+                        this.mdl_hapus = false;
+                        this.hapus_target = null;
+                        // reload current page (tetap di halaman sama)
+                        this.getView();
+                    } else {
+                        this.$q.notify({ type: 'negative', message: res_data.message || 'Gagal menghapus transaksi' });
+                    }
+                })
+                .catch(err => {
+                    console.error('Error delete transaksi:', err);
+                    this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat menghapus transaksi' });
+                })
+                .finally(() => {
+                    this.btn_hapus = false;
+                });
+        },
+
 
 
         indexing(idx) {
