@@ -115,18 +115,18 @@ router.post('/addData', (req, res) => {
 // ===================================================
 // 🔹 DELETE: Hapus transaksi (opsional, tidak ubah stok)
 // ===================================================
-router.delete('/delete/:id', (req, res) => {
-  const { id } = req.params;
+// router.delete('/delete/:id', (req, res) => {
+//   const { id } = req.params;
 
-  const sql = `DELETE FROM transaksi_darah WHERE id_transaksi = ?`;
-  db.query(sql, [id], (err, result) => {
-    if (err) {
-      console.error('Error hapus transaksi:', err);
-      return res.status(500).json({ success: false, message: 'Gagal hapus transaksi' });
-    }
-    res.json({ success: true, message: 'Transaksi berhasil dihapus' });
-  });
-});
+//   const sql = `DELETE FROM transaksi_darah WHERE id_transaksi = ?`;
+//   db.query(sql, [id], (err, result) => {
+//     if (err) {
+//       console.error('Error hapus transaksi:', err);
+//       return res.status(500).json({ success: false, message: 'Gagal hapus transaksi' });
+//     }
+//     res.json({ success: true, message: 'Transaksi berhasil dihapus' });
+//   });
+// });
 
 
 router.post('/editData', (req, res) => {
@@ -233,5 +233,80 @@ router.post('/editData', (req, res) => {
       });
     });
   });
+
+  // ===================================================
+// 🔹 DELETE: Hapus transaksi -> revert stok sesuai transaksi lama, lalu hapus transaksi
+// ===================================================
+router.delete('/delete/:id', (req, res) => {
+    const { id } = req.params;
+  
+    // 1) ambil transaksi yang akan dihapus
+    const getSql = `SELECT * FROM transaksi_darah WHERE id_transaksi = ?`;
+    db.query(getSql, [id], (err, rows) => {
+      if (err) {
+        console.error('Error ambil transaksi untuk hapus:', err);
+        return res.status(500).json({ success: false, message: 'Gagal ambil data transaksi' });
+      }
+      if (!rows || rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Transaksi tidak ditemukan' });
+      }
+  
+      const tr = rows[0];
+  
+      // 2) revert stok sesuai tipe transaksi lama
+      // jika tipe = 'masuk' -> kurangi stok
+      // jika tipe = 'keluar' -> tambah stok
+      let revertSql = '';
+      let params = [];
+  
+      if ((tr.tipe_transaksi || '').toLowerCase() === 'masuk') {
+        revertSql = `
+          UPDATE stok_darah
+          SET jumlah_stok = GREATEST(jumlah_stok - ?, 0), tanggal_update = NOW()
+          WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
+        `;
+        params = [tr.jumlah, tr.golongan_darah, tr.rhesus, tr.komponen_id];
+      } else if ((tr.tipe_transaksi || '').toLowerCase() === 'keluar') {
+        revertSql = `
+          UPDATE stok_darah
+          SET jumlah_stok = jumlah_stok + ?, tanggal_update = NOW()
+          WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
+        `;
+        params = [tr.jumlah, tr.golongan_darah, tr.rhesus, tr.komponen_id];
+      } else {
+        // tipe tidak dikenali, tapi tetap hapus transaksi tanpa revert
+        console.warn('Tipe transaksi tidak dikenali saat hapus:', tr.tipe_transaksi);
+      }
+  
+      // jalankan revert (jika ada), lalu hapus transaksi
+      const doRevert = (cb) => {
+        if (!revertSql) return cb(null);
+        db.query(revertSql, params, (err2) => {
+          if (err2) {
+            console.error('Error revert stok saat hapus transaksi:', err2);
+            return cb(err2);
+          }
+          cb(null);
+        });
+      };
+  
+      doRevert((revertErr) => {
+        if (revertErr) {
+          return res.status(500).json({ success: false, message: 'Gagal ubah stok saat hapus transaksi' });
+        }
+  
+        // 3) hapus transaksi
+        const delSql = `DELETE FROM transaksi_darah WHERE id_transaksi = ?`;
+        db.query(delSql, [id], (err3) => {
+          if (err3) {
+            console.error('Error hapus transaksi:', err3);
+            return res.status(500).json({ success: false, message: 'Gagal hapus data transaksi' });
+          }
+          return res.json({ success: true, message: 'Transaksi berhasil dihapus dan stok diperbarui.' });
+        });
+      });
+    });
+  });
+  
 
 module.exports = router;
