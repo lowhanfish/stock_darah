@@ -827,7 +827,7 @@ p {
 .widget .widget-body .follow .icon li a{
     background-color: #F1F1F1;
     display: inline-block;
-    color: #13ADE5;
+    color: #ff0000;
     height: 40px;
     line-height: 40px;
     width: 40px;
@@ -839,7 +839,7 @@ p {
 .menu-box .inner-menu .follow-us .icon-follow li:hover a,
 .footer .footer-icon li:hover a,
 .widget .widget-body .follow .icon li:hover a{
-    background-color: #13ADE5;
+    background-color: #ff0000;
     color: #FFF;
 }
 .menu-box-icon{
@@ -2552,7 +2552,8 @@ li.ui-timepicker-selected, .ui-timepicker-list li:hover, .ui-timepicker-list .ui
             transform: translate(-50%, -50%);
     border-radius: 50%;
     opacity: 0.85;
-    background-color: #13ADE5;
+    /* background-color: #13ADE5; */
+    background-color: #f15959;
 }
 .gallery-item:hover span,
 .shop-item:hover span{
@@ -2885,9 +2886,9 @@ li.ui-timepicker-selected, .ui-timepicker-list li:hover, .ui-timepicker-list .ui
 }
 
 /* :: Footer */
-.footer{
-    background-color: #1A3D7D;
-}
+.footer {
+    background: linear-gradient(to bottom, #ff4b4b, #b51e1e);
+  }
 .footer .newsletter{
     padding: 40px 0;
     overflow: hidden;
@@ -2973,24 +2974,24 @@ li.ui-timepicker-selected, .ui-timepicker-list li:hover, .ui-timepicker-list .ui
     color: #FFF;
 }
 .footer-title h4 {
-    color: #FFF;
+    color: #FFF!important;
     font-size: 22px;
     font-weight: 600;
     text-transform: capitalize;
     line-height: 1;
     margin-bottom: 25px;
 }
-.footer .links li a{
+.footer .links li routerlink{
     display: inline-block;
     position: relative;
     color: #F4F4F4;
     font-size: 15px;
     line-height: 33px;
 }
-.footer .links li:hover a{
-    color: #13ADE5;
+.footer .links li:hover routerlink{
+    color: #ffffff;
 }
-.footer .links li a:after{
+.footer .links li routerlink:after{
     content: "\f061";
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
@@ -3025,9 +3026,8 @@ li.ui-timepicker-selected, .ui-timepicker-list li:hover, .ui-timepicker-list .ui
     float: right;
 }
 .copyright{
-    margin-top: 70px;
     padding: 40px 0;
-    background-color: #194f90;
+    background-color: #e93636;
     overflow: hidden
 }
 .copyright p{

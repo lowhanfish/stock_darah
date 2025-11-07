@@ -9,7 +9,7 @@
                         <div class="row">
                             <div class="col-lg-6">
                                 <div class="banner">
-                                    
+
                                 </div>
                             </div>
                         </div>
@@ -17,9 +17,9 @@
                 </div>
             </div>
 
-           
 
-            
+
+
         </div>
     </section>
 
@@ -260,39 +260,46 @@
             <div class="sec-title">
                 <div class="row">
                     <div class="col-lg-5">
-                        <h2>Feature's Gallery</h2>
-                        <h3>Momen Pelayanan dan Aksi Sosial Terbaik Kami</h3>
+                        <h2>Galeri Foto</h2>
+                        <h3>Galeri Donor & Kegiatan Sosial</h3>
                     </div>
                     <div class="col-lg-5">
-                        <p class="sec-explain">Kami mengabadikan setiap momen komitmen kami, mulai dari bakti sosial,
-                            kampanye kesehatan masyarakat, hingga event edukasi medis yang kami selenggarakan.</p>
-                        <a class="btn-1 sec-btn" href="01_gallery.html">View All Gallery</a>
+                        <p class="sec-explain">Kami mengabadikan berbagai momen penuh makna — dari kegiatan donor darah, edukasi kesehatan, hingga kolaborasi sosial yang menjadi bukti nyata semangat kemanusiaan di RSUD Konawe Utara.</p>
+                        <router-link class="btn-1 sec-btn" to="/gallery">Lihat Seluruh Galeri</router-link>
                     </div>
                 </div>
             </div>
             <div class="row">
-                <!-- gallery items tetap seperti semula (tidak diubah) -->
-                <div class="col-md-6 col-lg-4">
+                <!-- Loop dinamis galleryImages -->
+                <div class="col-md-6 col-lg-4" v-for="(img, idx) in galleryImages" :key="img.id || idx">
                     <div class="gallery-item">
                         <span></span>
                         <div class="img-box">
-                            <img class="img-fluid gallery-item-img" src="/assets/images/gallery/01_gallery.jpg"
-                                alt="01 Gallery">
+                            <img class="img-fluid gallery-item-img" :src="img.src"
+                                :alt="img.nama_kegiatan || 'Gallery image ' + (idx + 1)" loading="lazy"
+                                @error="(e) => e.target.src = '/assets/images/placeholder.png'" />
                         </div>
+
                         <div class="hover-box">
                             <div class="text-box">
-                                <div class="tags"><a href="01_single-gallery.html">surgery</a></div>
-                                <h4><a href="01_single-gallery.html">Complete surgery</a></h4>
+                                <h4>
+                                    <a href="javascript:void(0)">
+                                        {{ img.nama_kegiatan }}
+                                    </a>
+                                </h4>
                             </div>
                             <ul class="gallery-icon">
-                                <li><a href="01_single-gallery.html"><i class="fas fa-link"></i></a></li>
-                                <li><a class="popup" href="/assets/images/gallery/01_gallery.jpg"><i
-                                            class="far fa-eye"></i></a></li>
+                                <!-- Klik link ke halaman detail (jika punya route) -->
+
+                                <li>
+                                    <a href="javascript:void(0)" @click.prevent="openModal(img.src)">
+                                        <i class="far fa-eye"></i>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </div>
                 </div>
-                <!-- ... sisa gallery tetap sama ... -->
             </div>
         </div>
     </div>
@@ -321,10 +328,11 @@ export default {
             list_berita: [],
             file_path: '',
             UMUM: UMUM,
-            jadwal: null,    
-            poster: null,    
+            jadwal: null,
+            poster: null,
             loading: true,
             jumlahPendonor: 0,
+            galleryImages: [],
 
         }
     },
@@ -428,6 +436,32 @@ export default {
             }
         },
 
+        // Ambil foto (gallery) untuk home — hanya 3 item terakhir
+        async getFotoHome() {
+            try {
+                const res = await fetch(this.$store.state.URL.HOME + "fotoHome", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" }
+                });
+                if (!res.ok) throw new Error("Gagal mengambil foto home");
+                const json = await res.json();
+                if (Array.isArray(json)) {
+                    // Pastikan path file lengkap
+                    this.galleryImages = json.map(item => ({
+                        id: item.id,
+                        nama_kegiatan: item.nama_kegiatan,
+                        file_name: item.file_name || '',
+                        src: (this.file_path || '/') + (item.file_name || '')
+                    }));
+                } else {
+                    this.galleryImages = [];
+                }
+            } catch (err) {
+                console.error("❌ Error getFotoHome:", err);
+                this.galleryImages = [];
+            }
+        },
+
         // Helper method untuk format tanggal (opsional, jika last_update perlu diformat)
         formatDate(dateStr) {
             if (!dateStr) return '—';
@@ -476,6 +510,7 @@ export default {
         this.file_path = uploads.endsWith('/') ? uploads : uploads + '/';
         this.getListBerita();
         this.loadJadwal();
+        this.getFotoHome();
         await nextTick()
         const el = this.$refs.heroCarousel
         if (!el) {
@@ -660,5 +695,54 @@ export default {
 .status-batal {
     background-color: #dc3545;
     /* Merah */
+}
+
+.gallery-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(234, 121, 121, 0.1);
+    transition: transform 0.3s;
+}
+
+.gallery-item:hover {
+    transform: translateY(-4px);
+}
+
+.img-box {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    /* Membuat kotak persegi otomatis responsif */
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.gallery-item-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Gambar menyesuaikan ukuran kotak tanpa distorsi */
+    transition: transform 0.4s ease;
+}
+
+.gallery-item:hover .gallery-item-img {
+    transform: scale(1.05);
+}
+
+.hover-box {
+    position: absolute;
+    inset: 0;
+    background: rgba(253, 135, 135, 0.007);
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.gallery-item:hover .hover-box {
+    opacity: 1;
 }
 </style>
