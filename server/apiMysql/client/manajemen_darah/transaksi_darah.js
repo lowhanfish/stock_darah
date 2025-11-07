@@ -96,6 +96,7 @@ router.get('/view', (req, res) => {
 // ===================================================
 // 🔹 POST: Tambah transaksi & update stok otomatis
 // ===================================================
+// ADD DATA (VALIDASI STOK, TRANSAKSI DB)
 router.post('/addData', (req, res) => {
   const { golongan_darah, rhesus, komponen_id, jumlah, tipe_transaksi, keterangan } = req.body;
 
@@ -103,53 +104,69 @@ router.post('/addData', (req, res) => {
     return res.status(400).json({ success: false, message: 'Data tidak lengkap' });
   }
 
-  // SQL insert transaksi
-  const insertSql = `
-    INSERT INTO transaksi_darah 
-      (golongan_darah, rhesus, komponen_id, jumlah, tipe_transaksi, keterangan) 
-    VALUES (?, ?, ?, ?, ?, ?)
-  `;
+  db.getConnection((err, conn) => {
+    if (err || !conn) {
+      return res.status(500).json({ success: false, message: 'Gagal membuat koneksi DB' });
+    }
 
-  db.query(
-    insertSql,
-    [golongan_darah, rhesus, komponen_id, jumlah, tipe_transaksi, keterangan || null],
-    (err, result) => {
-      if (err) {
-        console.error('Error insert transaksi:', err);
-        return res.status(500).json({ success: false, message: 'Gagal menambah transaksi darah' });
-      }
+    const selesai = (status, payload) => {
+      try { conn.release(); } catch (e) {}
+      if (status === 'ok') return res.json(payload);
+      const code = payload && payload.code ? payload.code : 500;
+      return res.status(code).json(payload);
+    };
 
-      // SQL update stok_darah
-      let updateSql = '';
-      if (tipe_transaksi.toLowerCase() === 'masuk') {
-        updateSql = `
-          UPDATE stok_darah 
-          SET jumlah_stok = jumlah_stok + ?, tanggal_update = NOW()
-          WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
-        `;
-      } else if (tipe_transaksi.toLowerCase() === 'keluar') {
-        updateSql = `
-          UPDATE stok_darah 
-          SET jumlah_stok = GREATEST(jumlah_stok - ?, 0), tanggal_update = NOW()
-          WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
-        `;
-      } else {
-        return res.status(400).json({ success: false, message: 'Tipe transaksi tidak dikenal (masuk/keluar)' });
-      }
+    conn.beginTransaction((e0) => {
+      if (e0) return selesai('err', { code: 500, success:false, message:'Gagal mulai transaksi DB' });
 
-      db.query(updateSql, [jumlah, golongan_darah, rhesus, komponen_id], (err2, updateRes) => {
-        if (err2) {
-          console.error('Error update stok darah:', err2);
-          return res.status(500).json({ success: false, message: 'Gagal update stok darah' });
+      // 1) Kunci baris stok
+      const lockSql = `
+        SELECT jumlah_stok
+        FROM stok_darah
+        WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
+        FOR UPDATE
+      `;
+      conn.query(lockSql, [golongan_darah, rhesus, komponen_id], (e1, rows) => {
+        if (e1) return conn.rollback(() => selesai('err', { code: 500, success:false, message:'Gagal membaca stok' }));
+        if (!rows.length) return conn.rollback(() => selesai('err', { code: 404, success:false, message:'Data stok tidak ditemukan' }));
+
+        const stokAwal = Number(rows[0].jumlah_stok || 0);
+        const tipe = String(tipe_transaksi).toLowerCase();
+
+        // 2) Validasi kalau keluar
+        if (tipe === 'keluar' && stokAwal < Number(jumlah)) {
+          return conn.rollback(() =>
+            selesai('err', { code: 400, success:false, message:`Stok tidak cukup. Stok: ${stokAwal}, diminta: ${jumlah}` })
+          );
         }
 
-        res.json({
-          success: true,
-          message: `Transaksi ${tipe_transaksi} berhasil dan stok darah diperbarui.`
+        // 3) Insert transaksi
+        const insSql = `
+          INSERT INTO transaksi_darah (golongan_darah, rhesus, komponen_id, jumlah, tipe_transaksi, keterangan)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `;
+        conn.query(insSql, [golongan_darah, rhesus, komponen_id, jumlah, tipe, keterangan || null], (e2) => {
+          if (e2) return conn.rollback(() => selesai('err', { code: 500, success:false, message:'Gagal menambah transaksi' }));
+
+          // 4) Update stok (tanpa GREATEST; sudah tervalidasi)
+          const delta = (tipe === 'masuk') ? Number(jumlah) : -Number(jumlah);
+          const updSql = `
+            UPDATE stok_darah
+            SET jumlah_stok = jumlah_stok + ?, tanggal_update = NOW()
+            WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
+          `;
+          conn.query(updSql, [delta, golongan_darah, rhesus, komponen_id], (e3) => {
+            if (e3) return conn.rollback(() => selesai('err', { code: 500, success:false, message:'Gagal update stok' }));
+
+            conn.commit((e4) => {
+              if (e4) return conn.rollback(() => selesai('err', { code: 500, success:false, message:'Gagal commit transaksi' }));
+              return selesai('ok', { success:true, message:`Transaksi ${tipe} berhasil dan stok diperbarui.` });
+            });
+          });
         });
       });
-    }
-  );
+    });
+  });
 });
 
 
@@ -169,111 +186,138 @@ router.post('/addData', (req, res) => {
 //   });
 // });
 
-
+// EDIT DATA (REVERT LAMA, VALIDASI BARU, APPLY BARU)
 router.post('/editData', (req, res) => {
-    const {
-      id_transaksi,
-      golongan_darah,
-      rhesus,
-      komponen_id,
-      jumlah,
-      tipe_transaksi,
-      keterangan
-    } = req.body;
-  
-    if (!id_transaksi || !golongan_darah || !rhesus || !komponen_id || !jumlah || !tipe_transaksi) {
-      return res.status(400).json({ success: false, message: 'Data tidak lengkap' });
+  const {
+    id_transaksi,
+    golongan_darah,
+    rhesus,
+    komponen_id,
+    jumlah,
+    tipe_transaksi,
+    keterangan
+  } = req.body;
+
+  if (!id_transaksi || !golongan_darah || !rhesus || !komponen_id || !jumlah || !tipe_transaksi) {
+    return res.status(400).json({ success: false, message: 'Data tidak lengkap' });
+  }
+
+  db.getConnection((err, conn) => {
+    if (err || !conn) {
+      return res.status(500).json({ success: false, message: 'Gagal membuat koneksi DB' });
     }
-  
-    // 1️⃣ Ambil data transaksi lama dulu
-    const getOldSql = `SELECT * FROM transaksi_darah WHERE id_transaksi = ?`;
-    db.query(getOldSql, [id_transaksi], (err, resultOld) => {
-      if (err) {
-        console.error('Error ambil data lama:', err);
-        return res.status(500).json({ success: false, message: 'Gagal ambil data transaksi lama' });
-      }
-  
-      if (resultOld.length === 0) {
-        return res.status(404).json({ success: false, message: 'Data transaksi tidak ditemukan' });
-      }
-  
-      const oldData = resultOld[0];
-  
-      // 2️⃣ Kembalikan stok sesuai transaksi lama (revert dulu)
-      let revertSql = '';
-      let revertParams = [];
-  
-      if (oldData.tipe_transaksi === 'masuk') {
-        revertSql = `
-          UPDATE stok_darah 
-          SET jumlah_stok = GREATEST(jumlah_stok - ?, 0), tanggal_update = NOW()
-          WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
-        `;
-        revertParams = [oldData.jumlah, oldData.golongan_darah, oldData.rhesus, oldData.komponen_id];
-      } else if (oldData.tipe_transaksi === 'keluar') {
-        revertSql = `
-          UPDATE stok_darah 
-          SET jumlah_stok = jumlah_stok + ?, tanggal_update = NOW()
-          WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
-        `;
-        revertParams = [oldData.jumlah, oldData.golongan_darah, oldData.rhesus, oldData.komponen_id];
-      }
-  
-      db.query(revertSql, revertParams, (err2) => {
-        if (err2) {
-          console.error('Error revert stok:', err2);
-          return res.status(500).json({ success: false, message: 'Gagal revert stok lama' });
+
+    const selesai = (status, payload) => {
+      try { conn.release(); } catch (e) {}
+      if (status === 'ok') return res.json(payload);
+      const code = payload && payload.code ? payload.code : 500;
+      return res.status(code).json(payload);
+    };
+
+    const makeKey = (g, r, k) => `${g}|${r}|${k}`;
+    const parseKey = (s) => { const [g, r, k] = s.split('|'); return { g, r, k: Number(k) }; };
+
+    conn.beginTransaction((e0) => {
+      if (e0) return selesai('err', { code: 500, success:false, message:'Gagal mulai transaksi DB' });
+
+      // 1) Ambil transaksi lama
+      conn.query('SELECT * FROM transaksi_darah WHERE id_transaksi = ?', [id_transaksi], (e1, oldRows) => {
+        if (e1) return conn.rollback(() => selesai('err', { code: 500, success:false, message:'Gagal ambil transaksi lama' }));
+        if (!oldRows || !oldRows.length) {
+          return conn.rollback(() => selesai('err', { code: 404, success:false, message:'Data transaksi tidak ditemukan' }));
         }
-  
-        // 3️⃣ Update data transaksi baru
-        const updateTransaksiSql = `
-          UPDATE transaksi_darah 
-          SET golongan_darah = ?, rhesus = ?, komponen_id = ?, jumlah = ?, 
-              tipe_transaksi = ?, keterangan = ?
-          WHERE id_transaksi = ?
-        `;
-  
-        db.query(
-          updateTransaksiSql,
-          [golongan_darah, rhesus, komponen_id, jumlah, tipe_transaksi, keterangan || null, id_transaksi],
-          (err3) => {
-            if (err3) {
-              console.error('Error update transaksi:', err3);
-              return res.status(500).json({ success: false, message: 'Gagal update transaksi' });
-            }
-  
-            // 4️⃣ Tambahkan efek transaksi baru ke stok
-            let applySql = '';
-            if (tipe_transaksi.toLowerCase() === 'masuk') {
-              applySql = `
-                UPDATE stok_darah 
-                SET jumlah_stok = jumlah_stok + ?, tanggal_update = NOW()
-                WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
-              `;
-            } else if (tipe_transaksi.toLowerCase() === 'keluar') {
-              applySql = `
-                UPDATE stok_darah 
-                SET jumlah_stok = GREATEST(jumlah_stok - ?, 0), tanggal_update = NOW()
-                WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
-              `;
-            }
-  
-            db.query(applySql, [jumlah, golongan_darah, rhesus, komponen_id], (err4) => {
-              if (err4) {
-                console.error('Error update stok baru:', err4);
-                return res.status(500).json({ success: false, message: 'Gagal update stok baru' });
-              }
-  
-              res.json({
-                success: true,
-                message: 'Transaksi darah berhasil diperbarui dan stok diperbarui ulang.'
-              });
-            });
+        const oldTr = oldRows[0];
+
+        const oldKey = makeKey(oldTr.golongan_darah, oldTr.rhesus, oldTr.komponen_id);
+        const newKey = makeKey(golongan_darah, rhesus, komponen_id);
+        const keys = Array.from(new Set([oldKey, newKey])).sort(); // urutan konsisten
+        const stok = {};
+
+        // 2) Kunci stok untuk old & new
+        const lockStock = (i = 0) => {
+          if (i >= keys.length) return afterLock();
+          const { g, r, k } = parseKey(keys[i]);
+          const sql = `
+            SELECT jumlah_stok FROM stok_darah
+            WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?
+            FOR UPDATE
+          `;
+          conn.query(sql, [g, r, k], (eL, rows) => {
+            if (eL) return conn.rollback(() => selesai('err', { code: 500, success:false, message:'Gagal kunci stok' }));
+            if (!rows.length) return conn.rollback(() => selesai('err', { code: 404, success:false, message:`Data stok tidak ditemukan untuk ${g} ${r} (komponen ${k})` }));
+            stok[keys[i]] = Number(rows[0].jumlah_stok || 0);
+            lockStock(i + 1);
+          });
+        };
+
+        const afterLock = () => {
+          // 3) Revert efek transaksi lama pada stok lama
+          const curOld = stok[oldKey];
+          const revertDelta = (String(oldTr.tipe_transaksi).toLowerCase() === 'masuk')
+            ? -Number(oldTr.jumlah || 0)
+            : +Number(oldTr.jumlah || 0);
+          const afterRevert = curOld + revertDelta;
+          if (afterRevert < 0) {
+            return conn.rollback(() => selesai('err', { code: 409, success:false, message:'Inkonsistensi stok saat revert' }));
           }
-        );
+
+          const { g: og, r: orh, k: ok } = parseKey(oldKey);
+          conn.query(
+            `UPDATE stok_darah SET jumlah_stok = ?, tanggal_update = NOW()
+             WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?`,
+            [afterRevert, og, orh, ok],
+            (eR) => {
+              if (eR) return conn.rollback(() => selesai('err', { code: 500, success:false, message:'Gagal revert stok' }));
+
+              // 4) Update baris transaksi ke data baru
+              const tipeBaru = String(tipe_transaksi).toLowerCase();
+              conn.query(
+                `UPDATE transaksi_darah
+                 SET golongan_darah = ?, rhesus = ?, komponen_id = ?, jumlah = ?, tipe_transaksi = ?, keterangan = ?
+                 WHERE id_transaksi = ?`,
+                [golongan_darah, rhesus, komponen_id, Number(jumlah), tipeBaru, keterangan || null, id_transaksi],
+                (eU) => {
+                  if (eU) return conn.rollback(() => selesai('err', { code: 500, success:false, message:'Gagal update transaksi' }));
+
+                  // 5) Validasi stok cukup bila tipe baru = keluar
+                  const baseNew = (newKey === oldKey) ? afterRevert : stok[newKey];
+                  if (tipeBaru === 'keluar' && baseNew < Number(jumlah)) {
+                    return conn.rollback(() => selesai('err', { code: 400, success:false, message:`Stok tidak cukup. Stok: ${baseNew}, diminta: ${jumlah}` }));
+                  }
+
+                  // 6) Terapkan efek transaksi baru
+                  const deltaNew = (tipeBaru === 'masuk') ? +Number(jumlah) : -Number(jumlah);
+                  const finalStok = baseNew + deltaNew;
+                  if (finalStok < 0) {
+                    return conn.rollback(() => selesai('err', { code: 409, success:false, message:'Operasi membuat stok negatif' }));
+                  }
+
+                  const { g: ng, r: nrh, k: nk } = parseKey(newKey);
+                  conn.query(
+                    `UPDATE stok_darah SET jumlah_stok = ?, tanggal_update = NOW()
+                     WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?`,
+                    [finalStok, ng, nrh, nk],
+                    (eA) => {
+                      if (eA) return conn.rollback(() => selesai('err', { code: 500, success:false, message:'Gagal apply stok baru' }));
+
+                      conn.commit((eC) => {
+                        if (eC) return conn.rollback(() => selesai('err', { code: 500, success:false, message:'Gagal commit transaksi' }));
+                        return selesai('ok', { success:true, message:'Transaksi darah berhasil diperbarui dan stok diperbarui ulang.' });
+                      });
+                    }
+                  );
+                }
+              );
+            }
+          );
+        };
+
+        lockStock();
       });
     });
   });
+});
+
 
   // ===================================================
 // 🔹 DELETE: Hapus transaksi -> revert stok sesuai transaksi lama, lalu hapus transaksi

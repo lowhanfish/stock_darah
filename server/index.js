@@ -97,6 +97,9 @@ app.use('/api/v1/publish/jadwalPublish', jadwalPublish);
 const pendonorPublish = require('./apiMysql/publish/pendonorPublish');
 app.use('/api/v1/publish/pendonorPublish', pendonorPublish);
 
+const stokPublish = require('./apiMysql/publish/stokPublish');
+app.use('/api/v1/publish/stokPublish', stokPublish);
+
 
 
 
