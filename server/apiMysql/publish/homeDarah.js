@@ -97,6 +97,24 @@ router.post('/jumlahPendonor', (req, res) => {
   });
 });
 
+router.post('/fotoHome', (req, res) => {
+  const sql = `
+    SELECT id, nama_kegiatan, file_name, created_at
+    FROM foto
+    WHERE file_name IS NOT NULL AND TRIM(file_name) <> ''
+    ORDER BY created_at DESC
+    LIMIT 3
+  `;
+  db.query(sql, (err, rows) => {
+    if (err) {
+      console.error("❌ Error fotoHome:", err);
+      return res.status(500).json([]);
+    }
+    return res.json(rows || []);
+  });
+});
+
+
 
 
 module.exports = router;
