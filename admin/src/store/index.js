@@ -45,7 +45,8 @@ export default new Vuex.Store({
       KOMPONEN : URL + 'api/v1/komponen/',
       TRANSAKSI : URL + 'api/v1/transaksi_darah/',
 
-      JADWAL_DONOR : URL + 'api/v1/jadwal_donor/'
+      JADWAL_DONOR : URL + 'api/v1/jadwal_donor/',
+      FOTO : URL + 'api/v1/foto/'
 
 
       

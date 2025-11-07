@@ -121,6 +121,12 @@ const routes = [
     component: () => import('../views/dataMaster/komponen.vue'),
     beforeEnter: isLoggedIn,
   },
+  {
+    path: '/foto',
+    name: 'foto',
+    component: () => import('../views/informasi/foto.vue'),
+    beforeEnter: isLoggedIn,
+  },
 
 
   {
