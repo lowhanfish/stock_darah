@@ -118,7 +118,7 @@
       return {
         galleryImages: [],
         currentPage: 1,
-        pageLimit: 9, 
+        pageLimit: 12, 
         totalItems: 0,
         totalPages: 0,
         showModal: false,
