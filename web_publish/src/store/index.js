@@ -12,6 +12,7 @@ export default createStore({
       DONOR_PUBLISH : URL_APP +"api/v1/publish/pendonorPublish/",
       STOK : URL_APP +"api/v1/publish/stokPublish/",
       BERITA : URL_APP +"api/v1/publish/beritaPublish/",
+      FOTO : URL_APP +"api/v1/publish/fotoPublish/",
 
 
     },

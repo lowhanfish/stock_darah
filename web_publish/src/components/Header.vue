@@ -83,6 +83,9 @@
                             <li class="item-level-1">
                                 <router-link  class="link-level-1" to="/Pendonor">Pendonor Aktif</router-link>
                             </li>
+                            <li class="item-level-1">
+                                <router-link  class="link-level-1" to="/foto">Foto Kegiatan</router-link>
+                            </li>
                            
                           
                             <li class="item-level-1">

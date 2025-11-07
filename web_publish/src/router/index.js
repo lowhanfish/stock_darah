@@ -6,6 +6,7 @@ import Pendonor from "../views/Pendonor.vue";
 import berita from "../views/berita.vue";
 import beritaisi from "../views/beritaisi.vue";
 import stokdarah from "../views/stokdarah.vue";
+import foto from "../views/foto.vue";
 
 
 
@@ -48,6 +49,11 @@ const routes = [
     path: '/stokdarah',
     name: 'stokdarah',
     component: stokdarah
+  },
+  {
+    path: '/foto',
+    name: 'foto',
+    component: foto
   },
   
  
