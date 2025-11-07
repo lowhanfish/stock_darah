@@ -65,106 +65,26 @@
                             </li>
                            
                             <li class="item-level-1 has-menu">
-                                <a href="#" class="link-level-1">About Us</a>
+                                <a href="#" class="link-level-1">Informasi</a>
                                 <ul class="level-2">
                                     <li class="item-level-2">
-                                        <a class="link-level-2" href="01_about-us.html">About Us 1</a>
+                                        <router-link  class="link-level-2" to="/berita">Artikel/Edukasi</router-link>
                                     </li>
                                     <li class="item-level-2">
-                                        <a class="link-level-2" href="02_about-us.html">About Us 2</a>
+                                        <router-link  class="link-level-2" to="/berita">Jadwal Donor</router-link>
                                     </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="03_about-us.html">About Us 3</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_doctors.html">Doctors 1</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="02_doctors.html">Doctors 2</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_single-doctors.html">Doctors Details</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_testimonial.html">Testimonial 1</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="02_testimonial.html">Testimonial 2</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="03_testimonial.html">Testimonial 3</a>
-                                    </li>
+                                   
                                 </ul>
                             </li>
 
                             <li class="item-level-1">
-                                <router-link  class="link-level-1" to="/berita">Artikel/Edukasi</router-link>
+                                <router-link  class="link-level-1" to="/stokdarah">Stok Darah</router-link>
                             </li>
                             <li class="item-level-1">
                                 <router-link  class="link-level-1" to="/Pendonor">Pendonor Aktif</router-link>
                             </li>
                            
-                            <li class="item-level-1 has-menu">
-                                <a href="#" class="link-level-1">Blog</a>
-                                <ul class="level-2">
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_blog.html">Blog Grid</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="02_blog.html">Blog Grid Sidebar</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="03_blog.html">Blog Standard</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_single-blog.html">Single Blog</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li class="item-level-1 has-menu">
-                                <a href="#" class="link-level-1">Page</a>
-                                <ul class="level-2">
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_doctors-timetable.html">Doctors Timetable</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_appointment.html">Appointment 1</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="02_appointment.html">Appointment 2</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_gallery.html">Gallery 1</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="02_gallery.html">Gallery 2</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="03_gallery.html">Gallery 3</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_single-gallery.html">Gallery Details</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_careers.html">Careers</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_faqs.html">FAQs</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_sponsors.html">Sponsors</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_shop.html">Shop</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="01_single-product.html">Product Details</a>
-                                    </li>
-                                    <li class="item-level-2">
-                                        <a class="link-level-2" href="error-page.html">Error Page</a>
-                                    </li>
-                                </ul>
-                            </li>
+                          
                             <li class="item-level-1">
                                 <a href="01_contact.html" class="link-level-1">Contact</a>
                             </li>

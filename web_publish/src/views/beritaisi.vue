@@ -202,16 +202,8 @@ export default {
             console.error("❌ ID berita kosong!");
             return;
         }
-
-
-
         this.getView();
         this.getListBerita();
-        //   this.getlistPengumuman();
-        // this.getAsyncData();
-        // alert(this.$route)
-        // console.log('id = '+this.$route.query.id)
-        // console.log(this.HOST);
     },
 
     watch: {
@@ -220,12 +212,9 @@ export default {
             handler(newId) {
                 this.id = newId || this.$route.query.id
                 this.getView()
-                // optional: scroll ke atas
-                // window.scrollTo(0, 0)
             }
         }
     },
-
 
     computed: {
         shareUrl() {

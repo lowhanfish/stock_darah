@@ -2,21 +2,14 @@
     <!-- :: Header -->
     <section class="header">
         <div ref="heroCarousel" class="header-carousel owl-carousel owl-theme">
-            <div class="sec-hero display-table" style="background-image: url(/assets/images/header/01_header.jpg)">
+            <div class="sec-hero display-table" style="background-image: url(/assets/images/bgheader.png)">
                 <div class="table-cell">
                     <div class="overlay"></div>
                     <div class="container">
                         <div class="row">
                             <div class="col-lg-6">
                                 <div class="banner">
-                                    <h1 class="handline">We Take Care Your Healthy Life</h1>
-                                    <p class="about-website">
-                                        MedDoctors Are A Medical And Health Department Provider Institutions.
-                                        Suitable For Healthcare, Medical, Doctor, Dental, Dentist, Pharmacy,
-                                        Health And Any Related Medical Care Field.
-                                    </p>
-                                    <a class="btn-1 move-section" href="#start">Let's Start</a>
-                                    <a class="btn-1 btn-2 ml-30" href="01_department.html">Our Department</a>
+                                    
                                 </div>
                             </div>
                         </div>
@@ -24,54 +17,9 @@
                 </div>
             </div>
 
-            <div class="sec-hero display-table" style="background-image: url(/assets/images/header/02_header.jpg)">
-                <div class="table-cell">
-                    <div class="overlay"></div>
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="banner">
-                                    <h1 class="handline">Best Doctor &amp; Medical Care</h1>
-                                    <p class="about-website">
-                                        MedDoctors Are A Medical And Health Department Provider Institutions.
-                                        Suitable For Healthcare, Medical, Doctor, Dental, Dentist, Pharmacy,
-                                        Health And Any Related Medical Care Field.
-                                    </p>
-                                    <a class="btn-1 btn-2" href="01_doctors-timetable.html">Find A Doctor</a>
-                                    <a class="btn-1 btn-3 ml-30" href="01_about-us.html">Discover More</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+           
 
-            <div class="sec-hero display-table" style="background-image: url(/assets/images/header/03_header.jpg)">
-                <div class="table-cell">
-                    <div class="overlay"></div>
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="banner">
-                                    <h1 class="handline">Care Whenever You Need It</h1>
-                                    <p class="about-website">
-                                        MedDoctors Are A Medical And Health Department Provider Institutions.
-                                        Suitable For Healthcare, Medical, Doctor, Dental, Dentist, Pharmacy,
-                                        Health And Any Related Medical Care Field.
-                                    </p>
-                                    <a class="btn-1 btn-2" href="01_about-us.html">More About Us</a>
-                                    <span class="header-video ml-30">
-                                        <a href="https://youtu.be/TKnufs85hXk" class="pulse" data-lity="">
-                                            <i class="fas fa-play"></i>
-                                        </a>
-                                        <span class="video-name">Watch Our <br>Video!</span>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            
         </div>
     </section>
 
@@ -151,7 +99,7 @@
                             menyediakan
                             data terkini mengenai semua golongan darah untuk layanan medis darurat.</p>
 
-                        <a class="btn-1 sec-btn" href="01_doctors.html">Cek Ketersediaan Golongan Darah</a>
+                        <router-link class="btn-1 sec-btn" to="/stokdarah">Cek Ketersediaan Golongan Darah</router-link>
                     </div>
                 </div>
             </div>
@@ -208,7 +156,8 @@
                             Ikuti berita tentang kegiatan, kampanye kesehatan, dan tips dari tim kami. Selalu update
                             demi hidup sehat Anda.
                         </p>
-                        <a class="btn-1 sec-btn" href="/berita">Jelajahi Artikel Kami</a>
+                        <router-link class="btn-1 sec-btn" to="/berita">Jelajahi Artikel Kami</router-link>
+                        <!-- <router-link  class="link-level-2" to="/berita">Jadwal Donor</router-link> -->
                     </div>
 
 
@@ -372,8 +321,8 @@ export default {
             list_berita: [],
             file_path: '',
             UMUM: UMUM,
-            jadwal: null,     // hanya 1 jadwal terbaru
-            poster: null,     // url poster (jika ada)
+            jadwal: null,    
+            poster: null,    
             loading: true,
             jumlahPendonor: 0,
 
@@ -497,10 +446,6 @@ export default {
             this.isModalOpen = false
             this.modalSrc = ''
             document.body.style.overflow = '' // reset
-        },
-
-        routerKe(id) {
-            this.$router.push(`/Kegiatancsrisi/${id}`);
         },
         pushKe(id) {
             this.$router.push(`/beritaisi/${id}`);

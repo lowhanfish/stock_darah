@@ -1,20 +1,6 @@
 <template>
     <footer class="footer">
-      <div class="newsletter">
-        <div class="container">
-          <div class="row">
-            <div class="col-md-6 d-flex align-items-center justify-content-between">
-              <h5>Subscribe to our newsletter</h5>
-            </div>
-            <div class="col-md-6">
-              <form>
-                <input type="email" name="email" placeholder="Your Email Address...." />
-                <a href="01_contact.html">Subscribe</a>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
+     
   
       <div class="footer-content">
         <div class="container">
@@ -23,7 +9,7 @@
               <div class="logo">
                 <!-- gunakan path absolut agar diakses dari public/assets -->
                 <img class="img-fluid" src="/assets/images/logo/02_logo.png" alt="Footer Logo" />
-                <p>MedDoctors Are A Medical And Health Department Provider Institutions. Suitable For Healthcare, Medical, Doctor, Dental, Dentist, Pharmacy, Health And Any Related Medical Care Field.</p>
+                <p>Satu tetes darah Anda berarti harapan bagi banyak nyawa — DonorDarah hadir untuk mempertemukan pendonor dan penerima secara digital.</p>
                 <ul class="footer-icon">
                   <li><a><i class="fab fa-facebook-f"></i></a></li>
                   <li><a><i class="fab fa-twitter"></i></a></li>

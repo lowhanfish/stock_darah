@@ -5,6 +5,7 @@ import Home from '../views/Home.vue'
 import Pendonor from "../views/Pendonor.vue";
 import berita from "../views/berita.vue";
 import beritaisi from "../views/beritaisi.vue";
+import stokdarah from "../views/stokdarah.vue";
 
 
 
@@ -41,6 +42,12 @@ const routes = [
     path: '/Pendonor',
     name: 'Pendonor Aktif',
     component: Pendonor
+  },
+  
+  {
+    path: '/stokdarah',
+    name: 'stokdarah',
+    component: stokdarah
   },
   
  
