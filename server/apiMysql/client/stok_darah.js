@@ -1,20 +1,7 @@
-// routes/stok_darah.js
 const express = require('express');
 const router = express.Router();
-const db = require('../../db/MySql/umum'); // pastikan path ini benar
+const db = require('../../db/MySql/umum');
 
-/**
- * GET /stok_darah/view
- * Query params (opsional):
- *  - golongan_darah (A|B|O|AB)
- *  - rhesus (+|-)
- *  - komponen_id (integer)
- *  - status (Tersedia|Kritis|Renda)
- *  - page (default 1)
- *  - limit (default 25)
- *  - sort_by (kolom, default 'k.id')
- *  - sort_dir (ASC|DESC, default ASC)
- */
 router.get('/view', (req, res) => {
   try {
     const {
@@ -28,11 +15,11 @@ router.get('/view', (req, res) => {
       sort_dir = 'DSC'
     } = req.query;
 
-    // validasi sederhana
+   
     const allowedSortDir = ['ASC', 'DESC'];
     const sortDir = allowedSortDir.includes(sort_dir.toUpperCase()) ? sort_dir.toUpperCase() : 'ASC';
 
-    // dasar query
+
     let sql = `
       SELECT 
         s.id,
@@ -50,7 +37,7 @@ router.get('/view', (req, res) => {
 
     const params = [];
 
-    // tambahkan filter bila ada
+   
     if (golongan_darah) {
       sql += ' AND s.golongan_darah = ?';
       params.push(golongan_darah);
@@ -68,7 +55,6 @@ router.get('/view', (req, res) => {
       params.push(status);
     }
 
-    // hitung total untuk pagination
     const countSql = `SELECT COUNT(*) AS total FROM (${sql}) t`;
     db.query(countSql, params, (errCount, countRows) => {
       if (errCount) {
@@ -81,9 +67,7 @@ router.get('/view', (req, res) => {
       const lim = Math.max(parseInt(limit), 1);
       const offset = (pageNum - 1) * lim;
 
-      // tambahkan sorting & limit
       sql += ` ORDER BY ${db.escapeId ? db.escapeId(sort_by) : sort_by} ${sortDir} LIMIT ? OFFSET ?`;
-      // Note: jika mysql lib tidak menyediakan escapeId di object db, pastikan sort_by berasal dari daftar aman.
       params.push(lim, offset);
 
       db.query(sql, params, (err, rows) => {
