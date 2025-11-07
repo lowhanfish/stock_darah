@@ -151,8 +151,6 @@ export default {
                 .then(res => res.json())
                 .then(res_data => {
                     console.log("stok_darah view:", res_data)
-
-                    // Ambil array data dari response
                     const rows = Array.isArray(res_data.data)
                         ? res_data.data
                         : (res_data.rows || [])
