@@ -10,7 +10,7 @@
                     <!-- Cari + Tombol Add -->
                     <div class="col-12 col-md-6">
                         <div class="row">
-                            <q-input v-model="cari_value" @keyup="cari_data()" outlined square dense
+                            <q-input disable v-model="cari_value" @keyup="cari_data()" outlined square dense
                                 class="bg-white col q-mr-sm" placeholder="Cari..." />
                             <q-btn glossy class="col-auto" color="green" @click="mdl_add = true" dense icon="add">
                                 <q-tooltip content-class="bg-green-7" content-style="font-size: 13px">
@@ -60,9 +60,6 @@
                         </q-btn>
                         <q-btn dense round color="negative" icon="delete" @click="openDelete(data)">
                             <q-tooltip content-class="bg-red-7">Hapus</q-tooltip>
-                        </q-btn>
-                        <q-btn dense round color="primary" icon="visibility" @click="openLihat(data)">
-                            <q-tooltip content-class="bg-blue-7">Lihat</q-tooltip>
                         </q-btn>
                     </td>
                 </tr>
