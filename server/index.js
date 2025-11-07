@@ -102,6 +102,9 @@ app.use('/api/v1/publish/pendonorPublish', pendonorPublish);
 const stokPublish = require('./apiMysql/publish/stokPublish');
 app.use('/api/v1/publish/stokPublish', stokPublish);
 
+const fotoPublish = require('./apiMysql/publish/fotoPublish');
+app.use('/api/v1/publish/fotoPublish', fotoPublish);
+
 
 
 
