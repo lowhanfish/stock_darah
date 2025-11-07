@@ -3,12 +3,12 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 
 import Home from '../views/Home.vue'
 import Pendonor from "../views/Pendonor.vue";
-// import Berita from "../views/Berita.vue";
-// import Beritaisi from "../views/Beritaisi.vue";
+import berita from "../views/berita.vue";
+import beritaisi from "../views/beritaisi.vue";
 
 
 
-// ====================CSR==================
+
 
 import login from "../views/login/login.vue";
 
@@ -26,6 +26,16 @@ const routes = [
     path: '/login',
     name: 'login',
     component: login
+  },
+  {
+    path: '/berita',
+    name: 'Berita',
+    component: berita
+  },
+  {
+    path: '/beritaisi/:id',
+    name: 'beritaisi',
+    component: beritaisi
   },
   {
     path: '/Pendonor',

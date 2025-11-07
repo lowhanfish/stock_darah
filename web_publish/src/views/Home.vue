@@ -101,7 +101,7 @@
                         <div class="card-content">
                             <div class="card-left">
                                 <h4 class="card-title">Total Stock Darah</h4>
-                                <div class="card-number">24/7</div>
+                                <div class="card-number">{{ totalStockDarah }}</div>
                                 <div class="card-sub">Kantong Tersedia</div>
                             </div>
 
@@ -171,9 +171,9 @@
                                         <div class="blood-label">
                                             <div class="type-text">{{ b.type }}</div>
                                             <div :class="['badge',
-                            b.status === 'Tersedia' ? 'badge-available' :
-                                b.status === 'Rendah' ? 'badge-low' :
-                                    b.status === 'Kritis' ? 'badge-critical' : 'badge-default']">
+                                    b.status === 'Tersedia' ? 'badge-available' :
+                                        b.status === 'Rendah' ? 'badge-low' :
+                                            b.status === 'Kritis' ? 'badge-critical' : 'badge-default']">
                                                 {{ b.status }}
                                             </div>
                                         </div>
@@ -230,16 +230,16 @@
                                     <p><strong>Nama Kegiatan:</strong><br> {{ jadwal.nama_kegiatan || '—' }}</p>
                                     <p><strong>Tanggal:</strong><br>
                                         <span
-                                            v-if="jadwal.tanggal_mulai && jadwal. tanggal_selesai && jadwal.tanggal_mulai !== jadwal.tanggal_selesai">
+                                            v-if="jadwal.tanggal_mulai && jadwal.tanggal_selesai && jadwal.tanggal_mulai !== jadwal.tanggal_selesai">
                                             {{ (UMUM.tglConvert(jadwal.tanggal_mulai)?.tgl) ||
-                            UMUM.tglConvert(jadwal.tanggal_mulai) || '' }}
+                                    UMUM.tglConvert(jadwal.tanggal_mulai) || '' }}
                                             –
                                             {{ (UMUM.tglConvert(jadwal.tanggal_selesai)?.tgl) ||
-                            UMUM.tglConvert(jadwal.tanggal_selesai) || '' }}
+                                    UMUM.tglConvert(jadwal.tanggal_selesai) || '' }}
                                         </span>
                                         <span v-else-if="jadwal.tanggal_mulai">
                                             {{ (UMUM.tglConvert(jadwal.tanggal_mulai)?.tgl) ||
-                            UMUM.tglConvert(jadwal.tanggal_mulai) || '' }}
+                                    UMUM.tglConvert(jadwal.tanggal_mulai) || '' }}
                                         </span>
                                         <span v-else>—</span>
                                     </p>
@@ -366,13 +366,7 @@ export default {
     data() {
         const store = useStore();
         return {
-            bloods: [
-                { type: 'A', count: 45, status: 'Tersedia', image: '/assets/images/aa.png', updated: '21/9/2025, 01.45.34' },
-                { type: 'AB', count: 2, status: 'Kritis', image: '/assets/images/abab.png', updated: '21/9/2025, 01.45.34' },
-                { type: 'B', count: 10, status: 'Rendah', image: '/assets/images/bb.png', updated: '21/9/2025, 01.45.34' },
-                { type: 'O', count: 10, status: 'Rendah', image: '/assets/images/oo.png', updated: '21/9/2025, 01.45.34' },
-                // ... dst
-            ],
+            bloods: [],
             isModalOpen: false,
             modalSrc: '',
             list_berita: [],
@@ -437,22 +431,60 @@ export default {
         },
 
         getJumlahPendonor: function () {
-        fetch(this.$store.state.URL.HOME + "jumlahPendonor", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json"
-            }
-        })
-            .then(res => res.json())
-            .then(res_data => {
-                this.jumlahPendonor = res_data.jumlah || 0;
-                console.log(res_data);
+            fetch(this.$store.state.URL.HOME + "jumlahPendonor", {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json"
+                }
             })
-            .catch(err => {
-                console.error("❌ Error getJumlahPendonor:", err);
-                this.jumlahPendonor = 0;
-            });
-    },
+                .then(res => res.json())
+                .then(res_data => {
+                    this.jumlahPendonor = res_data.jumlah || 0;
+                    console.log(res_data);
+                })
+                .catch(err => {
+                    console.error("❌ Error getJumlahPendonor:", err);
+                    this.jumlahPendonor = 0;
+                });
+        },
+
+        async getStokDarah() {
+            try {
+                const res = await fetch(this.$store.state.URL.HOME + "darahHome", {
+                    method: "POST",
+                    headers: {
+                        "content-type": "application/json"
+                    },
+                    body: JSON.stringify({})
+                });
+                if (!res.ok) throw new Error("Gagal mengambil data stok darah");
+                const json = await res.json();
+                if (json.success && Array.isArray(json.data)) {
+                    this.bloods = json.data.map(item => ({
+                        type: item.golongan,
+                        count: item.total,
+                        status: item.status,
+                        image: `/assets/images/${item.golongan.toLowerCase()}.png`,
+                        updated: item.last_update ? this.formatDate(item.last_update) : '—'
+                    }));
+                    this.totalStockDarah = this.bloods.reduce((sum, b) => sum + b.count, 0);
+                } else {
+                    console.error("Data stok darah tidak valid:", json);
+                    this.bloods = [];
+                    this.totalStockDarah = 0;
+                }
+            } catch (err) {
+                console.error("❌ Error getStokDarah:", err);
+                this.bloods = [];
+            }
+        },
+
+        // Helper method untuk format tanggal (opsional, jika last_update perlu diformat)
+        formatDate(dateStr) {
+            if (!dateStr) return '—';
+            const date = new Date(dateStr);
+            return date.toLocaleString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        },
 
 
 
@@ -471,7 +503,7 @@ export default {
             this.$router.push(`/Kegiatancsrisi/${id}`);
         },
         pushKe(id) {
-            this.$router.push(`/Beritaisi/${id}`);
+            this.$router.push(`/beritaisi/${id}`);
         },
         truncateText(html, maxLength) {
             // Buang tag HTML untuk menghitung panjang teks saja
@@ -493,7 +525,7 @@ export default {
 
 
     async mounted() {
-
+        await this.getStokDarah();
         this.getJumlahPendonor();
         const uploads = this.$store?.state?.UPLOADS || '/uploads/';
         this.file_path = uploads.endsWith('/') ? uploads : uploads + '/';
