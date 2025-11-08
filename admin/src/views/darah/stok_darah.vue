@@ -72,6 +72,18 @@
 
                         </tbody>
                     </table>
+                    <div class="row q-mt-md">
+                        <div class="col-10">
+                            <p style="font-style: italic; font-size: 13px; line-height: 1.4;">
+                                * Angka pada laman ini disajikan dalam <strong>≈ kantong</strong> untuk kemudahan
+                                publik. <br>
+                                Komponen berbasis <strong>cc</strong> dikonversi dengan asumsi
+                                <strong>1 kantong PRC ≈ 300 cc</strong> dan
+                                <strong>1 kantong FFP/FP ≈ 200 cc</strong>. <br>
+                                Angka klinis rinci tersedia pada sistem internal.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </q-card-section>
 
