@@ -79,6 +79,8 @@ const stok_darah = require('./apiMysql/client/stok_darah');
 app.use('/api/v1/stok_darah', middleware.isLoggedIn, stok_darah);
 const transaksi_darah = require('./apiMysql/client/manajemen_darah/transaksi_darah');
 app.use('/api/v1/transaksi_darah', middleware.isLoggedIn, transaksi_darah);
+const permintaan_darah = require('./apiMysql/client/manajemen_darah/permintaan_darah');
+app.use('/api/v1/permintaan_darah', middleware.isLoggedIn, permintaan_darah);
 
 // =================== CLIENT =====================
 
