@@ -53,15 +53,15 @@ const routes = [
     beforeEnter: isLoggedIn,
   },
   {
-    path: '/permintaan_darah',
-    name: 'Permintaan Darah',
-    component: () => import('../views/darah/permintaan_darah.vue'),
-    beforeEnter: isLoggedIn,
-  },
-  {
     path: '/stok_darah',
     name: 'Stok Darah',
     component: () => import('../views/darah/stok_darah.vue'),
+    beforeEnter: isLoggedIn,
+  },
+  {
+    path: '/permintaan_darah',
+    name: 'Permintaan Darah',
+    component: () => import('../views/darah/permintaan_darah.vue'),
     beforeEnter: isLoggedIn,
   },
   {
