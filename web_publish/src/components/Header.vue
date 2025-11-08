@@ -35,7 +35,7 @@
                 <div class="content-box d-flex align-items-center justify-content-between">
                     <div class="logo">
                         <a href="index.html" class="logo-nav">
-                            <img class="img-fluid one" src="/assets/images/konut.png" alt="01 Logo"
+                            <img class="img-fluid one" src="/assets/images/logo.png" alt="01 Logo"
                                 style="height: 60px; width: 60px; margin-left: 120px;">
                         </a>
                         <a href="#open-nav-bar-menu" class="open-nav-bar">
