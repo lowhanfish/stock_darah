@@ -80,9 +80,13 @@
                         <td>{{ formatTanggal(data.tanggal_permintaan) }}</td>
                         <td>
                             <div>
-                                <strong>{{ statusText(data.status, data.status_keterangan) }}</strong>
+                                <strong>{{ statusText(data.status) }}</strong>
                                 <div v-if="data.status === 4 && data.status_keterangan" class="text-caption">
-                                    {{ data.status_keterangan }}
+                                    {{ data.status_keterangan }} <br>
+                                    <span style="color:blue">
+
+                                        SILAHKAN AJUKAN PERMINTAAN KEMBALI
+                                    </span>
                                 </div>
                             </div>
                         </td>
@@ -146,6 +150,8 @@
                                     :dense="true" class="bg-white margin_btn" required />
                             </div>
 
+
+
                             <div class="col-12 col-md-4">
                                 <span class="h_lable">Nomor RM</span>
                                 <q-input v-model="form.nomor_rm" outlined square :dense="true"
@@ -158,6 +164,36 @@
                                     class="bg-white margin_btn" />
                             </div>
                         </div>
+
+                        <div v-if="form.jenis_kelamin === 'P'">
+                            <hr class="hrpagin2" />
+                            <div class="text-subtitle2 q-mb-sm">Khusus Pasien Wanita</div>
+
+                            <div class="row q-col-gutter-md">
+                                <div class="col-12 col-md-4">
+                                    <span class="h_lable">Jumlah Kehamilan Sebelumnya</span>
+                                    <q-input v-model.number="form.jumlah_kehamilan" type="number" min="0" outlined
+                                        square :dense="true" class="bg-white margin_btn"
+                                        :rules="[val => (form.jenis_kelamin === 'P' ? (val !== null && val !== '' ? true : 'Harus diisi') : true)]" />
+                                </div>
+
+                                <div class="col-12 col-md-4">
+                                    <span class="h_lable">Pernah Abortus</span>
+                                    <q-option-group v-model="form.pernah_abortus"
+                                        :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
+                                        type="radio" inline />
+                                </div>
+
+                                <div class="col-12 col-md-4">
+                                    <span class="h_lable">Pernah HDN (penyakit hemolitik bayi)</span>
+                                    <q-option-group v-model="form.pernah_hdn"
+                                        :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
+                                        type="radio" inline />
+                                </div>
+                            </div>
+                            <hr class="hrpagin2" />
+                        </div>
+                        
 
                         <span class="h_lable">Alamat</span>
                         <q-input v-model="form.alamat" type="textarea" outlined square :dense="true"
@@ -175,6 +211,8 @@
                                     :dense="true" class="bg-white margin_btn" />
                             </div>
                         </div>
+
+
 
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-4">
@@ -235,44 +273,137 @@
         <!-- ===================== MODAL LIHAT DETAIL ===================== -->
         <q-dialog v-model="mdl_lihat" persistent>
             <q-card class="mdl-md">
+                <!-- Header -->
                 <q-card-section class="bg-orange text-white">
                     <div class="text-h6 h_modalhead">Detail Permintaan Darah</div>
                 </q-card-section>
 
+                <!-- Body -->
                 <q-card-section>
                     <div v-if="lihat_target">
-                        <div><strong>Nama Pasien:</strong> {{ lihat_target.nama_pasien }}</div>
-                        <div><strong>Dokter:</strong> {{ lihat_target.nama_dokter }}</div>
-                        <div><strong>Komponen:</strong> {{ lihat_target.nama_komponen }}</div>
-                        <div><strong>Jumlah:</strong> {{ lihat_target.jumlah_kantong }}</div>
-                        <div><strong>Tanggal Permintaan:</strong> {{ formatTanggal(lihat_target.tanggal_permintaan) }}
+                        <!-- Ringkas info utama -->
+                        <div class="row q-col-gutter-md items-center">
+                            <div class="col-12 col-md-6">
+                                <div class="text-subtitle2">Nama Pasien</div>
+                                <div class="text-body1">{{ lihat_target.nama_pasien }}</div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="text-subtitle2">Dokter</div>
+                                <div class="text-body1">{{ lihat_target.nama_dokter }}</div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="text-subtitle2">Tanggal Permintaan</div>
+                                <div class="text-body1">{{ formatTanggal(lihat_target.tanggal_permintaan) }}</div>
+                            </div>
                         </div>
-                        <div><strong>Status:</strong> {{ statusText(lihat_target.status, lihat_target.status_keterangan)
-                            }}</div>
-                        <div v-if="lihat_target.status_keterangan"><strong>Keterangan:</strong> {{
-                                lihat_target.status_keterangan }}</div>
-                        <div class="q-mt-md"><strong>Diagnosis:</strong><br> {{ lihat_target.diagnosis_klinis }}</div>
-                        <div class="q-mt-md"><strong>Alasan Transfusi:</strong><br> {{ lihat_target.alasan_transfusi }}
+
+                        <q-separator spaced />
+
+                        <!-- Detail terstruktur -->
+                        <q-list bordered dense class="rounded-borders">
+                            <q-item>
+                                <q-item-section>
+                                    <q-item-label caption>Komponen</q-item-label>
+                                    <q-item-label>{{ lihat_target.nama_komponen }}</q-item-label>
+                                </q-item-section>
+                                <q-item-section side>
+                                    <q-item-label caption>Jumlah</q-item-label>
+                                    <q-item-label class="text-weight-medium">
+                                        {{ lihat_target.jumlah_kantong }}
+                                    </q-item-label>
+                                </q-item-section>
+                            </q-item>
+
+                            <q-separator inset />
+
+                            <q-item>
+                                <q-item-section>
+                                    <q-item-label caption>Status</q-item-label>
+                                    <q-item-label>
+                                        <q-chip :color="statusColor(lihat_target.status)" text-color="white" size="sm"
+                                            class="q-mr-sm">
+                                            {{ statusText(lihat_target.status) }}
+                                        </q-chip>
+                                    </q-item-label>
+                                </q-item-section>
+
+                                <q-item-section v-if="lihat_target.status_keterangan" side>
+                                    <q-item-label caption>Keterangan</q-item-label>
+                                    <q-item-label>{{ lihat_target.status_keterangan }}</q-item-label>
+                                </q-item-section>
+                            </q-item>
+                        </q-list>
+
+                        <div class="q-mt-md">
+                            <div class="text-subtitle2 q-mb-xs">Diagnosis</div>
+                            <div class="text-body1">{{ lihat_target.diagnosis_klinis }}</div>
                         </div>
+
+                        <div class="q-mt-md">
+                            <div class="text-subtitle2 q-mb-xs">Alasan Transfusi</div>
+                            <div class="text-body1">{{ lihat_target.alasan_transfusi }}</div>
+                        </div>
+                    </div>
+
+                    <div v-if="lihat_target && lihat_target.jenis_kelamin === 'P'" class="q-mt-md">
+      <q-separator spaced />
+      <div class="text-subtitle1 text-weight-medium q-mb-sm">
+        V. Khusus Pasien Wanita
+      </div>
+
+      <div class="row q-col-gutter-md">
+        <div class="col-12 col-md-4">
+          <div class="text-subtitle2">Jumlah Kehamilan Sebelumnya</div>
+          <div class="text-body1">
+            {{ lihat_target.jumlah_kehamilan !== null ? lihat_target.jumlah_kehamilan : '-' }}
+          </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <div class="text-subtitle2">Pernah Abortus</div>
+          <div class="text-body1">
+            {{ lihat_target.pernah_abortus || '-' }}
+          </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <div class="text-subtitle2">Pernah HDN</div>
+          <div class="text-body1">
+            {{ lihat_target.pernah_hdn || '-' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+                    <!-- Fallback jika data belum ada -->
+                    <div v-else class="text-grey">
+                        Memuat detail...
                     </div>
                 </q-card-section>
 
-                <q-card-actions class="bg-grey-4 mdl-footer" align="right">
-                    <!-- Tombol Diperiksa & Ditolak hanya tampil ketika request masih DIAJUKAN (status==1)
-         dan user bukan Admin Ruangan (tipe !== 3). Ubah kondisi jika role-mapping berbeda. -->
+                <!-- Footer / Actions -->
+                <q-card-actions class="bg-grey-4 mdl-footer">
+                    <q-space />
+
+                    <!-- Tampil hanya saat status == 1 (Diajukan) dan bukan Admin Ruangan -->
                     <div v-if="lihat_target && Number(lihat_target.status) === 1 && tipe !== 3"
                         class="row items-center q-gutter-sm">
                         <q-btn :loading="btn_periksa" color="primary" label="Diperiksa" dense
-                            @click="openPeriksaFor(lihat_target)" />
+                            @click="openPeriksaFor(lihat_target)">
+                            <q-tooltip>Verifikasi & isi form UPD</q-tooltip>
+                        </q-btn>
+
                         <q-btn :loading="btn_reject" color="negative" label="Ditolak" dense
-                            @click="openReject(lihat_target)" />
+                            @click="openReject(lihat_target)">
+                            <q-tooltip>Tolak permintaan (wajib isi alasan)</q-tooltip>
+                        </q-btn>
                     </div>
 
                     <q-btn label="Tutup" color="negative" v-close-popup @click="lihat_target = null" />
                 </q-card-actions>
-
             </q-card>
         </q-dialog>
+
 
 
         <!-- MODAL PERIKSA (UPD) -->
@@ -382,6 +513,10 @@
             </q-card>
         </q-dialog>
 
+        <!-- V. Khusus Pasien Wanita: tampil hanya jika jenis_kelamin = 'P' -->
+
+
+
 
     </div>
 </template>
@@ -406,6 +541,9 @@ export default {
                 alamat: '',
                 nama_wali: '',
                 jenis_kelamin: '',
+                jumlah_kehamilan: null,      // number
+                pernah_abortus: '',          // 'Ya' / 'Tidak'
+                pernah_hdn: '',              // 'Ya' / 'Tidak'
                 golongan_darah: '',
                 rhesus: '',
                 komponen_id: null,
@@ -415,6 +553,15 @@ export default {
                 kadar_hb: null,
                 status: 1, // default 1 = diajukan
                 status_keterangan: 'Menunggu Diperiksa oleh Admin UPD'
+            },
+
+            statusColor(st) {
+                const s = Number(st);
+                if (s === 1) return 'orange';    // Diajukan
+                if (s === 2) return 'info';      // Diperiksa
+                if (s === 3) return 'positive';  // Disetujui
+                if (s === 4) return 'negative';  // Ditolak
+                return 'grey';
             },
 
             list_data: [],
@@ -547,6 +694,12 @@ export default {
 
         addData() {
             this.btn_add = true
+            if (this.form.jenis_kelamin === 'P') {
+                if (this.form.jumlah_kehamilan === null || this.form.jumlah_kehamilan === '') {
+                    this.$q.notify({ type: 'negative', message: 'Jumlah kehamilan harus diisi untuk pasien wanita' });
+                    return;
+                }
+            }
 
             const URL = this.$store.state.url.PERMINTAAN || (this.$store.state.url.BASE || '') + "permintaan_darah/";
 
@@ -591,6 +744,9 @@ export default {
                 alamat: '',
                 nama_wali: '',
                 jenis_kelamin: '',
+                jumlah_kehamilan: null,
+                pernah_abortus: '',
+                pernah_hdn: '',
                 golongan_darah: '',
                 rhesus: '',
                 komponen_id: null,
@@ -747,6 +903,17 @@ export default {
             if (c === 3) return 'Permintaan Darah sudah berhasil'
             if (c === 4) return keterangan || 'Ditolak'
             return '-'
+        }
+    },
+
+    watch: {
+        'form.jenis_kelamin'(val) {
+            if (val !== 'P') {
+                // reset fields khusus wanita
+                this.form.jumlah_kehamilan = null;
+                this.form.pernah_abortus = '';
+                this.form.pernah_hdn = '';
+            }
         }
     },
 
