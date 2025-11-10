@@ -351,4 +351,59 @@ router.post('/updateStatus', (req, res) => {
   });
 });
 
+
+// POST /permintaan_darah/edit
+router.post('/edit', (req, res) => {
+  const b = req.body || {};
+  const id = b.id;
+  if (!id) return res.status(400).json({ success:false, message: 'ID dibutuhkan' });
+
+  // fields yang boleh diupdate (sesuaikan)
+  const allowed = [
+    'nama_dokter','tanggal_permintaan','tanggal_diperlukan','nama_pasien','nomor_rm','tanggal_lahir','alamat','nama_wali',
+    'jenis_kelamin','jumlah_kehamilan','pernah_abortus','pernah_hdn',
+    'golongan_darah','rhesus','komponen_id','jumlah_kantong','diagnosis_klinis','alasan_transfusi','kadar_hb'
+  ];
+
+  // 1) cek status saat ini
+  db.query('SELECT status FROM permintaan_darah WHERE id = ? LIMIT 1', [id], (err, rows) => {
+    if (err) {
+      console.error('Error cek status saat edit:', err);
+      return res.status(500).json({ success:false, message: 'Gagal cek data' });
+    }
+    if (!rows || rows.length === 0) return res.status(404).json({ success:false, message: 'Permintaan tidak ditemukan' });
+
+    const curStatus = Number(rows[0].status || 1);
+    if (curStatus === 3) {
+      return res.status(409).json({ success:false, message: 'Tidak dapat mengubah: permintaan sudah Disetujui' });
+    }
+
+    // 2) build update query dinamis
+    const sets = [];
+    const params = [];
+    allowed.forEach(k => {
+      if (b[k] !== undefined) {
+        sets.push(`${k} = ?`);
+        params.push(b[k]);
+      }
+    });
+    if (sets.length === 0) {
+      return res.status(400).json({ success:false, message: 'Tidak ada field untuk diupdate' });
+    }
+
+    sets.push('updated_at = NOW()');
+    const sql = `UPDATE permintaan_darah SET ${sets.join(', ')} WHERE id = ?`;
+    params.push(id);
+
+    db.query(sql, params, (err2, result) => {
+      if (err2) {
+        console.error('Error update permintaan:', err2);
+        return res.status(500).json({ success:false, message: 'Gagal menyimpan perubahan' });
+      }
+      return res.json({ success:true, message: 'Permintaan berhasil diperbarui' });
+    });
+  });
+});
+
+
 module.exports = router;
