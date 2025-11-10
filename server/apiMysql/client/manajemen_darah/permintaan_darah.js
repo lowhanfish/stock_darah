@@ -464,4 +464,36 @@ router.post('/edit', (req, res) => {
     });
   });
 });
+
+// POST /permintaan_darah/delete
+router.post('/delete', (req, res) => {
+  const b = req.body || {};
+  const id = b.id;
+  if (!id) return res.status(400).json({ success:false, message: 'ID dibutuhkan' });
+
+  // 1) ambil status sekarang
+  db.query('SELECT status FROM permintaan_darah WHERE id = ? LIMIT 1', [id], (err, rows) => {
+    if (err) {
+      console.error('Error ambil permintaan untuk hapus:', err);
+      return res.status(500).json({ success:false, message: 'Gagal cek data' });
+    }
+    if (!rows || rows.length === 0) return res.status(404).json({ success:false, message: 'Permintaan tidak ditemukan' });
+
+    const statusNow = Number(rows[0].status || 1);
+    // hanya izinkan hapus bila Diajukan(1) atau Ditolak(4)
+    if (![1,4].includes(statusNow)) {
+      return res.status(409).json({ success:false, message: 'Tidak bisa menghapus permintaan yang sedang diproses atau sudah disetujui' });
+    }
+
+    // 2) hapus
+    db.query('DELETE FROM permintaan_darah WHERE id = ?', [id], (err2, result) => {
+      if (err2) {
+        console.error('Error hapus permintaan:', err2);
+        return res.status(500).json({ success:false, message: 'Gagal menghapus permintaan' });
+      }
+      return res.json({ success:true, message: 'Permintaan berhasil dihapus' });
+    });
+  });
+});
+
 module.exports = router;
