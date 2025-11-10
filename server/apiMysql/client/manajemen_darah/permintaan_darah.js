@@ -2,6 +2,31 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../../db/MySql/umum'); // koneksi database
 
+function normalizeDate(value) {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    // format ISO seperti '2025-11-09T16:00:00.000Z' → ambil tanggalnya saja
+    if (value.includes('T')) return value.split('T')[0];
+  }
+  return value;
+}
+
+function formatDate(dateString) {
+  if (!dateString) return null;
+  try {
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
+
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  } catch (e) {
+    return null;
+  }
+}
+
 // ===================================================
 // GET: view (list) permintaan_darah dengan pagination + filter
 // ===================================================
@@ -297,7 +322,7 @@ router.post('/updateStatus', (req, res) => {
   const status = Number(b.status);
 
   if (!id) return res.status(400).json({ success: false, message: 'ID permintaan dibutuhkan' });
-  if (![1,2,3,4].includes(status)) return res.status(400).json({ success: false, message: 'Status tidak valid' });
+  if (![1, 2, 3, 4].includes(status)) return res.status(400).json({ success: false, message: 'Status tidak valid' });
 
   if (status === 4 && (!b.status_keterangan || String(b.status_keterangan).trim() === '')) {
     return res.status(400).json({ success: false, message: 'Keterangan penolakan wajib diisi saat status = 4' });
@@ -305,10 +330,10 @@ router.post('/updateStatus', (req, res) => {
 
   // prepare update fields (only allowed fields)
   const allowed = [
-    'status_keterangan','petugas_pemeriksa','tanggal_pemeriksaan',
-    'golongan_darah_hasil','rhesus_hasil','catatan_tambahan',
-    'crossmatch_1','crossmatch_2','crossmatch_3',
-    'jumlah_darah_diberikan','nomor_kantong','petugas_pengeluar','penerima_darah'
+    'status_keterangan', 'petugas_pemeriksa', 'tanggal_pemeriksaan',
+    'golongan_darah_hasil', 'rhesus_hasil', 'catatan_tambahan',
+    'crossmatch_1', 'crossmatch_2', 'crossmatch_3',
+    'jumlah_darah_diberikan', 'nomor_kantong', 'petugas_pengeluar', 'penerima_darah'
   ];
 
   const sets = ['status = ?'];
@@ -351,59 +376,92 @@ router.post('/updateStatus', (req, res) => {
   });
 });
 
-
 // POST /permintaan_darah/edit
 router.post('/edit', (req, res) => {
   const b = req.body || {};
   const id = b.id;
-  if (!id) return res.status(400).json({ success:false, message: 'ID dibutuhkan' });
+  if (!id) return res.status(400).json({ success: false, message: 'ID dibutuhkan' });
 
-  // fields yang boleh diupdate (sesuaikan)
   const allowed = [
-    'nama_dokter','tanggal_permintaan','tanggal_diperlukan','nama_pasien','nomor_rm','tanggal_lahir','alamat','nama_wali',
-    'jenis_kelamin','jumlah_kehamilan','pernah_abortus','pernah_hdn',
-    'golongan_darah','rhesus','komponen_id','jumlah_kantong','diagnosis_klinis','alasan_transfusi','kadar_hb'
+    'nama_dokter', 'tanggal_permintaan', 'tanggal_diperlukan', 'nama_pasien', 'nomor_rm', 'tanggal_lahir', 'alamat', 'nama_wali',
+    'jenis_kelamin', 'jumlah_kehamilan', 'pernah_abortus', 'pernah_hdn',
+    'golongan_darah', 'rhesus', 'komponen_id', 'jumlah_kantong', 'diagnosis_klinis', 'alasan_transfusi', 'kadar_hb'
   ];
 
-  // 1) cek status saat ini
-  db.query('SELECT status FROM permintaan_darah WHERE id = ? LIMIT 1', [id], (err, rows) => {
+  // fields yang berformat tanggal -> gunakan formatDate
+  const dateFields = ['tanggal_permintaan', 'tanggal_diperlukan', 'tanggal_lahir'];
+
+  // fields khusus pasien wanita
+  const femaleOnly = ['jumlah_kehamilan', 'pernah_abortus', 'pernah_hdn'];
+
+  db.query('SELECT status, jenis_kelamin FROM permintaan_darah WHERE id = ? LIMIT 1', [id], (err, rows) => {
     if (err) {
       console.error('Error cek status saat edit:', err);
-      return res.status(500).json({ success:false, message: 'Gagal cek data' });
+      return res.status(500).json({ success: false, message: 'Gagal cek data' });
     }
-    if (!rows || rows.length === 0) return res.status(404).json({ success:false, message: 'Permintaan tidak ditemukan' });
+    if (!rows || rows.length === 0) return res.status(404).json({ success: false, message: 'Permintaan tidak ditemukan' });
 
     const curStatus = Number(rows[0].status || 1);
+    const curJenisKelamin = rows[0].jenis_kelamin || null;
+
     if (curStatus === 3) {
-      return res.status(409).json({ success:false, message: 'Tidak dapat mengubah: permintaan sudah Disetujui' });
+      return res.status(409).json({ success: false, message: 'Tidak dapat mengubah: permintaan sudah Disetujui' });
     }
 
-    // 2) build update query dinamis
     const sets = [];
     const params = [];
+
+    // jika payload mengandung jenis_kelamin, gunakan itu untuk keputusan femaleOnly; 
+    // fallback pakai current db value
+    const targetJenisKelamin = (b.jenis_kelamin !== undefined && b.jenis_kelamin !== null) ? String(b.jenis_kelamin) : curJenisKelamin;
+
     allowed.forEach(k => {
-      if (b[k] !== undefined) {
-        sets.push(`${k} = ?`);
-        params.push(b[k]);
+      if (b[k] === undefined) return; // tidak dikirim -> lewati
+
+      // jika field khusus wanita tapi target jenis kelamin bukan 'P', skip update agar tidak kirim '' ke enum
+      if (femaleOnly.includes(k) && String(targetJenisKelamin) !== 'P') {
+        return;
       }
+
+      // gunakan formatDate untuk date fields (menghasilkan 'YYYY-MM-DD' atau null)
+      let val = dateFields.includes(k) ? formatDate(b[k]) : b[k];
+
+      // ubah empty-string menjadi NULL untuk menghindari truncation pada enum / numeric
+      if (typeof val === 'string' && val.trim() === '') val = null;
+
+      // pastikan jumlah_kehamilan numeric atau null
+      if (k === 'jumlah_kehamilan') {
+        if (val === null) {
+          val = null;
+        } else {
+          const n = Number(val);
+          val = Number.isFinite(n) ? n : null;
+        }
+      }
+
+      sets.push(`${k} = ?`);
+      params.push(val);
     });
+
+    sets.push('status = 1');
+    sets.push("status_keterangan = 'Menunggu Diperiksa oleh Admin UPD'");
+    sets.push('updated_at = NOW()');
+
     if (sets.length === 0) {
-      return res.status(400).json({ success:false, message: 'Tidak ada field untuk diupdate' });
+      return res.status(400).json({ success: false, message: 'Tidak ada field untuk diupdate' });
     }
 
-    sets.push('updated_at = NOW()');
+    // sets.push('updated_at = NOW()');
     const sql = `UPDATE permintaan_darah SET ${sets.join(', ')} WHERE id = ?`;
     params.push(id);
 
-    db.query(sql, params, (err2, result) => {
+    db.query(sql, params, (err2) => {
       if (err2) {
         console.error('Error update permintaan:', err2);
-        return res.status(500).json({ success:false, message: 'Gagal menyimpan perubahan' });
+        return res.status(500).json({ success: false, message: 'Gagal menyimpan perubahan' });
       }
-      return res.json({ success:true, message: 'Permintaan berhasil diperbarui' });
+      return res.json({ success: true, message: 'Permintaan berhasil diperbarui' });
     });
   });
 });
-
-
 module.exports = router;
