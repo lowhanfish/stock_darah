@@ -37,6 +37,42 @@ router.get('/view', (req, res) => {
     params.push(status);
   }
 
+  // =========================
+  // ✅ perubahan: batasi view berdasarkan ruangan jika user adalah Admin Ruangan
+  // Cara: ambil token dari header authorization, decode, cek profile.stokdarah_konut === '3'
+  // dan profile.ruangan_id terisi -> tambahkan filter p.ruangan_id = ?
+  // =========================
+  try {
+    const auth = req.headers && req.headers.authorization ? req.headers.authorization : '';
+    // bentuk header yang dipakai di frontend: "kikensbatara <token>"
+    if (auth) {
+      const parts = auth.split(' ');
+      const token = parts.length > 1 ? parts[1] : parts[0];
+      if (token && process.env.TOKEN_SECRET) {
+        try {
+          const decoded = require('jsonwebtoken').verify(token, process.env.TOKEN_SECRET);
+          // decoded diharapkan memiliki struktur: { profile: { stokdarah_konut: '3', ruangan_id: 12, ... } }
+          if (decoded && decoded.profile) {
+            const role = decoded.profile.stokdarah_konut != null ? String(decoded.profile.stokdarah_konut) : null;
+            const ruanganIdFromToken = decoded.profile.ruangan_id ? Number(decoded.profile.ruangan_id) : null;
+            if (role === '3' && ruanganIdFromToken) {
+              // hanya tampilkan permintaan dari ruangan user itu
+              filters.push('p.ruangan_id = ?');
+              params.push(ruanganIdFromToken);
+            }
+          }
+        } catch (e) {
+          // token invalid / expired -> jangan gagal total, tetap tampilkan sesuai role (no extra filter)
+          console.warn('Warning: gagal decode token pada /permintaan_darah/view — token mungkin invalid', e);
+        }
+      }
+    }
+  } catch (eAny) {
+    // non-fatal
+    console.warn('Non-fatal error saat mengeksekusi token-check pada /permintaan_darah/view', eAny);
+  }
+  // =========================
+
   const whereClause = filters.length ? 'WHERE ' + filters.join(' AND ') : '';
 
   const countSql = `
@@ -85,6 +121,7 @@ router.get('/view', (req, res) => {
   });
 });
 
+
 // ===================================================
 // GET: detail permintaan by id
 // ===================================================
@@ -121,28 +158,76 @@ router.post('/addData', (req, res) => {
   const body = req.body || {};
 
   // fallback default sementara: rumah_sakit_id = 1 (RSUD KONAWE UTARA)
-  if (body.rumah_sakit_id === undefined || body.rumah_sakit_id === null || String(body.rumah_sakit_id).trim() === '') {
+  if (
+    body.rumah_sakit_id === undefined ||
+    body.rumah_sakit_id === null ||
+    String(body.rumah_sakit_id).trim() === ''
+  ) {
     body.rumah_sakit_id = 1;
   }
-  // required fields (sederhana)
-  const required = ['rumah_sakit_id', 'ruangan_id', 'nama_dokter', 'tanggal_permintaan', 'nama_pasien', 'jenis_kelamin', 'golongan_darah', 'rhesus', 'komponen_id', 'jumlah_kantong', 'diagnosis_klinis', 'alasan_transfusi'];
+
+  // validasi field wajib minimal
+  const required = [
+    'rumah_sakit_id',
+    'ruangan_id',
+    'nama_dokter',
+    'tanggal_permintaan',
+    'nama_pasien',
+    'jenis_kelamin',
+    'golongan_darah',
+    'rhesus',
+    'komponen_id',
+    'jumlah_kantong',
+    'diagnosis_klinis',
+    'alasan_transfusi'
+  ];
+
   for (let f of required) {
-    if (body[f] === undefined || body[f] === null || String(body[f]).toString().trim() === '') {
-      return res.status(400).json({ success: false, message: `Field ${f} wajib diisi` });
+    if (
+      body[f] === undefined ||
+      body[f] === null ||
+      String(body[f]).toString().trim() === ''
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: `Field ${f} wajib diisi` });
     }
   }
 
-  // default values
+  // validasi tambahan khusus pasien wanita
+  if (body.jenis_kelamin === 'P') {
+    if (body.jumlah_kehamilan === undefined || body.jumlah_kehamilan === null) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Jumlah kehamilan wajib diisi untuk pasien perempuan' });
+    }
+    if (
+      !['Ya', 'Tidak'].includes(body.pernah_abortus || '') ||
+      !['Ya', 'Tidak'].includes(body.pernah_hdn || '')
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Pernah abortus dan pernah HDN wajib diisi untuk pasien perempuan' });
+    }
+  }
+
+  // nilai default status awal
   const status = 1; // Diajukan
   const status_keterangan = 'Menunggu Diperiksa oleh Admin UPD';
 
+  // Query lengkap sesuai tabel permintaan_darah
   const sql = `
     INSERT INTO permintaan_darah
-    (rumah_sakit_id, ruangan_id, nama_dokter, tanggal_permintaan, tanggal_diperlukan,
-     nama_pasien, nomor_rm, tanggal_lahir, alamat, nama_wali, jenis_kelamin, golongan_darah, rhesus,
-     komponen_id, jumlah_kantong, diagnosis_klinis, alasan_transfusi, kadar_hb,
-     status, status_keterangan, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+    (
+      rumah_sakit_id, ruangan_id, nama_dokter, tanggal_permintaan, tanggal_diperlukan,
+      nama_pasien, nomor_rm, tanggal_lahir, alamat, nama_wali, jenis_kelamin,
+      golongan_darah, rhesus, komponen_id, jumlah_kantong, diagnosis_klinis,
+      alasan_transfusi, kadar_hb,
+      jumlah_kehamilan, pernah_abortus, pernah_hdn,
+      sampel_diambil, tanggal_sampel,
+      status, status_keterangan, created_at, updated_at
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
   `;
 
   const params = [
@@ -164,6 +249,22 @@ router.post('/addData', (req, res) => {
     body.diagnosis_klinis,
     body.alasan_transfusi,
     body.kadar_hb || null,
+    // bagian IV Riwayat transfusi (sementara null/default)
+    // body.pernah_transfusi,
+    // body.kapan_transfusi || null,
+    // body.ada_reaksi || null,
+    // body.gejala_reaksi || null,
+    // body.pernah_coombs || null,
+    // body.lokasi_coombs || null,
+    // body.hasil_coombs || null,
+    // bagian V khusus wanita
+    body.jumlah_kehamilan || null,
+    body.pernah_abortus || null,
+    body.pernah_hdn || null,
+    // bagian VI pengambilan sampel
+    body.sampel_diambil || null,
+    body.tanggal_sampel || null,
+    // status
     status,
     status_keterangan
   ];
@@ -171,11 +272,13 @@ router.post('/addData', (req, res) => {
   db.query(sql, params, (err, result) => {
     if (err) {
       console.error('Error insert permintaan_darah:', err);
-      return res.status(500).json({ success: false, message: 'Gagal menambah permintaan' });
+      return res
+        .status(500)
+        .json({ success: false, message: 'Gagal menambah permintaan darah' });
     }
     return res.json({
       success: true,
-      message: 'Permintaan berhasil diajukan',
+      message: 'Permintaan darah berhasil diajukan',
       id: result.insertId
     });
   });
