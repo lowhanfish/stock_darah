@@ -60,9 +60,10 @@
                     <tr>
                         <th width="5%" class="text-center">No</th>
                         <th width="5%">Status</th>
-                        <th width="25%">Nama Pasien</th>
+                        <th width="15%">Nama Pasien</th>
+                        <th width="15%">Tgl Lahir</th>
                         <th width="5%">Gol.Darah</th>
-                        <th width="25%">Komponen</th>
+                        <th width="20%">Komponen</th>
                         <th width="5%" class="text-center">Jumlah (Kantong)</th>
                         <th width="15%">Tgl Permintaan</th>
                         <th width="15%">Aksi</th>
@@ -96,6 +97,16 @@
                             <div class="text-blue text-bold" style="font-size: 12px;">
 
                                 Ruangan: {{ data.nama_ruangan }}
+
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                {{ UMUM.tglConvert(data.tanggal_lahir) }}
+                            </div>
+                            <div class="text-blue text-bold" style="font-size: 12px;">
+
+                                Usia: {{ UMUM.hitungUsia(data.tanggal_lahir) }} Tahun
 
                             </div>
                         </td>
@@ -651,7 +662,7 @@
                             <div class="col-12 col-md-6">
                                 <span class="h_lable">Tanggal Permintaan</span>
                                 <q-input v-model="form_edit.tanggal_permintaan" type="date" outlined square
-                                    :dense="true" class="bg-white margin_btn" required />
+                                    :dense="true" class="bg-white margin_btn" />
                             </div>
                             <div class="col-12 col-md-6">
                                 <span class="h_lable">Tanggal Diperlukan</span>

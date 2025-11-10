@@ -20,27 +20,19 @@ const tglConvert = (tgl) => {
     return date.getDate() + " " + bulan + " " + date.getFullYear();
 }
 
-const check_gelar_depan = (data) => {
-    if (data == undefined || data == null || data == '') {
-        return ''
-    } else {
-        return data+'. '
-    }
-}
-const check_gelar_belakang = (data1) => {
-    if (data1 == undefined || data1 == null || data1 == '') {
-        return ''
-    } else {
-        return ', '+data1
-    }
-}
-
-const namaLengkap = (gelardepan, nama, gelarBelakang) =>{
-    return check_gelar_depan(gelardepan)+""+nama+""+check_gelar_belakang(gelarBelakang)
-}
-
-
-
+function hitungUsia(tanggalLahir) {
+    if (!tanggalLahir) return '-';
+    const lahir = new Date(tanggalLahir);
+    const sekarang = new Date();
+    let usia = sekarang.getFullYear() - lahir.getFullYear();
+  
+    const belumUltah =
+      sekarang.getMonth() < lahir.getMonth() ||
+      (sekarang.getMonth() === lahir.getMonth() && sekarang.getDate() < lahir.getDate());
+  
+    if (belumUltah) usia--;
+    return usia;
+  }
 const notifApprove = async ()=>{
 
     return new Promise(resolve=>{
@@ -76,25 +68,6 @@ const btn_next = (page_first, page_last) => {
 
 
 
-const loopingDate = ()=>{
-    var bulan = 2;
-    var tahun = 2021;
-    var daysInMonth = new Date(2021, bulan, 0).getDate();
-    var start = new Date(bulan+"/01/"+tahun);
-    var end = new Date(bulan+"/"+daysInMonth+"/"+tahun);
-
-    console.log(daysInMonth)
-
-    var loop = new Date(start);
-
-    while(loop <= end){
-    console.log(loop)
-
-    var newDate = loop.setDate(loop.getDate() + 1);
-    loop = new Date(newDate);
-    }
-}
-
 
 
 const replaceStr = (data) =>{
@@ -117,28 +90,12 @@ const ArrToObj = (data) =>{
   }
 
 
- const jadwalAbsen = (data)=>{
-    if (data == 1) {
-        return "Senin - Jum'at"
-    } else if(data == 2){
-        return "Senin - Sabtu"
-    } else if(data == 3){
-        return "Hari Tertentu"
-    } else {
-        return "Hari Belum ditentukan"
-    }
- } 
-  
-
 
 module.exports = {
     tglConvert : tglConvert,
-    check_gelar_depan : check_gelar_depan,
-    check_gelar_belakang : check_gelar_belakang,
-    namaLengkap : namaLengkap,
     btn_prev : btn_prev,
     btn_next : btn_next,
     notifApprove : notifApprove,
     ArrToObj : ArrToObj,
-    jadwalAbsen : jadwalAbsen
+    hitungUsia : hitungUsia
 }
