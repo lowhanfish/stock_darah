@@ -45,8 +45,8 @@
 
             <div class="col-12 col-md-4">
                 <span class="h_lable">Status</span>
-                <q-select v-model="filter.status" :options="statusOptions" outlined dense class="bg-white"
-                    @input="applyFilter" />
+                <q-select v-model="filter.status" :options="statusOptions" emit-value map-options outlined dense
+                    class="bg-white" @input="applyFilter" />
             </div>
 
         </div>
@@ -980,12 +980,13 @@ export default {
             },
 
             statusOptions: [
-                { label: 'Semua', value: '' },
+                { label: 'Semua', value: null },
                 { label: 'Diajukan', value: 1 },
                 { label: 'Diperiksa', value: 2 },
                 { label: 'Disetujui', value: 3 },
                 { label: 'Ditolak', value: 4 }
             ],
+
             mdl_periksa: false,
             mdl_reject: false,
             btn_periksa: false,
@@ -1019,16 +1020,21 @@ export default {
             return 'grey';
         },
         getView() {
-            const query = new URLSearchParams({
+            const queryObj = {
                 page: this.page_first,
                 limit: this.page_limit,
                 cari_value: this.cari_value || '',
                 komponen_id: this.filter.komponen_id || '',
-                golongan_darah: this.filter.golongan_darah || '',
-                ...(this.filter.status !== '' && this.filter.status !== null
-                    ? { status: this.filter.status }
-                    : {})
-            }).toString()
+                golongan_darah: this.filter.golongan_darah || ''
+            };
+
+            // hanya kirim status jika ada isinya
+            if (this.filter.status !== null && this.filter.status !== '') {
+                queryObj.status = this.filter.status;
+            }
+
+            const query = new URLSearchParams(queryObj).toString();
+
 
             // sesuaikan key URL di store: gunakan PERMINTAAN
             const URL = this.$store.state.url.PERMINTAAN || (this.$store.state.url.BASE || '') + "permintaan_darah/";
