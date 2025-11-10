@@ -57,9 +57,9 @@ router.get('/view', (req, res) => {
     filters.push('p.golongan_darah = ?');
     params.push(golongan_darah);
   }
-  if (status !== '') {
+  if (status !== '' && !isNaN(status)) {
     filters.push('p.status = ?');
-    params.push(status);
+    params.push(Number(status));
   }
 
   // =========================
