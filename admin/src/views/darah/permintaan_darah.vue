@@ -66,7 +66,7 @@
                         <th width="20%">Komponen</th>
                         <th width="5%" class="text-center">Jumlah (Kantong)</th>
                         <th width="15%">Tgl Permintaan</th>
-                        <th width="15%">Aksi</th>
+                        <th width="15%" class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -127,6 +127,21 @@
                                 </q-tooltip>
                                 <q-tooltip v-else content-class="bg-amber-7">Edit Permintaan</q-tooltip>
                             </q-btn>
+
+                            <q-btn dense round color="negative" icon="delete"
+                                :disable="Number(data.status) === 2 || Number(data.status) === 3"
+                                @click="openDelete(data)">
+                                <q-tooltip content-class="bg-red-7">
+                                    {{
+                                (Number(data.status) === 2 || Number(data.status) === 3)
+                                    ? 'Tidak dapat dihapus (sedang diperiksa / disetujui)'
+                                    : 'Hapus Permintaan'
+                            }}
+                                </q-tooltip>
+                            </q-btn>
+
+
+
                         </td>
                     </tr>
 
@@ -827,6 +842,29 @@
             </q-card>
         </q-dialog>
 
+        <!-- ================================================ MODAL HAPUS ================================================ -->
+        <q-dialog v-model="mdl_delete" persistent>
+            <q-card class="mdl-sm ">
+                <q-card-section class="q-pt-none text-center orageGrad">
+                    <form @submit.prevent="removeData">
+                        <br>
+                        <img src="img/alert.png" alt="" width="75"> <br>
+                        <span class="h_notifikasi">APAKAH ANDA YAKIN INGIN MENGHAPUS DATA INI??</span>
+                        <input type="submit" style="position: absolute; left: -9999px" />
+                        <br>
+
+                        <q-btn label="Batal" size="sm" color="negative" v-close-popup />
+                        &nbsp;
+                        <q-btn type="submit" label="Hapus" size="sm" color="primary" v-close-popup />
+
+                    </form>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
+
+        <!-- ================================================ MODAL HAPUS ================================================ -->
+
+
 
 
     </div>
@@ -881,6 +919,7 @@ export default {
 
             // modal edit
             mdl_edit: false,
+            mdl_delete: false,
             btn_edit: false,
 
 
@@ -986,7 +1025,9 @@ export default {
                 cari_value: this.cari_value || '',
                 komponen_id: this.filter.komponen_id || '',
                 golongan_darah: this.filter.golongan_darah || '',
-                status: this.filter.status || ''
+                ...(this.filter.status !== '' && this.filter.status !== null
+                    ? { status: this.filter.status }
+                    : {})
             }).toString()
 
             // sesuaikan key URL di store: gunakan PERMINTAAN
@@ -1414,6 +1455,53 @@ export default {
                 .finally(() => this.btn_reject = false);
         },
 
+        openDelete(data) {
+            if (!data || !data.id) {
+                console.warn("⚠️ Tidak ada data yang dipilih untuk dihapus:", data)
+                return
+            }
+
+            this.form = { id: data.id }
+            this.mdl_delete = true
+        },
+
+        // kirim ke backend
+        removeData() {
+            this.$store.commit("shoWLoading")
+
+            fetch(this.$store.state.url.PERMINTAAN + "delete", {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json",
+                    authorization: "kikensbatara " + localStorage.token
+                },
+                body: JSON.stringify({ id: this.form.id })
+            })
+                .then(res => res.json())
+                .then(res_data => {
+                    this.$store.commit("hideLoading")
+                    if (res_data.success) {
+                        this.Notify(res_data.message || '✅ Sukses Menghapus Data', 'negative', 'check_circle_outline')
+                        this.getView()
+                    } else {
+                        this.Notify(res_data.message || '⚠️ Gagal menghapus data', 'warning', 'error_outline')
+                    }
+                })
+                .catch(err => {
+                    this.$store.commit("hideLoading")
+                    this.Notify('❌ Terjadi kesalahan: ' + err.message, 'warning', 'error_outline')
+                })
+        },
+
+        Notify(message, color, icon) {
+            this.$q.notify({
+                message,
+                color,
+                icon,
+                position: 'top',
+                timeout: 1000
+            })
+        },
         indexing(idx) {
             return ((this.page_first - 1) * this.page_limit) + idx
         },
