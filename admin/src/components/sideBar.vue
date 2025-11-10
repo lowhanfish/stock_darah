@@ -2,9 +2,9 @@
   <q-list >
     <q-img src="img/card.png" style="width: 100%">
     <!-- <q-img src="img/card.jpg" style="width: 100%"> -->
-      <div class="absolute-bottom text-subtitle1">
+      <!-- <div class="absolute-bottom text-subtitle1">
  
-      </div>
+      </div> -->
     </q-img>
 
     <q-item-label class="main2" header><span style="color:white">{{nama}}</span></q-item-label>

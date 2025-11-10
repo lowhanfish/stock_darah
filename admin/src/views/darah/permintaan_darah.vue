@@ -59,44 +59,62 @@
                 <thead class="h_table_head main2x text-white">
                     <tr>
                         <th width="5%" class="text-center">No</th>
-                        <th width="20%">Nama Pasien</th>
+                        <th width="5%">Status</th>
+                        <th width="25%">Nama Pasien</th>
                         <th width="5%">Gol.Darah</th>
-                        <th width="20%">Komponen</th>
-                        <th width="6%" class="text-center">Jumlah (Kantong)</th>
-                        <th width="12%">Tgl Permintaan</th>
-                        <th width="15%">Status</th>
-                        <th width="12%">Aksi</th>
+                        <th width="25%">Komponen</th>
+                        <th width="5%" class="text-center">Jumlah (Kantong)</th>
+                        <th width="15%">Tgl Permintaan</th>
+                        <th width="15%">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="(data, index) in list_data" :key="data.id + '-' + index">
                         <td class="text-center">{{ indexing(index + 1) }}</td>
+                        <td class="text-center">
+                            <!-- <div>
+                                <strong>{{ statusText(data.status) }}</strong>
+                                <div v-if="data.status === 4 && data.status_keterangan" class="text-caption text-bold text-red">
+                                    {{ data.status_keterangan }} <br>
+                                </div>
+                            </div> -->
+                            <a href="javascript:void(0)" class="removeTextDecoration" @click="lihatKeterangan(data)">
+                                <q-btn v-if="Number(data.status) === 1" round glossy size="xs" color="orange"
+                                    icon="hourglass_empty" />
+                                <q-btn v-else-if="Number(data.status) === 2" round glossy size="xs" color="info"
+                                    icon="pending_actions" />
+                                <q-btn v-else-if="Number(data.status) === 3" round glossy size="xs" color="green"
+                                    icon="done" />
+                                <q-btn v-else-if="Number(data.status) === 4" round glossy size="xs" color="negative"
+                                    icon="close" />
+                            </a>
+                        </td>
                         <td>
                             <div>
                                 {{ data.nama_pasien }}
                             </div>
                             <div class="text-blue text-bold" style="font-size: 12px;">
-                                
-                                Ruangan: {{data.nama_ruangan}}
-                    
+
+                                Ruangan: {{ data.nama_ruangan }}
+
                             </div>
                         </td>
                         <td class="text-center">{{ data.golongan_darah }}{{ data.rhesus }}</td>
                         <td>{{ data.nama_komponen || '-' }}</td>
                         <td class="text-center">{{ data.jumlah_kantong }}</td>
                         <td>{{ UMUM.tglConvert(data.tanggal_permintaan) }}</td>
-                        <td>
-                            <div>
-                                <strong>{{ statusText(data.status) }}</strong>
-                                <div v-if="data.status === 4 && data.status_keterangan" class="text-caption text-bold text-red">
-                                    {{ data.status_keterangan }} <br>
-                                </div>
-                            </div>
-                        </td>
+
                         <td class="text-center q-gutter-sm">
                             <!-- untuk sekarang hanya lihat detail; aksi lanjutan (edit/verif) nanti -->
                             <q-btn dense round color="primary" icon="visibility" @click="openLihat(data)">
                                 <q-tooltip content-class="bg-blue-7">Lihat Detail</q-tooltip>
+                            </q-btn>
+                            <q-btn dense round color="warning" icon="edit" :disable="Number(data.status) === 3"
+                                @click="openEdit(data)">
+                                <q-tooltip v-if="Number(data.status) === 3" content-class="bg-amber-7">
+                                    Tidak dapat edit — permintaan sudah Disetujui
+                                </q-tooltip>
+                                <q-tooltip v-else content-class="bg-amber-7">Edit Permintaan</q-tooltip>
                             </q-btn>
                         </td>
                     </tr>
@@ -134,8 +152,8 @@
                             <div class="col-12 col-md-6">
                                 <span class="h_lable">Ruangan</span>
                                 <q-select v-model="form.ruangan_id" :options="list_ruangan" option-value="id"
-                                    option-label="nama_ruangan" emit-value map-options outlined square :dense="true" readonly
-                                    class="bg-white margin_btn" required />
+                                    option-label="nama_ruangan" emit-value map-options outlined square :dense="true"
+                                    readonly class="bg-white margin_btn" required />
                             </div>
                         </div>
 
@@ -304,7 +322,8 @@
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="text-subtitle2">Tanggal Permintaan</div>
-                                <div class="text-body1 text-bold text-grey">{{ UMUM.tglConvert(lihat_target.tanggal_permintaan) }}</div>
+                                <div class="text-body1 text-bold text-grey">{{
+                                UMUM.tglConvert(lihat_target.tanggal_permintaan) }}</div>
                             </div>
                         </div>
 
@@ -389,20 +408,22 @@
 
                     <!-- ===== Hasil Pemeriksaan UPD (tampil bila sudah Diperiksa/Disetujui) ===== -->
                     <div v-if="lihat_target && Number(lihat_target.status) >= 3" class="q-mt-md">
+                        <hr class="hrpagin2">
                         <q-separator spaced />
-                        <div class="text-subtitle1 text-weight-medium q-mb-sm">
+                        <div class="text-subtitle1 q-mb-sm text-bold text-center">
                             Hasil Pemeriksaan UPD
                         </div>
 
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-4">
                                 <div class="text-subtitle2">Petugas Pemeriksa</div>
-                                <div class="text-body1">{{ lihat_target.petugas_pemeriksa || '-' }}</div>
+                                <div class="text-body1 text-grey text-bold">{{ lihat_target.petugas_pemeriksa || '-' }}
+                                </div>
                             </div>
 
                             <div class="col-12 col-md-4">
                                 <div class="text-subtitle2">Tanggal Pemeriksaan</div>
-                                <div class="text-body1">
+                                <div class="text-body1 text-grey text-bold">
                                     {{ lihat_target.tanggal_pemeriksaan ?
                                 UMUM.tglConvert(lihat_target.tanggal_pemeriksaan) : '-' }}
                                 </div>
@@ -410,7 +431,7 @@
 
                             <div class="col-12 col-md-4">
                                 <div class="text-subtitle2">Golongan Darah Hasil</div>
-                                <div class="text-body1">
+                                <div class="text-body1 text-grey text-bold">
                                     {{ lihat_target.golongan_darah_hasil || '-' }} {{ lihat_target.rhesus_hasil ?
                                 lihat_target.rhesus_hasil : '' }}
                                 </div>
@@ -420,44 +441,48 @@
                         <div class="row q-col-gutter-md q-mt-sm">
                             <div class="col-12 col-md-4">
                                 <div class="text-subtitle2">Crossmatch 1</div>
-                                <div class="text-body1">{{ lihat_target.crossmatch_1 || '-' }}</div>
+                                <div class="text-body1 text-grey text-bold">{{ lihat_target.crossmatch_1 || '-' }}</div>
                             </div>
                             <div class="col-12 col-md-4">
                                 <div class="text-subtitle2">Crossmatch 2</div>
-                                <div class="text-body1">{{ lihat_target.crossmatch_2 || '-' }}</div>
+                                <div class="text-body1 text-grey text-bold">{{ lihat_target.crossmatch_2 || '-' }}</div>
                             </div>
                             <div class="col-12 col-md-4">
                                 <div class="text-subtitle2">Crossmatch 3</div>
-                                <div class="text-body1">{{ lihat_target.crossmatch_3 || '-' }}</div>
+                                <div class="text-body1 text-grey text-bold">{{ lihat_target.crossmatch_3 || '-' }}</div>
                             </div>
                         </div>
 
                         <div class="row q-col-gutter-md q-mt-sm">
                             <div class="col-12 col-md-4">
                                 <div class="text-subtitle2">Jumlah Diberikan</div>
-                                <div class="text-body1">{{ lihat_target.jumlah_darah_diberikan !== null ?
-                                lihat_target.jumlah_darah_diberikan : '-' }}</div>
+                                <div class="text-body1 text-grey text-bold">{{ lihat_target.jumlah_darah_diberikan !==
+                                null ?
+                                lihat_target.jumlah_darah_diberikan : '-' }} Kantong</div>
                             </div>
                             <div class="col-12 col-md-4">
                                 <div class="text-subtitle2">Nomor Kantong</div>
-                                <div class="text-body1">{{ lihat_target.nomor_kantong || '-' }}</div>
+                                <div class="text-body1 text-grey text-bold">{{ lihat_target.nomor_kantong || '-' }}
+                                </div>
                             </div>
                             <div class="col-12 col-md-4">
                                 <div class="text-subtitle2">Petugas Pengeluar</div>
-                                <div class="text-body1">{{ lihat_target.petugas_pengeluar || '-' }}</div>
+                                <div class="text-body1 text-grey text-bold">{{ lihat_target.petugas_pengeluar || '-' }}
+                                </div>
                             </div>
                         </div>
 
                         <div class="row q-col-gutter-md q-mt-sm">
                             <div class="col-12">
                                 <div class="text-subtitle2">Penerima Darah</div>
-                                <div class="text-body1">{{ lihat_target.penerima_darah || '-' }}</div>
+                                <div class="text-body1 text-grey text-bold">{{ lihat_target.penerima_darah || '-' }}
+                                </div>
                             </div>
                         </div>
 
                         <div class="q-mt-sm">
                             <div class="text-subtitle2 q-mb-xs">Catatan Tambahan Pemeriksa</div>
-                            <div class="text-body1">{{ lihat_target.catatan_tambahan || '-' }}</div>
+                            <div class="text-body1 text-grey text-bold">{{ lihat_target.catatan_tambahan || '-' }}</div>
                         </div>
                     </div>
 
@@ -505,6 +530,153 @@
 
             </q-card>
         </q-dialog>
+
+
+        <!-- ===================== MODAL EDIT ===================== -->
+        <q-dialog v-model="mdl_edit" persistent>
+            <q-card class="mdl-md">
+                <q-card-section class="bg-orange text-white">
+                    <div class="text-h6 h_modalhead">Edit Permintaan Darah</div>
+                </q-card-section>
+
+                <form @submit.prevent="submitEdit">
+                    <q-card-section class="q-pt-none">
+                        <div class="row q-col-gutter-md">
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Nama Dokter</span>
+                                <q-input v-model="form_edit.nama_dokter" outlined square :dense="true"
+                                    class="bg-white margin_btn" required />
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Ruangan</span>
+                                <q-select v-model="form_edit.ruangan_id" :options="list_ruangan" option-value="id"
+                                    option-label="nama_ruangan" emit-value map-options outlined square :dense="true"
+                                    class="bg-white margin_btn" :disable="true" />
+                                <!-- jika ruangan tidak boleh diubah di edit, buat disable=true -->
+                            </div>
+                        </div>
+
+                        <span class="h_lable">Nama Pasien</span>
+                        <q-input v-model="form_edit.nama_pasien" outlined square :dense="true"
+                            class="bg-white margin_btn" required />
+
+                        <div class="row q-col-gutter-md">
+                            <div class="col-12 col-md-4">
+                                <span class="h_lable">Jenis Kelamin</span>
+                                <q-select v-model="form_edit.jenis_kelamin"
+                                    :options="[{ label: 'Laki-laki', value: 'L' }, { label: 'Perempuan', value: 'P' }]"
+                                    option-value="value" option-label="label" emit-value map-options outlined square
+                                    :dense="true" class="bg-white margin_btn" required />
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <span class="h_lable">Nomor RM</span>
+                                <q-input v-model="form_edit.nomor_rm" outlined square :dense="true"
+                                    class="bg-white margin_btn" />
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <span class="h_lable">Tanggal Lahir</span>
+                                <q-input v-model="form_edit.tanggal_lahir" type="date" outlined square :dense="true"
+                                    class="bg-white margin_btn" />
+                            </div>
+                        </div>
+
+                        <div v-if="form_edit.jenis_kelamin === 'P'">
+                            <hr class="hrpagin2" />
+                            <div class="text-subtitle2 q-mb-sm">Khusus Pasien Wanita</div>
+                            <div class="row q-col-gutter-md">
+                                <div class="col-12 col-md-4">
+                                    <span class="h_lable">Jumlah Kehamilan Sebelumnya</span>
+                                    <q-input v-model.number="form_edit.jumlah_kehamilan" type="number" min="0" outlined
+                                        square :dense="true" class="bg-white margin_btn" />
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <span class="h_lable">Pernah Abortus</span>
+                                    <q-option-group v-model="form_edit.pernah_abortus"
+                                        :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
+                                        type="radio" inline />
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <span class="h_lable">Pernah HDN</span>
+                                    <q-option-group v-model="form_edit.pernah_hdn"
+                                        :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
+                                        type="radio" inline />
+                                </div>
+                            </div>
+                            <hr class="hrpagin2" />
+                        </div>
+
+                        <span class="h_lable">Alamat</span>
+                        <q-input v-model="form_edit.alamat" type="textarea" outlined square :dense="true"
+                            class="bg-white margin_btn" />
+
+                        <div class="row q-col-gutter-md">
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Nama Wali</span>
+                                <q-input v-model="form_edit.nama_wali" outlined square :dense="true"
+                                    class="bg-white margin_btn" />
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Kadar HB (g/dL)</span>
+                                <q-input v-model.number="form_edit.kadar_hb" type="number" step="0.1" outlined square
+                                    :dense="true" class="bg-white margin_btn" />
+                            </div>
+                        </div>
+
+                        <div class="row q-col-gutter-md">
+                            <div class="col-12 col-md-4">
+                                <span class="h_lable">Golongan Darah</span>
+                                <q-select v-model="form_edit.golongan_darah" :options="['A', 'B', 'O', 'AB']" outlined
+                                    square :dense="true" class="bg-white margin_btn" required />
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <span class="h_lable">Rhesus</span>
+                                <q-select v-model="form_edit.rhesus" :options="['+', '-']" outlined square :dense="true"
+                                    class="bg-white margin_btn" required />
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <span class="h_lable">Komponen</span>
+                                <q-select v-model="form_edit.komponen_id" :options="list_komponen" option-value="id"
+                                    option-label="nama_komponen" emit-value map-options outlined dense
+                                    class="bg-white margin_btn" required />
+                            </div>
+                        </div>
+
+                        <span class="h_lable">Jumlah (Kantong)</span>
+                        <q-input v-model.number="form_edit.jumlah_kantong" type="number" outlined square :dense="true"
+                            class="bg-white margin_btn" required />
+
+                        <div class="row q-col-gutter-md">
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Tanggal Permintaan</span>
+                                <q-input v-model="form_edit.tanggal_permintaan" type="date" outlined square
+                                    :dense="true" class="bg-white margin_btn" required />
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Tanggal Diperlukan</span>
+                                <q-input v-model="form_edit.tanggal_diperlukan" type="date" outlined square
+                                    :dense="true" class="bg-white margin_btn" />
+                            </div>
+                        </div>
+
+                        <span class="h_lable">Diagnosis Klinis</span>
+                        <q-input v-model="form_edit.diagnosis_klinis" type="textarea" outlined square :dense="true"
+                            class="bg-white margin_btn" required />
+
+                        <span class="h_lable">Alasan Transfusi</span>
+                        <q-input v-model="form_edit.alasan_transfusi" type="textarea" outlined square :dense="true"
+                            class="bg-white margin_btn" required />
+                    </q-card-section>
+
+                    <q-card-actions class="bg-grey-4 mdl-footer" align="right">
+                        <q-btn :loading="btn_edit" color="primary" type="submit" label="Simpan Perubahan" />
+                        <q-btn label="Batal" color="negative" v-close-popup @click="mdl_edit = false" />
+                    </q-card-actions>
+                </form>
+            </q-card>
+        </q-dialog>
+
 
 
 
@@ -614,6 +786,38 @@
                 </q-card-section>
             </q-card>
         </q-dialog>
+
+
+
+        <!-- ========================== KETERANGAN ================================ -->
+        <q-dialog v-model="mdl_keterangan" persistent>
+            <q-card class="mdl-md">
+                <q-card-section class="bg-orange">
+                    <div class="text-h6 h_modalhead">KETERANGAN</div>
+                </q-card-section>
+
+                <q-card-section class="q-pt-none">
+                    <div>
+                        <div class="q-mb-sm">
+                            <q-separator spaced />
+                            <span class="q-ml-sm">Keterangan : {{ statusText(selectedItem.status,
+                                selectedItem.status_keterangan)
+                                }}</span>
+                            <q-separator spaced />
+                        </div>
+                    </div>
+
+
+                </q-card-section>
+
+                <q-card-actions class="bg-grey-4 mdl-footer" align="right">
+                    <q-btn label="Close" color="negative" v-close-popup @click="closeKeterangan" />
+                </q-card-actions>
+            </q-card>
+        </q-dialog>
+
+
+
     </div>
 </template>
 
@@ -664,18 +868,47 @@ export default {
                 status_keterangan: 'Menunggu Diperiksa oleh Admin UPD'
             },
 
-            statusColor(st) {
-                const s = Number(st);
-                if (s === 1) return 'orange';    // Diajukan
-                if (s === 2) return 'info';      // Diperiksa
-                if (s === 3) return 'positive';  // Disetujui
-                if (s === 4) return 'negative';  // Ditolak
-                return 'grey';
+            // modal edit
+            mdl_edit: false,
+            btn_edit: false,
+
+
+            // form edit
+            form_edit: {
+                id: null,
+                rumah_sakit_id: 1,
+                ruangan_id: null,
+                nama_dokter: '',
+                tanggal_permintaan: '',
+                tanggal_diperlukan: '',
+                nama_pasien: '',
+                nomor_rm: '',
+                tanggal_lahir: '',
+                alamat: '',
+                nama_wali: '',
+                jenis_kelamin: '',
+                jumlah_kehamilan: null,
+                pernah_abortus: '',
+                pernah_hdn: '',
+                golongan_darah: '',
+                rhesus: '',
+                komponen_id: null,
+                jumlah_kantong: 1,
+                diagnosis_klinis: '',
+                alasan_transfusi: '',
+                kadar_hb: null,
+                status: 1,
+                status_keterangan: ''
             },
+
+
 
             list_data: [],
             list_komponen: [],
             list_ruangan: [],
+
+            mdl_keterangan: false,
+            selectedItem: {},
 
             page_first: 1,
             page_last: 0,
@@ -726,6 +959,15 @@ export default {
         }
     },
     methods: {
+
+        statusColor(st) {
+            const s = Number(st);
+            if (s === 1) return 'orange';    // Diajukan
+            if (s === 2) return 'info';      // Diperiksa
+            if (s === 3) return 'positive';  // Disetujui
+            if (s === 4) return 'negative';  // Ditolak
+            return 'grey';
+        },
         getView() {
             const query = new URLSearchParams({
                 page: this.page_first,
@@ -867,6 +1109,90 @@ export default {
                 status_keterangan: 'Menunggu Diperiksa oleh Admin UPD'
             }
         },
+
+        openEdit(row) {
+            if (!row || !row.id) {
+                this.$q.notify({ type: 'negative', message: 'Data tidak valid untuk edit' });
+                return;
+            }
+
+            // jika sudah disetujui, jangan buka modal (double-check frontend)
+            if (Number(row.status) === 3) {
+                this.$q.notify({ type: 'warning', message: 'Tidak dapat mengedit: permintaan sudah Disetujui' });
+                return;
+            }
+
+            // copy data ke form_edit (hindari binding langsung)
+            this.form_edit = Object.assign({}, {
+                id: row.id,
+                rumah_sakit_id: row.rumah_sakit_id || 1,
+                ruangan_id: row.ruangan_id || null,
+                nama_dokter: row.nama_dokter || '',
+                tanggal_permintaan: row.tanggal_permintaan || '',
+                tanggal_diperlukan: row.tanggal_diperlukan || '',
+                nama_pasien: row.nama_pasien || '',
+                nomor_rm: row.nomor_rm || '',
+                tanggal_lahir: row.tanggal_lahir || '',
+                alamat: row.alamat || '',
+                nama_wali: row.nama_wali || '',
+                jenis_kelamin: row.jenis_kelamin || '',
+                jumlah_kehamilan: row.jumlah_kehamilan || null,
+                pernah_abortus: row.pernah_abortus || '',
+                pernah_hdn: row.pernah_hdn || '',
+                golongan_darah: row.golongan_darah || '',
+                rhesus: row.rhesus || '',
+                komponen_id: row.komponen_id || null,
+                jumlah_kantong: row.jumlah_kantong || 1,
+                diagnosis_klinis: row.diagnosis_klinis || '',
+                alasan_transfusi: row.alasan_transfusi || '',
+                kadar_hb: row.kadar_hb || null,
+                status: row.status || 1,
+                status_keterangan: row.status_keterangan || ''
+            });
+
+            this.mdl_edit = true;
+        },
+
+        async submitEdit() {
+            // simple validation
+            if (!this.form_edit || !this.form_edit.id) {
+                this.$q.notify({ type: 'negative', message: 'Data edit tidak lengkap' });
+                return;
+            }
+
+            // do not allow save if status is 3 on client side
+            if (Number(this.form_edit.status) === 3) {
+                this.$q.notify({ type: 'warning', message: 'Tidak dapat menyimpan: status sudah Disetujui' });
+                return;
+            }
+
+            this.btn_edit = true;
+            try {
+                const URL = this.$store.state.url.PERMINTAAN || (this.$store.state.url.BASE || '') + "permintaan_darah/";
+                const res = await fetch(URL + "edit", {   // NOTE: endpoint backend contoh = /permintaan_darah/edit
+                    method: "POST",
+                    headers: {
+                        "content-type": "application/json",
+                        authorization: "kikensbatara " + localStorage.token
+                    },
+                    body: JSON.stringify(this.form_edit)
+                });
+                const json = await res.json();
+                if (json && json.success) {
+                    this.$q.notify({ type: 'positive', message: json.message || 'Perubahan tersimpan' });
+                    this.mdl_edit = false;
+                    this.getView();
+                } else {
+                    this.$q.notify({ type: 'negative', message: json.message || 'Gagal menyimpan perubahan' });
+                }
+            } catch (err) {
+                console.error('Error submitEdit:', err);
+                this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat menyimpan perubahan' });
+            } finally {
+                this.btn_edit = false;
+            }
+        },
+
 
 
         openLihat(data) {
@@ -1029,6 +1355,18 @@ export default {
             this.reject_reason = '';
             this.lihat_target = row;
             this.mdl_reject = true;
+        },
+
+        lihatKeterangan(item) {
+            // salin objek agar tidak merubah referensi asli
+            this.selectedItem = Object.assign({}, item || {});
+            this.mdl_keterangan = true;
+        },
+
+        closeKeterangan() {
+            this.mdl_keterangan = false;
+            // reset selectedItem sedikit setelah dialog tertutup (untuk state bersih)
+            setTimeout(() => { this.selectedItem = {}; }, 200);
         },
 
         // kirim penolakan -> status = 4
