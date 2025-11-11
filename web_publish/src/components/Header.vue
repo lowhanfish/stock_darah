@@ -8,19 +8,20 @@
                     <ul class="website-info">
                         <li>
                             <i class="far fa-envelope" style="color: white;"></i>
-                            <a href="mailto:support@MedDoctors.com">Support@MedDoctors.com</a>
+                            <a href="mailto:support@MedDoctors.com">pindara@konaweutarakab</a>
                         </li>
-                        <li>
+                        <!-- <li>
                             <i class="fas fa-map-marker-alt" style="color: white;"></i>
                             14D street brooklyn, new york
-                        </li>
+                        </li> -->
                         <li>
                             <i class="far fa-clock" style="color: white;"></i>
-                            mon - fri : 8:00 AM - 7:00 PM
+                            Pelayanan Rawat Jalan Senin - Jumat : 8:30 - 14:00 WITA
                         </li>
                     </ul>
                     <ul class="website-icon-social">
-                        <li><a href="#"><i class="fab fa-facebook-f"></i></a></li>
+                        <li><a href="https://www.facebook.com/bludrumahsakit.konut" target="_blank"><i class="fab fa-facebook-f"></i></a></li>
+                        <li><a href="https://www.instagram.com/bludrs.konut" target="_blank"><i class="fab fa-instagram"></i></a></li>
                         <li><a href="#"><i class="fab fa-twitter"></i></a></li>
                         <li><a href="#"><i class="fas fa-rss"></i></a></li>
                         <li><a href="#"><i class="fab fa-linkedin-in"></i></a></li>
