@@ -116,7 +116,7 @@
             <br>
             <hr>
             <div class="transDarah">
-              <span class="h_fotter_titleform">Copyright : Badan Layanan Umum Daerah Kab. Konawe Utara</span>
+              <span class="h_fotter_titleform">Copyright : Rumah Sakit Umum Daerah Kab. Konawe Utara</span>
             </div>
         </div>
       </div>

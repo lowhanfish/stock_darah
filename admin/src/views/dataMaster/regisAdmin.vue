@@ -32,8 +32,8 @@
                         <th width="5%" class="text-center">No</th>
                         <th width="20%">Nama Lengkap</th>
                         <th width="15%">NIK</th>
-                        <th width="15%">No STR</th>
-                        <th width="15%">Masa Berlaku STR</th>
+                        <!-- <th width="15%">No STR</th>
+                        <th width="15%">Masa Berlaku STR</th> -->
                         <th width="15%">Jabatan Fungsional</th>
                         <th width="10%">No HP</th>
                         <th width="10%">Email</th>
@@ -45,8 +45,8 @@
                         <td class="text-center">{{ indexing(index + 1) }}</td>
                         <td>{{ data.nama_lengkap }}</td>
                         <td>{{ data.nik }}</td>
-                        <td>{{ data.no_str }}</td>
-                        <td>{{ UMUM.tglConvert(data.masa_berlaku_str) }}</td>
+                        <!-- <td>{{ data.no_str }}</td>
+                        <td>{{ UMUM.tglConvert(data.masa_berlaku_str) }}</td> -->
                         <td>{{ data.jabatan_fungsional }}</td>
                         <td>{{ data.no_hp }}</td>
                         <td>{{ data.email || '-' }}</td>

@@ -785,7 +785,7 @@
                     </q-card-section>
 
                     <q-card-actions class="bg-grey-4 mdl-footer" align="right">
-                        <q-btn :loading="btn_periksa" color="primary" type="submit" label="Simpan & Tandai Diperiksa" />
+                        <q-btn :loading="btn_periksa" color="primary" type="submit" label="Simpan" />
                         <q-btn label="Batal" color="negative" v-close-popup @click="mdl_periksa = false" />
                     </q-card-actions>
                 </form>

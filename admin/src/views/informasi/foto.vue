@@ -51,8 +51,8 @@
                         <div class="text-bold">{{ data.nama_kegiatan }}</div>
                     </td>
                     <td>
-                        <!-- <div class="text-bold">{{ UMUM.tglConvert(data.created_at) }}</div> -->
-                        <div class="text-bold">tes</div>
+                        <div class="text-bold">{{ UMUM.tglConvert(data.created_at) }}</div>
+                        <!-- <div class="text-bold">{{data.}}</div> -->
                     </td>
                     <td class="text-center q-gutter-sm">
                         <q-btn dense round color="warning" icon="edit" @click="openEdit(data)">
