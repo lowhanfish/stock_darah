@@ -170,22 +170,6 @@ router.post('/addData', (req, res) => {
 });
 
 
-// ===================================================
-// 🔹 DELETE: Hapus transaksi (opsional, tidak ubah stok)
-// ===================================================
-// router.delete('/delete/:id', (req, res) => {
-//   const { id } = req.params;
-
-//   const sql = `DELETE FROM transaksi_darah WHERE id_transaksi = ?`;
-//   db.query(sql, [id], (err, result) => {
-//     if (err) {
-//       console.error('Error hapus transaksi:', err);
-//       return res.status(500).json({ success: false, message: 'Gagal hapus transaksi' });
-//     }
-//     res.json({ success: true, message: 'Transaksi berhasil dihapus' });
-//   });
-// });
-
 // EDIT DATA (REVERT LAMA, VALIDASI BARU, APPLY BARU)
 router.post('/editData', (req, res) => {
   const {
