@@ -703,9 +703,6 @@
             </q-card>
         </q-dialog>
 
-
-
-
         <!-- MODAL PERIKSA (UPD) -->
         <q-dialog v-model="mdl_periksa" persistent>
             <q-card class="mdl-md">
