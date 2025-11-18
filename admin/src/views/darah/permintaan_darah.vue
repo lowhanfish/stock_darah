@@ -282,10 +282,23 @@
                             </div>
                         </div>
 
-                        <span class="h_lable">Jumlah (Kantong)</span>
-                        <q-input v-model.number="form.jumlah_kantong" type="number" outlined square :dense="true"
-                            class="bg-white margin_btn" required />
 
+
+
+
+                        <div class="row q-col-gutter-md">
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Jumlah (Kantong)</span>
+                                <q-input v-model.number="form.jumlah_kantong" type="number" outlined square
+                                    :dense="true" class="bg-white margin_btn" required />
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Jumlah (cc)</span>
+                                <q-input v-model.number="form.jumlah_cc" type="number" outlined square :dense="true"
+                                    class="bg-white margin_btn" required />
+                            </div>
+                        </div>
+                        
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-6">
                                 <span class="h_lable">Tanggal Permintaan</span>
@@ -726,26 +739,41 @@
                         </div>
 
                         <div class="row q-col-gutter-md">
-                            <div class="col-12 col-md-4">
+                            <div class="col-12 col-md-6">
                                 <span class="h_lable">Golongan Darah Hasil</span>
                                 <q-select v-model="periksa_form.golongan_darah_hasil" :options="['A', 'B', 'O', 'AB']"
                                     outlined dense class="bg-white" />
                             </div>
-                            <div class="col-12 col-md-4">
+                            <div class="col-12 col-md-6">
                                 <span class="h_lable">Rhesus Hasil</span>
                                 <q-select v-model="periksa_form.rhesus_hasil" :options="['+', '-']" outlined dense
                                     class="bg-white" />
                             </div>
-                            <div class="col-12 col-md-4">
+                        </div>
+                        <div class="row q-col-gutter-md">
+                            <div class="col-12 col-md-6">
                                 <span class="h_lable">Jumlah Diberikan (kantong)</span>
                                 <q-input v-model.number="periksa_form.jumlah_darah_diberikan" type="number" outlined
                                     dense class="bg-white" />
                             </div>
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Jumlah Diberikan (cc)</span>
+                                <q-input v-model.number="periksa_form.jumlah_darah_diberikan_cc" type="number" outlined
+                                    dense class="bg-white" />
+                            </div>
                         </div>
 
-                        <span class="h_lable">Nomor Kantong</span>
-                        <q-input v-model="periksa_form.nomor_kantong" outlined dense class="bg-white" />
-
+                        <div class="row q-col-gutter-md">
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Nomor Kantong</span>
+                                <q-input v-model="periksa_form.nomor_kantong" outlined dense class="bg-white" />
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Tanggal Kadaluarsa</span>
+                                <q-input v-model="periksa_form.exp" type="date" outlined square :dense="true"
+                                    class="bg-white margin_btn" required />
+                            </div>
+                        </div>
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-6">
                                 <span class="h_lable">Petugas Pengeluar</span>

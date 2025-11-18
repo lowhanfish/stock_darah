@@ -159,8 +159,8 @@
                         <q-input v-model="form.keterangan" type="textarea" outlined square dense
                             class="bg-white margin_btn" />
 
-                        <span class="h_lable">Jumlah Terdaftar (opsional)</span>
-                        <q-input v-model="form.jumlah_terdaftar" type="number" outlined square dense
+                        <span class="h_lable">Kuota Pendonor</span>
+                        <q-input v-model="form.jumlah_terdaftar" type="number" outlined square dense required
                             class="bg-white margin_btn" />
 
                         <span class="h_lable">Poster (opsional)</span>
