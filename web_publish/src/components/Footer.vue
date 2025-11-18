@@ -2,7 +2,7 @@
     <footer class="footer">
       <div class="copyright">
         <div class="container">
-          <p>@ 2025 RSUD KONAWE UTARA.</p>
+          <p>@ 2025 BLUD RS KONAWE UTARA.</p>
           
         </div>
       </div>
