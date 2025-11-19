@@ -4,7 +4,7 @@
       <q-toolbar>
         <q-btn flat dense round @click="leftDrawerOpen = !leftDrawerOpen" aria-label="Menu" icon="menu" />
         <q-toolbar-title>
-            PINDARA RSUD Kab. Konawe Utara
+            PINDARA - BLUD RS Konawe Utara
         </q-toolbar-title>
         <div>
           <q-btn

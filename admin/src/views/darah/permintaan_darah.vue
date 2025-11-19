@@ -162,13 +162,15 @@
 
         <!-- ===================== MODAL ADD ===================== -->
         <q-dialog v-model="mdl_add" persistent>
-            <q-card class="mdl-md">
+            <q-card class="mdl-lg">
                 <q-card-section class="main2 text-white">
                     <div class="text-h6 h_modalhead">Tambah Permintaan Darah</div>
                 </q-card-section>
 
+
                 <form @submit.prevent="addData">
                     <q-card-section class="q-pt-none">
+                        <hr class="hrpagin2" />
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-6">
                                 <span class="h_lable">Nama Dokter</span>
@@ -176,17 +178,11 @@
                                     class="bg-white margin_btn" required />
                             </div>
                             <div class="col-12 col-md-6">
-                                <span class="h_lable">Ruangan</span>
-                                <q-select v-model="form.ruangan_id" :options="list_ruangan" option-value="id"
-                                    option-label="nama_ruangan" emit-value map-options outlined square :dense="true"
-                                    readonly class="bg-white margin_btn" required />
+                                <span class="h_lable">Nama Pasien</span>
+                                <q-input v-model="form.nama_pasien" outlined square :dense="true"
+                                    class="bg-white margin_btn" required />
                             </div>
                         </div>
-
-                        <span class="h_lable">Nama Pasien</span>
-                        <q-input v-model="form.nama_pasien" outlined square :dense="true" class="bg-white margin_btn"
-                            required />
-
 
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-4">
@@ -298,7 +294,7 @@
                                     class="bg-white margin_btn" required />
                             </div>
                         </div>
-                        
+
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-6">
                                 <span class="h_lable">Tanggal Permintaan</span>
@@ -320,7 +316,71 @@
                         <q-input v-model="form.alasan_transfusi" type="textarea" outlined square :dense="true"
                             class="bg-white margin_btn" required />
 
+                        <hr class="hrpagin2" />
+                        <div class="text-subtitle2 q-mb-sm">Riwayat Transfusi & Pemeriksaan Serologi</div>
+
+                        <div class="row q-col-gutter-md">
+                            <!-- Transfusi Sebelumnya -->
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Transfusi Sebelumnya</span>
+                                <q-option-group v-model="form.transfusi_sebelumnya"
+                                    :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
+                                    type="radio" inline />
+                            </div>
+
+                            <div class="col-12 col-md-6" v-show="form.transfusi_sebelumnya === 'Ya'">
+                                <span class="h_lable">Kapan (tanggal / keterangan)</span>
+                                <q-input v-model="form.transfusi_kapan" outlined square :dense="true" class="bg-white"
+                                    placeholder="YYYY-MM-DD atau keterangan" />
+                            </div>
+
+                            <!-- Reaksi Transfusi -->
+                            <div class="col-12 col-md-6 q-mt-sm">
+                                <span class="h_lable">Reaksi Transfusi</span>
+                                <q-option-group v-model="form.reaksi_transfusi"
+                                    :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
+                                    type="radio" inline />
+                            </div>
+
+                            <div class="col-12 col-md-6" v-show="form.reaksi_transfusi === 'Ya'">
+                                <span class="h_lable">Gejala</span>
+                                <q-input v-model="form.gejala_transfusi" outlined square :dense="true" class="bg-white"
+                                    placeholder="Jelaskan gejala reaksi" />
+                            </div>
+
+                            <!-- Coomb's test -->
+                            <div class="col-12 col-md-6 q-mt-sm">
+                                <span class="h_lable">Pernah diperiksa serologi (Coomb's test)?</span>
+                                <q-option-group v-model="form.coomb_test"
+                                    :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
+                                    type="radio" inline />
+                            </div>
+
+                            <div class="col-12 col-md-6" v-show="form.coomb_test === 'Ya'">
+                                <div class="row q-col-gutter-md">
+                                    <div class="col-12 col-md-12">
+                                        <span class="h_lable">Dimana (lab/rumah sakit)</span>
+                                        <q-input v-model="form.coomb_tempat" outlined square :dense="true"
+                                            class="bg-white" />
+                                    </div>
+                                    <div class="col-12 col-md-6 q-mt-sm">
+                                        <span class="h_lable">Kapan</span>
+                                        <q-input v-model="form.coomb_kapan" type="date" outlined square :dense="true"
+                                            class="bg-white" />
+                                    </div>
+                                    <div class="col-12 col-md-6 q-mt-sm">
+                                        <span class="h_lable">Hasil</span>
+                                        <q-input v-model="form.coomb_hasil" outlined square :dense="true"
+                                            class="bg-white" placeholder="Negatif / Positif / Lainnya" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
                     </q-card-section>
+                    <hr class="hrpagin2" />
 
                     <q-card-actions class="bg-grey-4 mdl-footer" align="right">
                         <q-btn :loading="btn_add" color="primary" type="submit" label="Simpan" />
@@ -587,17 +647,13 @@
                                     class="bg-white margin_btn" required />
                             </div>
                             <div class="col-12 col-md-6">
-                                <span class="h_lable">Ruangan</span>
-                                <q-select v-model="form_edit.ruangan_id" :options="list_ruangan" option-value="id"
-                                    option-label="nama_ruangan" emit-value map-options outlined square :dense="true"
-                                    class="bg-white margin_btn" :disable="true" />
-                                <!-- jika ruangan tidak boleh diubah di edit, buat disable=true -->
+                                <span class="h_lable">Nama Pasien</span>
+                                <q-input v-model="form_edit.nama_pasien" outlined square :dense="true"
+                                    class="bg-white margin_btn" required />
                             </div>
                         </div>
 
-                        <span class="h_lable">Nama Pasien</span>
-                        <q-input v-model="form_edit.nama_pasien" outlined square :dense="true"
-                            class="bg-white margin_btn" required />
+
 
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-4">
@@ -919,17 +975,19 @@ export default {
                 alamat: '',
                 nama_wali: '',
                 jenis_kelamin: '',
-                jumlah_kehamilan: null,      // number
-                pernah_abortus: '',          // 'Ya' / 'Tidak'
+                jumlah_kehamilan: null,
+                pernah_abortus: '',
                 pernah_hdn: '',
 
-                // pernah_transfusi:'',
-                // kapan_transfusi:'null',
-                // ada_reaksi:'Ya',
-                // gejala_reaksi:'null',
-                // pernah_coombs:'Ya',
-                // lokasi_coombs:'null',
-                // hasil_coombs:'null',  
+                transfusi_sebelumnya: 'Tidak',
+                transfusi_kapan: '',
+                reaksi_transfusi: 'Tidak',
+                gejala_transfusi: '',
+
+                coomb_test: 'Tidak',
+                coomb_tempat: '',
+                coomb_kapan: '',
+                coomb_hasil: '',
 
                 golongan_darah: '',
                 rhesus: '',
@@ -1135,6 +1193,32 @@ export default {
                 }
             }
 
+            if (this.form.transfusi_sebelumnya === 'Ya') {
+                if (!this.form.transfusi_kapan || this.form.transfusi_kapan.trim() === '') {
+                    this.$q.notify({ type: 'negative', message: 'Mohon isi tanggal/keterangan transfusi sebelumnya.' });
+                    this.btn_add = false;
+                    return;
+                }
+            }
+
+            if (this.form.reaksi_transfusi === 'Ya') {
+                if (!this.form.gejala_transfusi || this.form.gejala_transfusi.trim() === '') {
+                    this.$q.notify({ type: 'negative', message: 'Mohon jelaskan gejala reaksi transfusi.' });
+                    this.btn_add = false;
+                    return;
+                }
+            }
+
+            if (this.form.coomb_test === 'Ya') {
+                if (!this.form.coomb_tempat || this.form.coomb_tempat.trim() === '' ||
+                    !this.form.coomb_kapan || this.form.coomb_kapan.trim() === '' ||
+                    !this.form.coomb_hasil || this.form.coomb_hasil.trim() === '') {
+                    this.$q.notify({ type: 'negative', message: 'Mohon lengkapi data pemeriksaan serologi (Coomb\'s test): tempat, kapan, dan hasil.' });
+                    this.btn_add = false;
+                    return;
+                }
+            }
+
             const URL = this.$store.state.url.PERMINTAAN || (this.$store.state.url.BASE || '') + "permintaan_darah/";
 
             fetch(URL + "addData", {
@@ -1189,7 +1273,15 @@ export default {
                 alasan_transfusi: '',
                 kadar_hb: null,
                 status: 1,
-                status_keterangan: 'Menunggu Diperiksa oleh Admin UPD'
+                status_keterangan: 'Menunggu Diperiksa oleh Admin UPD',
+                transfusi_sebelumnya: 'Tidak',
+                transfusi_kapan: '',
+                reaksi_transfusi: 'Tidak',
+                gejala_transfusi: '',
+                coomb_test: 'Tidak',
+                coomb_tempat: '',
+                coomb_kapan: '',
+                coomb_hasil: ''
             }
         },
 
