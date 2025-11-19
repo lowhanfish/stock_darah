@@ -4,7 +4,7 @@ const Swal = require('sweetalert2')
 const tglConvert = (tgl) => {
     var date = new Date(tgl);
     var getBulan = date.getMonth() + 1; var bulan = '';
-    if (getBulan == '1') {bulan = 'Jan'} 
+    if (getBulan == '1') {bulan = 'Januari'} 
     else if(getBulan == '2') {bulan = 'Februari'}
     else if(getBulan == '3') {bulan = 'Maret'}
     else if(getBulan == '4') {bulan = 'April'}
