@@ -73,22 +73,45 @@
                     <tr v-for="(data, index) in list_data" :key="data.id + '-' + index">
                         <td class="text-center">{{ indexing(index + 1) }}</td>
                         <td class="text-center">
-                            <!-- <div>
-                                <strong>{{ statusText(data.status) }}</strong>
-                                <div v-if="data.status === 4 && data.status_keterangan" class="text-caption text-bold text-red">
-                                    {{ data.status_keterangan }} <br>
-                                </div>
-                            </div> -->
-                            <a href="javascript:void(0)" class="removeTextDecoration" @click="lihatKeterangan(data)">
-                                <q-btn v-if="Number(data.status) === 1" round glossy size="xs" color="orange"
-                                    icon="hourglass_empty" />
-                                <q-btn v-else-if="Number(data.status) === 2" round glossy size="xs" color="info"
-                                    icon="pending_actions" />
-                                <q-btn v-else-if="Number(data.status) === 3" round glossy size="xs" color="green"
-                                    icon="done" />
-                                <q-btn v-else-if="Number(data.status) === 4" round glossy size="xs" color="negative"
-                                    icon="close" />
-                            </a>
+                            <!-- replace the whole <a ...> ... </a> block with this -->
+                            <div class="removeTextDecoration">
+                                <!-- Pengajuan (bisa buka keterangan) -->
+                                <q-badge v-if="Number(data.status) === 1" color="orange" text-color="white"
+                                    class="q-pa-xs text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                    Pengajuan
+                                </q-badge>
+
+                                <!-- Diperiksa (bisa buka keterangan) -->
+                                <q-badge v-else-if="Number(data.status) === 2" color="info" text-color="white"
+                                    class="q-pa-xs text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                    Diperiksa
+                                </q-badge>
+
+                                <!-- Siap Diambil (klik -> buka Stage2 untuk input pengambilan) -->
+                                <q-badge v-else-if="Number(data.status) === 3" color="secondary" text-color="white"
+                                    class="q-pa-xs text-bold cursor-pointer" @click.stop="openStage2(data)">
+                                    Darah Siap Diambil
+                                </q-badge>
+
+                                <!-- Telah Diambil (klik -> buka modal view read-only) -->
+                                <q-badge v-else-if="Number(data.status) === 6" color="accent" text-color="white"
+                                    class="q-pa-xs text-bold cursor-pointer" @click.stop="openStage2(data)">
+                                    Darah Telah Diambil
+                                </q-badge>
+
+                                <!-- Selesai (bisa buka keterangan) -->
+                                <q-badge v-else-if="Number(data.status) === 4" color="green" text-color="white"
+                                    class="q-pa-xs text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                    Selesai
+                                </q-badge>
+
+                                <!-- Ditolak (bisa buka keterangan) -->
+                                <q-badge v-else-if="Number(data.status) === 5" color="negative" text-color="white"
+                                    class="q-pa-xs text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                    Ditolak
+                                </q-badge>
+                            </div>
+
                         </td>
                         <td>
                             <div>
@@ -162,7 +185,7 @@
 
         <!-- ===================== MODAL ADD ===================== -->
         <q-dialog v-model="mdl_add" persistent>
-            <q-card class="mdl-lg">
+            <q-card class="mdl-md">
                 <q-card-section class="main2 text-white">
                     <div class="text-h6 h_modalhead">Tambah Permintaan Darah</div>
                 </q-card-section>
@@ -239,7 +262,7 @@
 
 
                         <span class="h_lable">Alamat</span>
-                        <q-input v-model="form.alamat" type="textarea" outlined square :dense="true"
+                        <q-input v-model="form.alamat" type="textarea" autogrow outlined square :dense="true"
                             class="bg-white margin_btn" />
 
                         <div class="row q-col-gutter-md">
@@ -278,10 +301,6 @@
                             </div>
                         </div>
 
-
-
-
-
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-6">
                                 <span class="h_lable">Jumlah (Kantong)</span>
@@ -309,11 +328,11 @@
                         </div>
 
                         <span class="h_lable">Diagnosis Klinis</span>
-                        <q-input v-model="form.diagnosis_klinis" type="textarea" outlined square :dense="true"
+                        <q-input v-model="form.diagnosis_klinis" type="textarea" outlined square :dense="true" autogrow
                             class="bg-white margin_btn" required />
 
                         <span class="h_lable">Alasan Transfusi</span>
-                        <q-input v-model="form.alasan_transfusi" type="textarea" outlined square :dense="true"
+                        <q-input v-model="form.alasan_transfusi" type="textarea" outlined square :dense="true" autogrow
                             class="bg-white margin_btn" required />
 
                         <hr class="hrpagin2" />
@@ -392,7 +411,7 @@
 
         <!-- ===================== MODAL LIHAT DETAIL ===================== -->
         <q-dialog v-model="mdl_lihat" persistent>
-            <q-card class="mdl-lg">
+            <q-card class="mdl-md">
                 <!-- Header -->
                 <q-card-section class="bg-orange text-white row items-center justify-between">
                     <div class="text-h6 h_modalhead">Detail Permintaan Darah</div>
@@ -486,23 +505,47 @@
                         <q-list bordered dense class="rounded-borders">
                             <q-item>
                                 <q-item-section>
-                                    <q-item-label caption class="text-black text-bold">Komponen</q-item-label>
-                                    <q-item-label class="text-weight-medium text-bold">{{
-                                lihat_target.nama_komponen || '-' }}</q-item-label>
-                                    <div class="text-caption q-mt-xs">Golongan: <strong class="text-bold">{{
+                                    <q-item-label caption class="text-black"> <strong> Komponen : </strong>
+                                        <span class="text-bold text-grey" style="font-size: 16px;">
+                                            {{ lihat_target.nama_komponen || '-' }}
+
+                                        </span>
+                                    </q-item-label>
+                                    <!-- <q-item-label class="text-weight-medium text-bold"></q-item-label> -->
+                                    <div class="text-caption q-mt-xs"> <strong> Golongan Darah : </strong> <span
+                                            class="text-bold text-grey" style="font-size: 16px;">{{
                                 lihat_target.golongan_darah || '-' }}{{ lihat_target.rhesus ?
-                                lihat_target.rhesus : '' }}</strong></div>
+                                lihat_target.rhesus : '' }} </span>
+                                    </div>
                                 </q-item-section>
 
                                 <q-item-section side style="min-width:160px; text-align:right">
-                                    <q-item-label caption class="text-black text-bold">Jumlah</q-item-label>
-                                    <q-item-label class="text-weight-medium text-bold">
-                                        {{ lihat_target.jumlah_kantong }}
+                                    <q-item-label caption class="text-black text-bold"> <strong> Jumlah : </strong>
+                                        <span class="text-bold text-grey" style="font-size: 16px;">
+                                            {{ lihat_target.jumlah_kantong }} Kantong
+
+                                        </span>
+
+                                    </q-item-label>
+                                    <!-- <q-item-label class="text-weight-medium text-bold">
+                                        {{ lihat_target.jumlah_kantong }} Kantong
+                                    </q-item-label> -->
+
+                                    <q-item-label caption class="text-black text-bold"> <strong> Volume : </strong>
+                                        <span class="text-bold text-grey" style="font-size: 16px;">
+                                            {{
+                                lihat_target.jumlah_cc !== null ? lihat_target.jumlah_cc + ' cc' : '-'
+                            }}
+
+                                        </span>
+
                                     </q-item-label>
 
-                                    <div class="text-caption q-mt-xs text-bold text-black">Volume: <strong class="text-bold">{{
+                                    <!-- <div class="text-caption q-mt-xs text-bold text-black"><strong> Volume : </strong> 
+                                        <strong
+                                            class="text-bold">{{
                                 lihat_target.jumlah_cc !== null ? lihat_target.jumlah_cc + ' cc' : '-'
-                            }}</strong></div>
+                            }}</strong></div> -->
                                 </q-item-section>
                             </q-item>
 
@@ -512,15 +555,15 @@
                                 <q-item-section>
                                     <q-item-label caption class="text-black text-bold">Status</q-item-label>
                                     <q-item-label>
-                                        <q-chip :color="statusColor(lihat_target.status)" text-color="white" size="sm"
+                                        <q-chip :color="statusColor(lihat_target.status)" text-color="white" size="md"
                                             class="q-mr-sm">
                                             {{ statusText(lihat_target.status) }}
                                         </q-chip>
                                     </q-item-label>
 
-                                    <div v-if="lihat_target.status_keterangan" class="q-mt-sm text-caption">
+                                    <!-- <div v-if="lihat_target.status_keterangan" class="q-mt-sm text-caption">
                                         <strong>Keterangan:</strong> {{ lihat_target.status_keterangan }}
-                                    </div>
+                                    </div> -->
                                 </q-item-section>
 
                                 <q-item-section side style="min-width:140px; text-align:right">
@@ -561,12 +604,13 @@
 
 
                         <!-- <hr class="hrpagin2"> -->
-                            <q-separator spaced />
+                        <q-separator spaced />
 
 
                         <!-- Riwayat Transfusi & Pemeriksaan Serologi -->
                         <div class="q-mt-md">
-                            <div class="text-subtitle1 text-weight-medium q-mb-sm">Riwayat Transfusi & Pemeriksaan Serologi</div>
+                            <div class="text-subtitle1 text-weight-medium q-mb-sm">Riwayat Transfusi & Pemeriksaan
+                                Serologi</div>
 
                             <div class="row q-col-gutter-md">
 
@@ -739,10 +783,17 @@
 
                             <div class="row q-col-gutter-md q-mt-sm">
                                 <div class="col-12 col-md-4">
-                                    <div class="text-subtitle2">Jumlah Diberikan</div>
+                                    <div class="text-subtitle2">Jumlah Diberikan (Kantong)</div>
                                     <div class="text-body1 text-grey text-bold">
                                         {{ lihat_target.jumlah_darah_diberikan !== null ?
-                                lihat_target.jumlah_darah_diberikan + ' Kantong' : '-' }}
+                                lihat_target.jumlah_darah_diberikan + ' Kantong' : '-' }} Kantong
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <div class="text-subtitle2">Jumlah Diberikan (cc)</div>
+                                    <div class="text-body1 text-grey text-bold">
+                                        {{ lihat_target.jumlah_darah_diberikan_cc !== null ?
+                                lihat_target.jumlah_darah_diberikan_cc + ' Kantong' : '-' }}cc
                                     </div>
                                 </div>
                                 <div class="col-12 col-md-4">
@@ -934,11 +985,11 @@
 
                         <span class="h_lable">Diagnosis Klinis</span>
                         <q-input v-model="form_edit.diagnosis_klinis" type="textarea" outlined square :dense="true"
-                            class="bg-white margin_btn" required />
+                            autogrow class="bg-white margin_btn" required />
 
                         <span class="h_lable">Alasan Transfusi</span>
                         <q-input v-model="form_edit.alasan_transfusi" type="textarea" outlined square :dense="true"
-                            class="bg-white margin_btn" required />
+                            autogrow class="bg-white margin_btn" required />
                     </q-card-section>
 
                     <q-card-actions class="bg-grey-4 mdl-footer" align="right">
@@ -978,77 +1029,124 @@
 
                         <q-separator spaced class="q-mt-md" />
 
-                        <!-- FORM TAHAP 1 (tidak ada petugas_pengeluar & penerima_darah) -->
-                        <q-form @submit.prevent="saveStage1" ref="formStage1" class="q-gutter-md">
+                        <!-- <q-card-section> -->
+                        <q-form @submit.prevent="saveStage1" ref="formStage1">
                             <div class="row q-col-gutter-md">
                                 <div class="col-12 col-md-6">
-                                    <q-input outlined dense label="Petugas Pemeriksa" v-model="form1.petugas_pemeriksa"
-                                        :rules="[v => !!v || 'Petugas harus diisi']" />
+                                    <span class="h_lable">Petugas Pemeriksa</span>
+                                    <q-input v-model="form1.petugas_pemeriksa" outlined square :dense="true" required
+                                        class="bg-white" :rules="[v => !!v || 'Petugas harus diisi']" />
                                 </div>
 
                                 <div class="col-12 col-md-6">
-                                    <q-input outlined dense label="Tanggal Pemeriksaan" readonly
+                                    <span class="h_lable">Tanggal Pemeriksaan</span>
+                                    <q-input outlined square :dense="true" class="bg-white" readonly
                                         :value="displayTanggalPemeriksaan" @focus="$refs.dateStage1.show()" />
                                     <q-popup-proxy ref="dateStage1" transition-show="scale" transition-hide="scale">
                                         <q-date v-model="form1.tanggal_pemeriksaan" @input="$refs.dateStage1.hide()" />
                                     </q-popup-proxy>
                                 </div>
+                            </div>
 
+                            <div class="row q-col-gutter-md">
                                 <div class="col-12 col-md-4">
-                                    <q-input outlined dense label="Golongan Darah Hasil"
-                                        v-model="form1.golongan_darah_hasil" />
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <q-input outlined dense label="Rhesus Hasil" v-model="form1.rhesus_hasil" />
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <q-input outlined dense label="Kadar Hb (g/dL)" v-model.number="form1.kadar_hb"
-                                        type="number" />
+                                    <span class="h_lable">Golongan Darah Hasil</span>
+                                    <q-select v-model="form1.golongan_darah_hasil" :options="['A', 'B', 'O', 'AB']"
+                                        outlined square :dense="true" class="bg-white" required />
                                 </div>
 
                                 <div class="col-12 col-md-4">
-                                    <q-input outlined dense label="Crossmatch 1" v-model="form1.crossmatch_1" />
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <q-input outlined dense label="Crossmatch 2" v-model="form1.crossmatch_2" />
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <q-input outlined dense label="Crossmatch 3" v-model="form1.crossmatch_3" />
+                                    <span class="h_lable">Rhesus Hasil</span>
+                                    <q-select v-model="form1.rhesus_hasil" :options="['+', '-']" outlined square
+                                        :dense="true" class="bg-white" required />
                                 </div>
 
                                 <div class="col-12 col-md-4">
-                                    <q-input outlined dense label="Jumlah Diberikan (Kantong)"
-                                        v-model.number="form1.jumlah_darah_diberikan" type="number" />
-                                </div>
-                                <div class="col-12 col-md-4">
-                                    <q-input outlined dense label="Nomor Kantong" v-model="form1.nomor_kantong" />
-                                </div>
-
-                                <div class="col-12">
-                                    <q-input outlined dense type="textarea" autogrow label="Catatan Tambahan Pemeriksa"
-                                        v-model="form1.catatan_tambahan" />
+                                    <span class="h_lable">Kadar Hb (g/dL)</span>
+                                    <q-input v-model.number="form1.kadar_hb" type="number" outlined square :dense="true"
+                                        class="bg-white" required />
                                 </div>
                             </div>
 
-                            <div class="row items-center q-mt-md">
+
+                            <!-- Nomor Kantong + Exp berdampingan -->
+                            <div class="row q-col-gutter-md q-mt-sm">
+                                <div class="col-12 col-md-6">
+                                    <span class="h_lable">Jumlah Diberikan (Kantong)</span>
+                                    <q-input v-model.number="form1.jumlah_darah_diberikan" type="number" outlined square
+                                        :dense="true" class="bg-white" required />
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <span class="h_lable">Jumlah Diberikan (cc)</span>
+                                    <q-input v-model.number="form1.jumlah_darah_diberikan_cc" type="number" outlined
+                                        square :dense="true" class="bg-white" required />
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <span class="h_lable">Nomor Kantong</span>
+                                    <q-input v-model.number="form1.nomor_kantong" outlined square :dense="true"
+                                        class="bg-white" required />
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <span class="h_lable">Expired (exp)</span>
+                                    <q-input v-model="form1.exp" required type="date" outlined square :dense="true"
+                                        class="bg-white" />
+                                </div>
+
+                            </div>
+
+                            <!-- Crossmatch 1-3 ditempatkan di bawah -->
+                            <div class="row q-col-gutter-md q-mt-sm">
+                                <div class="col-12 col-md-4">
+                                    <span class="h_lable">Crossmatch 1</span>
+                                    <q-select v-model="form1.crossmatch_1" :options="['Cocok', 'Tidak', 'Emergency']"
+                                        outlined square :dense="true" class="bg-white" />
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <span class="h_lable">Crossmatch 2</span>
+                                    <q-select v-model="form1.crossmatch_2" :options="['Cocok', 'Tidak', 'Emergency']"
+                                        outlined square :dense="true" class="bg-white" />
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <span class="h_lable">Crossmatch 3</span>
+                                    <q-select v-model="form1.crossmatch_3" :options="['Cocok', 'Tidak', 'Emergency']"
+                                        outlined square :dense="true" class="bg-white" />
+                                </div>
+                            </div>
+
+                            <div class="col-12 q-mt-sm">
+                                <span class="h_lable">Catatan Tambahan Pemeriksa</span>
+                                <q-input outlined dense type="textarea" autogrow v-model="form1.catatan_tambahan"
+                                    class="bg-white" required />
+                            </div>
+
+                            <!-- <div class="row items-center bg-grey-4 q-mt-md">
                                 <q-space />
-                                <q-btn flat label="Batal" color="negative" @click="closePeriksa" />
+                                
+                            </div> -->
+
+                            <q-card-actions class="bg-grey-4 mdl-footer q-mt-md" align="right">
+                                <q-btn label="Batal" color="negative" @click="closePeriksa" />
                                 <q-btn :loading="loading1" color="primary" label="Simpan & Lanjut ke Tahap 2"
                                     type="submit" />
-                            </div>
+                            </q-card-actions>
                         </q-form>
+
+
                     </div>
                 </q-card-section>
             </q-card>
         </q-dialog>
 
+
         <!-- =========================
          Modal Pemeriksaan UPD - Tahap 2 (Pengambilan)
          muncul setelah Stage 1 sukses
          ========================= -->
+        <!-- MODAL STAGE 2 (Pengambilan) — styled sama dengan form Add Data -->
         <q-dialog v-model="mdl_stage2" persistent>
             <q-card class="mdl-md">
-                <q-card-section class="bg-orange text-white row items-center justify-between">
+                <q-card-section class="bg-teal text-white row items-center justify-between">
                     <div class="text-h6 h_modalhead">Pemeriksaan UPD — Tahap 2 (Pengambilan)</div>
                     <q-btn flat round dense icon="close" color="white" v-close-popup @click="closeStage2"
                         aria-label="Tutup">
@@ -1056,58 +1154,52 @@
                     </q-btn>
                 </q-card-section>
 
-                <q-card-section>
-                    <div v-if="stage2_target">
-                        <div class="text-subtitle2 q-mb-sm">Data Permintaan (ID: {{ stage2_target.id ||
-                                stage2_target.permintaan_id || '-' }})</div>
+                <form @submit.prevent="saveStage2">
+                    <q-card-section class="q-pt-none">
+                        <hr class="hrpagin2" />
+                        <div v-if="stage2_target">
+                            <!-- header ringkas -->
+                            <div class="text-subtitle2 q-mb-sm">Data Pengambilan (ID: {{ stage2_target.id || '-' }})
+                            </div>
 
-                        <q-separator spaced class="q-mt-sm" />
+                            <q-separator spaced class="q-mt-sm" />
 
-                        <q-form @submit.prevent="saveStage2" ref="formStage2" class="q-gutter-md">
                             <div class="row q-col-gutter-md">
                                 <div class="col-12 col-md-6">
-                                    <q-input outlined dense label="Petugas Pengeluar" v-model="form2.petugas_pengeluar"
+                                    <span class="h_lable">Petugas Pengeluar</span>
+                                    <q-input outlined square :dense="true" v-model="form2.petugas_pengeluar"
+                                        class="bg-white margin_btn"
                                         :rules="[v => !!v || 'Petugas pengeluar harus diisi']" />
                                 </div>
 
                                 <div class="col-12 col-md-6">
-                                    <q-input outlined dense label="Penerima Darah" v-model="form2.penerima_darah"
-                                        :rules="[v => !!v || 'Penerima harus diisi']" />
+                                    <span class="h_lable">Penerima Darah</span>
+                                    <q-input outlined square :dense="true" v-model="form2.penerima_darah"
+                                        class="bg-white margin_btn" :rules="[v => !!v || 'Penerima harus diisi']" />
                                 </div>
+                            </div>
 
-                                <div class="col-12 col-md-6">
-                                    <q-input outlined dense label="Tanggal Pengambilan" readonly
-                                        :value="displayTanggalPengambilan" @focus="$refs.dateStage2.show()" />
-                                    <q-popup-proxy ref="dateStage2" transition-show="scale" transition-hide="scale">
-                                        <q-date v-model="form2.tanggal_pengambilan" @input="$refs.dateStage2.hide()" />
-                                    </q-popup-proxy>
-                                </div>
-
-                                <div class="col-12 col-md-6">
-                                    <q-input outlined dense label="Jam Pengambilan" readonly
-                                        :value="displayJamPengambilan" @focus="$refs.timeStage2.show()" />
-                                    <q-popup-proxy ref="timeStage2" transition-show="scale" transition-hide="scale">
-                                        <q-time v-model="form2.jam_pengambilan" format="24h"
-                                            @input="$refs.timeStage2.hide()" />
-                                    </q-popup-proxy>
-                                </div>
-
+                            <div class="row q-col-gutter-md">
                                 <div class="col-12">
-                                    <q-input outlined dense type="textarea" autogrow
-                                        label="Catatan Pengambilan (opsional)" v-model="form2.catatan_pengambilan" />
+                                    <span class="h_lable">Catatan Pengambilan (opsional)</span>
+                                    <q-input outlined square :dense="true" type="textarea" autogrow
+                                        v-model="form2.catatan_pengambilan" class="bg-white margin_btn" />
                                 </div>
                             </div>
 
-                            <div class="row items-center q-mt-md">
-                                <q-space />
-                                <q-btn flat label="Batal" color="negative" @click="closeStage2" />
-                                <q-btn :loading="loading2" color="primary" label="Simpan Pengambilan" type="submit" />
-                            </div>
-                        </q-form>
-                    </div>
-                </q-card-section>
+                        </div>
+                    </q-card-section>
+
+                    <hr class="hrpagin2" />
+
+                    <q-card-actions class="bg-grey-4 mdl-footer" align="right">
+                        <q-btn label="Batal" color="negative" @click="closeStage2" />
+                        <q-btn :loading="loading2" color="teal" label="Simpan" type="submit" />
+                    </q-card-actions>
+                </form>
             </q-card>
         </q-dialog>
+
 
         <!-- MODAL REJECT -->
         <q-dialog v-model="mdl_reject" persistent>
@@ -1116,7 +1208,7 @@
                     <form @submit.prevent="submitReject">
                         <br>
                         <div class="text-h6">Alasan Penolakan</div>
-                        <q-input v-model="reject_reason" type="textarea" outlined square :dense="true"
+                        <q-input v-model="reject_reason" type="textarea" outlined square :dense="true" autogrow
                             class="bg-white q-mt-md" required />
                         <q-card-actions align="center" class="q-mt-md">
                             <q-btn label="Batal" size="sm" color="secondary" v-close-popup
@@ -1181,6 +1273,70 @@
 
         <!-- ================================================ MODAL HAPUS ================================================ -->
 
+        <!-- MODAL TAMPILKAN PENGAMBILAN (styled sama persis dengan mdl_hapus) -->
+        <q-dialog v-model="mdl_taken" persistent>
+            <q-card class="mdl-sm">
+                <q-card-section class="q-pt-none text-center redGrad">
+                    <div>
+                        <br>
+                        <img src="img/alert.png" alt="" width="75"> <br>
+
+                        <!-- Judul -->
+                        <div class="q-mt-sm">
+                            <span class="h_notifikasi">DETAIL PENGAMBILAN DARAH</span>
+                        </div>
+
+                        <!-- Konten info -->
+                        <div class="q-mt-md text-white" style="text-align:left; margin: 0 18px; margin-top: 18px">
+
+                            <div class="q-mb-sm">
+                                <strong>Petugas Pengeluar:</strong>
+                                <div class="q-ml-sm" style="color:#fff;">
+                                    {{ taken_target && taken_target.petugas_pengeluar ? taken_target.petugas_pengeluar :
+                                '-' }}
+                                </div>
+                            </div>
+
+                            <div class="q-mb-sm">
+                                <strong>Penerima Darah:</strong>
+                                <div class="q-ml-sm" style="color:#fff;">
+                                    {{ taken_target && taken_target.penerima_darah ? taken_target.penerima_darah : '-'
+                                    }}
+                                </div>
+                            </div>
+
+                            <div class="q-mb-sm">
+                                <strong>Catatan Pengambilan:</strong>
+                                <div class="q-ml-sm" style="color:#fff; white-space:pre-wrap;">
+                                    {{ taken_target && taken_target.catatan_pengambilan ?
+                                taken_target.catatan_pengambilan : '-' }}
+                                </div>
+                            </div>
+
+                            <div class="q-mb-sm">
+                                <strong>Tanggal & Jam Pengambilan:</strong>
+                                <div class="q-ml-sm" style="color:#fff;">
+                                    {{ taken_target && taken_target.tanggal_pengambilan ?
+                                    UMUM.tglConvertx(taken_target.tanggal_pengambilan, true) : '-' }}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <br>
+                    </div>
+
+                    <!-- footer action (tengah) -->
+                    <q-card-actions align="center">
+                        <q-btn label="Tutup" size="sm" color="negative" v-close-popup @click="closeTaken" />
+                        &nbsp;
+
+                        <q-btn v-if="tipe === 3" label="Diterima" size="sm" color="primary" :loading="loadingTaken"
+                            @click="confirmTaken" />
+                    </q-card-actions>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
 
 
 
@@ -1272,6 +1428,28 @@ export default {
                 status_keterangan: ''
             },
 
+            // tambah di data()
+            periksa_target: null, // dipakai di template untuk ringkasan sebelum periksa
+            // form1 dipakai oleh template modal tahap 1 (sesuaikan struktur)
+            form1: {
+                id: null,
+                petugas_pemeriksa: '',
+                tanggal_pemeriksaan: '',
+                golongan_darah_hasil: '',
+                exp: '',
+                rhesus_hasil: '',
+                kadar_hb: null,
+                catatan_tambahan: '',
+                crossmatch_1: '',
+                crossmatch_2: '',
+                crossmatch_3: '',
+                jumlah_darah_diberikan: null,
+                jumlah_darah_diberikan_cc: null,
+                nomor_kantong: ''
+            },
+            loading1: false, // jika dipakai sebagai v-loading pada tombol Simpan Tahap1
+
+
 
 
             list_data: [],
@@ -1304,8 +1482,9 @@ export default {
                 { label: 'Semua', value: null },
                 { label: 'Diajukan', value: 1 },
                 { label: 'Diperiksa', value: 2 },
-                { label: 'Disetujui', value: 3 },
-                { label: 'Ditolak', value: 4 }
+                { label: 'Siap Diambil', value: 3 },
+                { label: 'Selesai', value: 4 },
+                { label: 'Ditolak', value: 5 }
             ],
 
             mdl_periksa: false,
@@ -1323,12 +1502,33 @@ export default {
                 crossmatch_2: '',
                 crossmatch_3: '',
                 jumlah_darah_diberikan: null,
+                jumlah_darah_diberikan_cc: null,
                 nomor_kantong: '',
                 petugas_pengeluar: '',
                 penerima_darah: ''
             },
-            reject_reason: ''
+            reject_reason: '',
+            /* ===== Stage 2 (Pengambilan) state ===== */
+            mdl_stage2: false,
+            stage2_target: null,
+            form2: {
+                petugas_pengeluar: '',
+                penerima_darah: '',
+
+                catatan_pengambilan: ''
+            },
+            loading2: false,
+            mdl_taken: false,
+            taken_target: null,
+            loadingTaken: false,
+
+
         }
+    },
+    computed: {
+        displayTanggalPemeriksaan() {
+            return this.form1 && this.form1.tanggal_pemeriksaan ? this.UMUM.tglConvert(this.form1.tanggal_pemeriksaan) : '';
+        },
     },
     methods: {
 
@@ -1336,8 +1536,9 @@ export default {
             const s = Number(st);
             if (s === 1) return 'orange';    // Diajukan
             if (s === 2) return 'info';      // Diperiksa
-            if (s === 3) return 'positive';  // Disetujui
-            if (s === 4) return 'negative';  // Ditolak
+            if (s === 3) return 'secondary'; // Siap Diambil (gunakan warna berbeda)
+            if (s === 4) return 'positive';  // Selesai (diambil)
+            if (s === 5) return 'negative';  // Ditolak
             return 'grey';
         },
         getView() {
@@ -1635,55 +1836,48 @@ export default {
                 return;
             }
 
-            // disable tombol sementara
             this.btn_periksa = true;
 
             try {
-                // 1) set status = 2 (Diperiksa) dulu
-                const payload = {
-                    id: row.id,
-                    status: 2
-                    // tidak perlu status_keterangan karena backend akan set default
-                };
-
+                // set status = 2 (Diperiksa)
+                const payload = { id: row.id, status: 2 };
                 const res = await this.updateStatusRequest(payload);
 
                 if (!res || !res.success) {
-                    // jika gagal, beri notifikasi dan jangan buka modal
                     this.$q.notify({ type: 'negative', message: res && res.message ? res.message : 'Gagal ubah status menjadi Diperiksa' });
                     return;
                 }
 
-                // 2) update local UI: set status di list dan di lihat_target (optimistic update)
+                // update local UI
                 row.status = 2;
                 if (this.lihat_target && this.lihat_target.id === row.id) {
                     this.lihat_target.status = 2;
                     this.lihat_target.status_keterangan = 'Permintaan Sedang diperiksa';
                 }
 
-                // 3) prefill periksa_form dengan data yang mungkin sudah ada (atau kosong)
-                this.periksa_form = {
+                // set periksa_target (dipakai di template)
+                this.periksa_target = row;
+
+                // isi form1 (prefill)
+                this.form1 = {
                     id: row.id,
-                    petugas_pemeriksa: '', // biarkan user isi
-                    tanggal_pemeriksaan: new Date().toISOString().slice(0, 16), // yyyy-mm-ddTHH:MM
-                    golongan_darah_hasil: row.golongan_darah || '',
-                    rhesus_hasil: row.rhesus || '',
+                    petugas_pemeriksa: row.petugas_pemeriksa || '',
+                    tanggal_pemeriksaan: row.tanggal_pemeriksaan || new Date().toISOString().slice(0, 10),
+                    exp: row.exp || new Date().toISOString().slice(0, 10),
+                    golongan_darah_hasil: row.golongan_darah_hasil || row.golongan_darah || '',
+                    rhesus_hasil: row.rhesus_hasil || row.rhesus || '',
+                    kadar_hb: row.kadar_hb || null,
                     catatan_tambahan: row.catatan_tambahan || '',
                     crossmatch_1: row.crossmatch_1 || '',
                     crossmatch_2: row.crossmatch_2 || '',
                     crossmatch_3: row.crossmatch_3 || '',
                     jumlah_darah_diberikan: row.jumlah_darah_diberikan || null,
-                    nomor_kantong: row.nomor_kantong || '',
-                    petugas_pengeluar: row.petugas_pengeluar || '',
-                    penerima_darah: row.penerima_darah || ''
+                    jumlah_darah_diberikan_cc: row.jumlah_darah_diberikan_cc || null,
+                    nomor_kantong: row.nomor_kantong || ''
                 };
 
-                // buka modal pemeriksaan
                 this.mdl_periksa = true;
-
-                // refresh list sedikit agar status 2 terlihat (opsional)
                 this.getView();
-
             } catch (err) {
                 console.error('Error openPeriksaFor:', err);
                 this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat memulai pemeriksaan' });
@@ -1692,6 +1886,75 @@ export default {
             }
         },
 
+        async saveStage1() {
+            // minimal validation
+            if (!this.form1 || !this.form1.id) {
+                this.$q.notify({ type: 'negative', message: 'Form pemeriksaan belum terisi dengan benar' });
+                return;
+            }
+            if (!this.form1.petugas_pemeriksa) {
+                this.$q.notify({ type: 'negative', message: 'Petugas pemeriksa harus diisi' });
+                return;
+            }
+
+            this.loading1 = true;
+            try {
+                // payload untuk tahap 1 -> set status = 3 (Siap Diambil)
+                const payload = {
+                    id: this.form1.id,
+                    status: 3,
+                    status_keterangan: 'Siap diambil - Menunggu pengambilan oleh keluarga/ruangan',
+                    petugas_pemeriksa: this.form1.petugas_pemeriksa,
+                    tanggal_pemeriksaan: this.form1.tanggal_pemeriksaan || null,
+                    golongan_darah_hasil: this.form1.golongan_darah_hasil || null,
+                    rhesus_hasil: this.form1.rhesus_hasil || null,
+                    catatan_tambahan: this.form1.catatan_tambahan || null,
+                    crossmatch_1: this.form1.crossmatch_1 || null,
+                    crossmatch_2: this.form1.crossmatch_2 || null,
+                    crossmatch_3: this.form1.crossmatch_3 || null,
+                    jumlah_darah_diberikan: this.form1.jumlah_darah_diberikan || null,
+                    jumlah_darah_diberikan_cc: this.form1.jumlah_darah_diberikan_cc || null,
+                    nomor_kantong: this.form1.nomor_kantong || null
+                };
+
+                const res = await this.updateStatusRequest(payload);
+                if (!res || !res.success) {
+                    this.$q.notify({ type: 'negative', message: res && res.message ? res.message : 'Gagal menyimpan hasil pemeriksaan' });
+                    return;
+                }
+
+                this.$q.notify({ type: 'positive', message: res.message || 'Simpan tahap 1 berhasil. Lanjut ke Tahap 2.' });
+
+                // update lihat_target (jika terbuka)
+                if (this.lihat_target && this.lihat_target.id === this.form1.id) {
+                    this.lihat_target.status = 3;
+                    this.lihat_target.status_keterangan = payload.status_keterangan;
+                    Object.assign(this.lihat_target, {
+                        petugas_pemeriksa: payload.petugas_pemeriksa,
+                        tanggal_pemeriksaan: payload.tanggal_pemeriksaan,
+                        golongan_darah_hasil: payload.golongan_darah_hasil,
+                        rhesus_hasil: payload.rhesus_hasil,
+                        catatan_tambahan: payload.catatan_tambahan,
+                        crossmatch_1: payload.crossmatch_1,
+                        crossmatch_2: payload.crossmatch_2,
+                        crossmatch_3: payload.crossmatch_3,
+                        jumlah_darah_diberikan: payload.jumlah_darah_diberikan,
+                        jumlah_darah_diberikan_cc: payload.jumlah_darah_diberikan_cc,
+                        nomor_kantong: payload.nomor_kantong
+                    });
+                }
+
+                this.$q.notify({ type: 'positive', message: 'Simpan tahap 1 berhasil.' });
+                this.mdl_periksa = false;
+                this.getView();
+
+            } catch (err) {
+                console.error('saveStage1 error', err);
+                this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat menyimpan tahap 1' });
+            } finally {
+                this.loading1 = false;
+            }
+        },
 
         // simpan hasil pemeriksaan -> status = 2 (Diperiksa)
         async submitPeriksa() {
@@ -1700,13 +1963,18 @@ export default {
                 return;
             }
 
+            if (!this.periksa_form.petugas_pemeriksa) {
+                this.$q.notify({ type: 'negative', message: 'Petugas pemeriksa harus diisi' });
+                return;
+            }
+
             this.btn_periksa = true;
 
             try {
                 const payload = {
                     id: this.periksa_form.id,
-                    status: 3, // langsung setujui pada saat simpan pemeriksaan
-                    status_keterangan: 'Permintaan Darah sudah berhasil',
+                    status: 3, // **BARU**: 3 = Siap Diambil (bukan selesai)
+                    status_keterangan: 'Siap diambil - Menunggu pengambilan oleh keluarga/ruangan',
 
                     // fields pemeriksaan yang backend menerima
                     petugas_pemeriksa: this.periksa_form.petugas_pemeriksa || null,
@@ -1718,9 +1986,9 @@ export default {
                     crossmatch_2: this.periksa_form.crossmatch_2 || null,
                     crossmatch_3: this.periksa_form.crossmatch_3 || null,
                     jumlah_darah_diberikan: this.periksa_form.jumlah_darah_diberikan || null,
-                    nomor_kantong: this.periksa_form.nomor_kantong || null,
-                    petugas_pengeluar: this.periksa_form.petugas_pengeluar || null,
-                    penerima_darah: this.periksa_form.penerima_darah || null
+                    jumlah_darah_diberikan_cc: this.periksa_form.jumlah_darah_diberikan_cc || null,
+                    nomor_kantong: this.periksa_form.nomor_kantong || null
+                    // petugas_pengeluar & penerima_darah: DIISI PADA TAHAP 2
                 };
 
                 const res = await this.updateStatusRequest(payload);
@@ -1731,14 +1999,13 @@ export default {
                 }
 
                 // success: tutup modal, refresh list, beri notifikasi
-                this.$q.notify({ type: 'positive', message: res.message || 'Pemeriksaan disimpan dan permintaan disetujui' });
-                this.mdl_periksa = false;
+                // success: notify, close periksa modal and open stage2 modal
+                this.$q.notify({ type: 'positive', message: res.message || 'Simpan tahap 1 berhasil. Silakan lanjut ke Tahap 2 (Pengambilan).' });
 
-                // update local target & list agar status jadi 3
+                // update local state
                 if (this.lihat_target && this.lihat_target.id === this.periksa_form.id) {
                     this.lihat_target.status = 3;
-                    this.lihat_target.status_keterangan = 'Permintaan Darah sudah berhasil';
-                    // juga simpan hasil pemeriksaan pada lihat_target agar tampil di detail
+                    this.lihat_target.status_keterangan = payload.status_keterangan;
                     Object.assign(this.lihat_target, {
                         petugas_pemeriksa: payload.petugas_pemeriksa,
                         tanggal_pemeriksaan: payload.tanggal_pemeriksaan,
@@ -1749,13 +2016,23 @@ export default {
                         crossmatch_2: payload.crossmatch_2,
                         crossmatch_3: payload.crossmatch_3,
                         jumlah_darah_diberikan: payload.jumlah_darah_diberikan,
-                        nomor_kantong: payload.nomor_kantong,
-                        petugas_pengeluar: payload.petugas_pengeluar,
-                        penerima_darah: payload.penerima_darah
+                        jumlah_darah_diberikan_cc: payload.jumlah_darah_diberikan_cc,
+                        nomor_kantong: payload.nomor_kantong
                     });
                 }
 
-                this.getView(); // refresh daftar
+                // tutup modal pemeriksaan tahap 1
+                this.mdl_periksa = false;
+                // siapkan stage2_target dan preload form2 (kosongkan petugas & penerima)
+                this.stage2_target = { id: this.periksa_form.id };
+                this.form2 = {
+                    petugas_pengeluar: '',
+                    penerima_darah: '',
+                    catatan_pengambilan: ''
+                };
+
+                // refresh daftar
+                this.getView();
             } catch (err) {
                 console.error('Error submitPeriksa:', err);
                 this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat menyimpan pemeriksaan' });
@@ -1764,6 +2041,63 @@ export default {
             }
         },
 
+        // Stage 2 (simpan pengambilan) -> status = 4 (Selesai)
+        async saveStage2() {
+            if (!this.stage2_target || !this.stage2_target.id) {
+                this.$q.notify({ type: 'negative', message: 'Tidak ada permintaan yang dipilih untuk pengambilan' });
+                return;
+            }
+
+            // validasi minimal
+            if (!this.form2.petugas_pengeluar || !this.form2.penerima_darah) {
+                this.$q.notify({ type: 'negative', message: 'Isi semua field wajib pengambilan' });
+                return;
+            }
+
+            this.loading2 = true;
+
+            try {
+                const payload = {
+                    id: this.stage2_target.id,
+                    status: 6, // selesai / sudah diambil
+                    status_keterangan: 'Sudah diambil',
+                    petugas_pengeluar: this.form2.petugas_pengeluar,
+                    penerima_darah: this.form2.penerima_darah,
+                    catatan_pengambilan: this.form2.catatan_pengambilan || null
+                };
+
+                const res = await this.updateStatusRequest(payload);
+
+                if (!res || !res.success) {
+                    this.$q.notify({ type: 'negative', message: res && res.message ? res.message : 'Gagal menyimpan pengambilan' });
+                    return;
+                }
+
+                this.$q.notify({ type: 'positive', message: res.message || 'Pengambilan berhasil disimpan. Permintaan selesai.' });
+
+                // update local lihat_target jika relevan
+                if (this.lihat_target && this.lihat_target.id === this.stage2_target.id) {
+                    this.lihat_target.status = 4;
+                    this.lihat_target.status_keterangan = payload.status_keterangan;
+                    Object.assign(this.lihat_target, {
+                        petugas_pengeluar: payload.petugas_pengeluar,
+                        penerima_darah: payload.penerima_darah,
+                        catatan_pengambilan: payload.catatan_pengambilan
+                    });
+                }
+
+                // tutup modal stage2 dan refresh daftar
+                this.mdl_stage2 = false;
+                this.stage2_target = null;
+                this.getView();
+
+            } catch (err) {
+                console.error('Error saveStage2:', err);
+                this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat menyimpan pengambilan' });
+            } finally {
+                this.loading2 = false;
+            }
+        },
 
         // tombol 'Ditolak' -> buka modal isian alasan
         openReject(row) {
@@ -1797,7 +2131,7 @@ export default {
             this.btn_reject = true;
             const payload = {
                 id: this.lihat_target.id,
-                status: 4,
+                status: 5,
                 status_keterangan: this.reject_reason
             };
             this.updateStatusRequest(payload)
@@ -1856,6 +2190,118 @@ export default {
                 })
         },
 
+        closePeriksa() {
+            this.mdl_periksa = false;
+            this.periksa_target = null;
+            // reset form1 agar bersih
+            this.form1 = {
+                id: null,
+                petugas_pemeriksa: '',
+                tanggal_pemeriksaan: '',
+                golongan_darah_hasil: '',
+                rhesus_hasil: '',
+                kadar_hb: null,
+                catatan_tambahan: '',
+                crossmatch_1: '',
+                crossmatch_2: '',
+                crossmatch_3: '',
+                jumlah_darah_diberikan: null,
+                jumlah_darah_diberikan_cc: null,
+                nomor_kantong: ''
+            };
+            this.loading1 = false;
+        },
+
+        openStage2(row) {
+            if (!row || !row.id) {
+                this.$q.notify({ type: 'negative', message: 'Data permintaan tidak valid' });
+                return;
+            }
+
+            const st = Number(row.status);
+
+            if (st === 3) {
+                // Buka modal Stage 2 untuk input pengambilan (seperti sebelumnya)
+                this.stage2_target = { id: row.id };
+                // prefill form2 bila ada data
+                this.form2 = {
+                    petugas_pengeluar: row.petugas_pengeluar || '',
+                    penerima_darah: row.penerima_darah || '',
+                    tanggal_pengambilan: row.tanggal_pengambilan || null,
+                    jam_pengambilan: row.jam_pengambilan || null,
+                    catatan_pengambilan: row.catatan_pengambilan || ''
+                };
+                this.mdl_stage2 = true;
+                return;
+            }
+
+            if (st === 6) {
+                // Buka modal read-only untuk data pengambilan
+                this.taken_target = Object.assign({}, row);
+                this.mdl_taken = true;
+                return;
+            }
+
+            // fallback: jika bukan 3 atau 6, buka keterangan seperti biasa
+            this.lihatKeterangan(row);
+        },
+
+        closeTaken() {
+            this.mdl_taken = false;
+            this.taken_target = null;
+        },
+
+
+        closeStage2() {
+            this.mdl_stage2 = false;
+            this.stage2_target = null;
+            this.form2 = {
+                petugas_pengeluar: '',
+                penerima_darah: '',
+
+                catatan_pengambilan: ''
+            };
+            this.loading2 = false;
+        },
+
+        async confirmTaken() {
+            if (!this.taken_target || !this.taken_target.id) {
+                this.$q.notify({ type: 'negative', message: 'Data tidak valid' });
+                return;
+            }
+
+            this.loadingTaken = true;
+
+            try {
+                const payload = {
+                    id: this.taken_target.id,
+                    status: 4,                           // ubah status ke 4 (Diterima)
+                    status_keterangan: "Darah telah diterima"
+                };
+
+                const res = await this.updateStatusRequest(payload);
+
+                if (!res || !res.success) {
+                    this.$q.notify({ type: 'negative', message: res?.message || 'Gagal mengubah status' });
+                    return;
+                }
+
+                this.$q.notify({ type: 'positive', message: 'Status berhasil diubah menjadi Diterima' });
+
+                // tutup modal dan refresh list
+                this.mdl_taken = false;
+                this.taken_target = null;
+                this.getView();
+
+            } catch (err) {
+                console.error("Error confirmTaken:", err);
+                this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat mengubah status' });
+            } finally {
+                this.loadingTaken = false;
+            }
+        },
+
+
         Notify(message, color, icon) {
             this.$q.notify({
                 message,
@@ -1884,8 +2330,9 @@ export default {
             const c = Number(code)
             if (c === 1) return 'Menunggu Diperiksa oleh Admin UPD'
             if (c === 2) return 'Permintaan Sedang diperiksa'
-            if (c === 3) return 'Permintaan Darah sudah berhasil'
-            if (c === 4) return keterangan || 'Ditolak'
+            if (c === 3) return 'Siap Diambil (Menunggu Pengambilan)'
+            if (c === 4) return 'Permintaan Darah sudah berhasil'
+            if (c === 5) return keterangan || 'Ditolak'
             return '-'
         }
     },
@@ -1900,6 +2347,8 @@ export default {
             }
         }
     },
+
+
 
     mounted() {
         // ambil profile dari localStorage (sesuai contoh kamu)

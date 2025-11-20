@@ -20,6 +20,36 @@ const tglConvert = (tgl) => {
     return date.getDate() + " " + bulan + " " + date.getFullYear();
 }
 
+const tglConvertx = (tgl, withTime = false) => {
+  var date = new Date(tgl);
+  var getBulan = date.getMonth() + 1; 
+  var bulan = '';
+
+  if (getBulan == 1) bulan = 'Januari';
+  else if (getBulan == 2) bulan = 'Februari';
+  else if (getBulan == 3) bulan = 'Maret';
+  else if (getBulan == 4) bulan = 'April';
+  else if (getBulan == 5) bulan = 'Mei';
+  else if (getBulan == 6) bulan = 'Juni';
+  else if (getBulan == 7) bulan = 'Juli';
+  else if (getBulan == 8) bulan = 'Agustus';
+  else if (getBulan == 9) bulan = 'September';
+  else if (getBulan == 10) bulan = 'Oktober';
+  else if (getBulan == 11) bulan = 'November';
+  else if (getBulan == 12) bulan = 'Desember';
+
+  let tglStr = date.getDate() + " " + bulan + " " + date.getFullYear() + " Pukul : ";
+
+  if (withTime) {
+      let jam = date.getHours().toString().padStart(2, '0');
+      let menit = date.getMinutes().toString().padStart(2, '0');
+      tglStr += ` ${jam}:${menit}`;
+  }
+
+  return tglStr;
+}
+
+
 function hitungUsia(tanggalLahir) {
     if (!tanggalLahir) return '-';
     const lahir = new Date(tanggalLahir);
@@ -93,6 +123,7 @@ const ArrToObj = (data) =>{
 
 module.exports = {
     tglConvert : tglConvert,
+    tglConvertx : tglConvertx,
     btn_prev : btn_prev,
     btn_next : btn_next,
     notifApprove : notifApprove,

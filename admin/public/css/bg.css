@@ -14,6 +14,16 @@
 .orageGrad{
     background-image: linear-gradient(to left, #fdc99a, #ffb778, #ffa457, #ff9034, #ff7a00);
 }
+.redGrad {
+    background-image: linear-gradient(to left, 
+        #ffb3b3, 
+        #ff9999, 
+        #ff6666, 
+        #ff3333, 
+        #ff0000
+    );
+}
+
 
 .abuGrad {
     background-image: linear-gradient(to left, #d6d6d5, #b9b8b7, #9c9b9b, #7f7f7f, #646464);
