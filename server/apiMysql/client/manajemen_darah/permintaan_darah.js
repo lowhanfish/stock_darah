@@ -704,7 +704,7 @@ router.post('/updateStatus', (req, res) => {
   // fields yang boleh diupdate. NOTE: tanggal_pengambilan ditangani terpisah supaya bisa set NOW()
   const allowed = [
     'status_keterangan', 'petugas_pemeriksa', 'tanggal_pemeriksaan',
-    'golongan_darah_hasil', 'rhesus_hasil', 'catatan_tambahan',
+    'golongan_darah_hasil', 'exp', 'rhesus_hasil', 'catatan_tambahan',
     'crossmatch_1', 'crossmatch_2', 'crossmatch_3',
     'jumlah_darah_diberikan', 'jumlah_darah_diberikan_cc', 'nomor_kantong',
     'petugas_pengeluar', 'penerima_darah',
