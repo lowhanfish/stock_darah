@@ -59,13 +59,13 @@
                 <thead class="h_table_head main2x text-white">
                     <tr>
                         <th width="5%" class="text-center">No</th>
-                        <th width="5%">Status</th>
+                        <th width="10%" class="text-center">Status</th>
                         <th width="15%">Nama Pasien</th>
-                        <th width="15%">Tgl Lahir</th>
+                        <th width="10%">Tgl Lahir</th>
                         <th width="5%">Gol.Darah</th>
-                        <th width="20%">Komponen</th>
-                        <th width="5%" class="text-center">Jumlah (Kantong)</th>
-                        <th width="15%">Tgl Permintaan</th>
+                        <th width="15%">Komponen</th>
+                        <th width="10%" class="text-center">Jumlah Permintaan (Kantong)</th>
+                        <th width="10%" class="text-center">Jumlah diberikan (Kantong)</th>
                         <th width="15%" class="text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -73,7 +73,7 @@
                     <tr v-for="(data, index) in list_data" :key="data.id + '-' + index">
                         <td class="text-center">{{ indexing(index + 1) }}</td>
                         <td class="text-center">
-                            
+
                             <div class="removeTextDecoration">
                                 <!-- Pengajuan (bisa buka keterangan) -->
                                 <q-badge v-if="Number(data.status) === 1" color="orange" text-color="white"
@@ -101,7 +101,7 @@
 
                                 <!-- Selesai (bisa buka keterangan) -->
                                 <q-badge v-else-if="Number(data.status) === 4" color="green" text-color="white"
-                                    class="q-pa-xs text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                    class="q-pa-xs text-bold cursor-pointer" @click="openStage2(data)">
                                     Selesai
                                 </q-badge>
 
@@ -136,7 +136,7 @@
                         <td class="text-center">{{ data.golongan_darah }}{{ data.rhesus }}</td>
                         <td>{{ data.nama_komponen || '-' }}</td>
                         <td class="text-center">{{ data.jumlah_kantong }}</td>
-                        <td>{{ UMUM.tglConvert(data.tanggal_permintaan) }}</td>
+                        <td class="text-center">{{ data.jumlah_darah_diberikan || "-" }}</td>
 
                         <td class="text-center q-gutter-sm">
                             <!-- untuk sekarang hanya lihat detail; aksi lanjutan (edit/verif) nanti -->
@@ -336,7 +336,8 @@
                             class="bg-white margin_btn" required />
 
                         <hr class="hrpagin2" />
-                        <div class="text-subtitle2 q-mb-sm">Riwayat Transfusi & Pemeriksaan Serologi</div>
+                        <div class="text-subtitle1 q-mb-sm text-bold text-center">Riwayat Transfusi & Pemeriksaan
+                            Serologi</div>
 
                         <div class="row q-col-gutter-md">
                             <!-- Transfusi Sebelumnya -->
@@ -410,381 +411,430 @@
         </q-dialog>
 
         <!-- ===================== MODAL LIHAT DETAIL ===================== -->
-<q-dialog v-model="mdl_lihat" persistent>
-    <q-card class="mdl-lg">
-        <!-- Header -->
-        <q-card-section class="bg-orange text-white row items-center justify-between">
-            <div class="text-h6 h_modalhead">Detail Permintaan Darah</div>
-            <q-btn flat round dense icon="close" color="white" v-close-popup @click="lihat_target = null"
-                class="q-ml-sm" aria-label="Tutup">
-                <q-tooltip content-class="bg-red">Tutup</q-tooltip>
-            </q-btn>
-        </q-card-section>
+        <q-dialog v-model="mdl_lihat" persistent>
+            <q-card class="mdl-lg">
+                <!-- Header -->
+                <q-card-section class="bg-orange text-white row items-center justify-between">
+                    <div class="text-h6 h_modalhead">Detail Permintaan Darah</div>
+                    <q-btn flat round dense icon="close" color="white" v-close-popup @click="lihat_target = null"
+                        class="q-ml-sm" aria-label="Tutup">
+                        <q-tooltip content-class="bg-red">Tutup</q-tooltip>
+                    </q-btn>
+                </q-card-section>
 
-        <!-- Body -->
-        <q-card-section>
-            <div v-if="lihat_target">
-                <!-- Ringkas info utama (grid responsif) -->
-                <div class="row q-col-gutter-md">
-                    <!-- Kolom Kiri -->
-                    <div class="col-12 col-md-6">
-                        <div class="detail-table">
-                            <div class="row-line">
-                                <div class="label">Nama Pasien</div>
-                                <div class="colon">:</div>
-                                <div class="value text-bold">{{ lihat_target.nama_pasien || '-' }}</div>
-                            </div>
-                            <div class="row-line">
-                                <div class="label">No. RM</div>
-                                <div class="colon">:</div>
-                                <div class="value text-bold">{{ lihat_target.nomor_rm || '-' }}</div>
-                            </div>
-                            <div class="row-line">
-                                <div class="label">Tanggal Lahir</div>
-                                <div class="colon">:</div>
-                                <div class="value text-bold">
-                                    {{ lihat_target.tanggal_lahir ? UMUM.tglConvert(lihat_target.tanggal_lahir) : '-' }}
+                <!-- Body -->
+                <q-card-section>
+                    <div v-if="lihat_target">
+                        <!-- Ringkas info utama (grid responsif) -->
+                        <div class="row q-col-gutter-md">
+                            <!-- Kolom Kiri -->
+                            <div class="col-12 col-md-6">
+                                <div class="detail-table">
+                                    <div class="row-line">
+                                        <div class="label">Nama Pasien</div>
+                                        <div class="colon">:</div>
+                                        <div class="value text-bold">{{ lihat_target.nama_pasien || '-' }}</div>
+                                    </div>
+                                    <div class="row-line">
+                                        <div class="label">No. RM</div>
+                                        <div class="colon">:</div>
+                                        <div class="value text-bold">{{ lihat_target.nomor_rm || '-' }}</div>
+                                    </div>
+                                    <div class="row-line">
+                                        <div class="label">Tanggal Lahir</div>
+                                        <div class="colon">:</div>
+                                        <div class="value text-bold">
+                                            {{ lihat_target.tanggal_lahir ? UMUM.tglConvert(lihat_target.tanggal_lahir)
+                                : '-' }}
+                                        </div>
+                                    </div>
+                                    <div class="row-line">
+                                        <div class="label">Alamat</div>
+                                        <div class="colon">:</div>
+                                        <div class="value text-bold">{{ lihat_target.alamat || '-' }}</div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="row-line">
-                                <div class="label">Alamat</div>
-                                <div class="colon">:</div>
-                                <div class="value text-bold">{{ lihat_target.alamat || '-' }}</div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Kolom Kanan -->
-                    <div class="col-12 col-md-6">
-                        <div class="detail-table">
-                            <div class="row-line">
-                                <div class="label">Dokter</div>
-                                <div class="colon">:</div>
-                                <div class="value text-bold">{{ lihat_target.nama_dokter || '-' }}</div>
-                            </div>
-                            <div class="row-line">
-                                <div class="label">Ruangan</div>
-                                <div class="colon">:</div>
-                                <div class="value text-bold">{{ lihat_target.nama_ruangan || '-' }}</div>
-                            </div>
-                            <div class="row-line">
-                                <div class="label">Tanggal Permintaan</div>
-                                <div class="colon">:</div>
-                                <div class="value text-bold">
-                                    {{ lihat_target.tanggal_permintaan ? UMUM.tglConvert(lihat_target.tanggal_permintaan) : '-' }}
+                            <!-- Kolom Kanan -->
+                            <div class="col-12 col-md-6">
+                                <div class="detail-table">
+                                    <div class="row-line">
+                                        <div class="label">Dokter</div>
+                                        <div class="colon">:</div>
+                                        <div class="value text-bold">{{ lihat_target.nama_dokter || '-' }}</div>
+                                    </div>
+                                    <div class="row-line">
+                                        <div class="label">Ruangan</div>
+                                        <div class="colon">:</div>
+                                        <div class="value text-bold">{{ lihat_target.nama_ruangan || '-' }}</div>
+                                    </div>
+                                    <div class="row-line">
+                                        <div class="label">Tanggal Permintaan</div>
+                                        <div class="colon">:</div>
+                                        <div class="value text-bold">
+                                            {{ lihat_target.tanggal_permintaan ?
+                                UMUM.tglConvert(lihat_target.tanggal_permintaan) : '-' }}
+                                        </div>
+                                    </div>
+                                    <div class="row-line">
+                                        <div class="label">Nama Wali</div>
+                                        <div class="colon">:</div>
+                                        <div class="value text-bold">{{ lihat_target.nama_wali || '-' }}</div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="row-line">
-                                <div class="label">Nama Wali</div>
-                                <div class="colon">:</div>
-                                <div class="value text-bold">{{ lihat_target.nama_wali || '-' }}</div>
-                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <q-separator spaced />
+                        <q-separator spaced />
 
-                <!-- Komponen & Jumlah (tampil lebih ringkas) -->
-                <q-list bordered dense class="rounded-borders">
-                    <q-item>
-                        <q-item-section>
-                            <q-item-label caption class="text-black"> <strong> Komponen : </strong>
-                                <span class="text-bold text-grey" style="font-size: 16px;">
-                                    {{ lihat_target.nama_komponen || '-' }}
-                                </span>
-                            </q-item-label>
-                            <div class="text-caption q-mt-xs"> <strong> Golongan Darah : </strong> <span
-                                    class="text-bold text-grey" style="font-size: 16px;">{{
+                        <!-- Komponen & Jumlah (tampil lebih ringkas) -->
+                        <q-list bordered dense class="rounded-borders">
+                            <q-item>
+                                <q-item-section>
+                                    <q-item-label caption class="text-black"> <strong> Komponen : </strong>
+                                        <span class="text-bold text-grey" style="font-size: 16px;">
+                                            {{ lihat_target.nama_komponen || '-' }}
+                                        </span>
+                                    </q-item-label>
+                                    <div class="text-caption q-mt-xs"> <strong> Golongan Darah : </strong> <span
+                                            class="text-bold text-grey" style="font-size: 16px;">{{
                                 lihat_target.golongan_darah || '-' }}{{ lihat_target.rhesus ?
                                 lihat_target.rhesus : '' }} </span>
-                            </div>
-                        </q-item-section>
+                                    </div>
+                                </q-item-section>
 
-                        <q-item-section side style="min-width:160px; text-align:right">
-                            <q-item-label caption class="text-black text-bold"> <strong> Jumlah : </strong>
-                                <span class="text-bold text-grey" style="font-size: 16px;">
-                                    {{ lihat_target.jumlah_kantong }} Kantong
-                                </span>
-                            </q-item-label>
-                            <q-item-label caption class="text-black text-bold"> <strong> Volume : </strong>
-                                <span class="text-bold text-grey" style="font-size: 16px;">
-                                    {{ lihat_target.jumlah_cc !== null ? lihat_target.jumlah_cc + ' cc' : '-' }}
-                                </span>
-                            </q-item-label>
-                        </q-item-section>
-                    </q-item>
+                                <q-item-section side style="min-width:160px; text-align:right">
+                                    <q-item-label caption class="text-black text-bold"> <strong> Jumlah : </strong>
+                                        <span class="text-bold text-grey" style="font-size: 16px;">
+                                            {{ lihat_target.jumlah_kantong }} Kantong
+                                        </span>
+                                    </q-item-label>
+                                    <q-item-label caption class="text-black text-bold"> <strong> Volume : </strong>
+                                        <span class="text-bold text-grey" style="font-size: 16px;">
+                                            {{ lihat_target.jumlah_cc !== null ? lihat_target.jumlah_cc + ' cc' : '-' }}
+                                        </span>
+                                    </q-item-label>
+                                </q-item-section>
+                            </q-item>
 
-                    <q-separator inset />
+                            <q-separator inset />
 
-                    <q-item>
-                        <q-item-section>
-                            <q-item-label caption class="text-black text-bold">Status</q-item-label>
-                            <q-item-label>
-                                <q-chip :color="statusColor(lihat_target.status)" text-color="white" size="md"
-                                    class="q-mr-sm">
-                                    {{ statusText(lihat_target.status) }}
-                                </q-chip>
-                            </q-item-label>
-                        </q-item-section>
+                            <q-item>
+                                <q-item-section>
+                                    <q-item-label caption class="text-black text-bold">Status</q-item-label>
+                                    <q-item-label>
+                                        <q-chip :color="statusColor(lihat_target.status)" text-color="white" size="md"
+                                            class="q-mr-sm">
+                                            {{ statusText(lihat_target.status) }}
+                                        </q-chip>
+                                    </q-item-label>
+                                </q-item-section>
 
-                        <q-item-section side style="min-width:140px; text-align:right">
-                            <q-item-label caption class="text-black text-bold">Permintaan dibuat</q-item-label>
-                            <q-item-label class="text-weight-medium text-bold">
-                                {{ lihat_target.created_at ? UMUM.tglConvert(lihat_target.created_at, true) : '-' }}
-                            </q-item-label>
-                        </q-item-section>
-                    </q-item>
-                </q-list>
+                                <q-item-section side style="min-width:140px; text-align:right">
+                                    <q-item-label caption class="text-black text-bold">Permintaan dibuat</q-item-label>
+                                    <q-item-label class="text-weight-medium text-bold">
+                                        {{ lihat_target.created_at ? UMUM.tglConvert(lihat_target.created_at, true) :
+                                '-' }}
+                                    </q-item-label>
+                                </q-item-section>
+                            </q-item>
+                        </q-list>
 
-                <!-- Clinical details -->
-                <div class="q-mt-md">
-                    <div class="text-subtitle2 q-mb-xs">Diagnosis : </div>
-                    <div class="detail-table">
-                        <div class="row-line">
-                            <div class="label"></div>
-                            <div class="colon"></div>
-                            <div class="value text-bold">{{ lihat_target.diagnosis_klinis || '-' }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="q-mt-md">
-                    <div class="text-subtitle2 q-mb-xs">Alasan Transfusi : </div>
-                    <div class="detail-table">
-                        <div class="row-line">
-                            <div class="label"></div>
-                            <div class="colon"></div>
-                            <div class="value text-bold">{{ lihat_target.alasan_transfusi || '-' }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <q-separator spaced />
-
-                <!-- Riwayat Transfusi & Pemeriksaan Serologi -->
-                <div class="q-mt-md">
-                    <div class="text-subtitle1 text-weight-medium q-mb-sm">Riwayat Transfusi & Pemeriksaan Serologi</div>
-                    <div class="row q-col-gutter-md">
-                        <!-- Transfusi Sebelumnya -->
-                        <div class="col-12 col-md-6">
+                        <!-- Clinical details -->
+                        <div class="q-mt-md">
+                            <div class="text-subtitle2 q-mb-xs">Diagnosis : </div>
                             <div class="detail-table">
                                 <div class="row-line">
-                                    <div class="label">Transfusi Sebelumnya</div>
-                                    <div class="colon">:</div>
-                                    <div class="value text-bold">{{ lihat_target.transfusi_sebelumnya || '-' }}</div>
-                                </div>
-                                <div class="row-line" v-if="lihat_target.transfusi_sebelumnya === 'Ya'">
-                                    <div class="label">Kapan</div>
-                                    <div class="colon">:</div>
-                                    <div class="value text-bold">{{ lihat_target.transfusi_kapan || '-' }}</div>
+                                    <div class="label"></div>
+                                    <div class="colon"></div>
+                                    <div class="value text-bold">{{ lihat_target.diagnosis_klinis || '-' }}</div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Reaksi Transfusi -->
-                        <div class="col-12 col-md-6">
+                        <div class="q-mt-md">
+                            <div class="text-subtitle2 q-mb-xs">Alasan Transfusi : </div>
                             <div class="detail-table">
                                 <div class="row-line">
-                                    <div class="label">Reaksi Transfusi</div>
-                                    <div class="colon">:</div>
-                                    <div class="value text-bold">{{ lihat_target.reaksi_transfusi || '-' }}</div>
-                                </div>
-                                <div class="row-line" v-if="lihat_target.reaksi_transfusi === 'Ya'">
-                                    <div class="label">Gejala</div>
-                                    <div class="colon">:</div>
-                                    <div class="value text-bold">{{ lihat_target.gejala_transfusi || '-' }}</div>
+                                    <div class="label"></div>
+                                    <div class="colon"></div>
+                                    <div class="value text-bold">{{ lihat_target.alasan_transfusi || '-' }}</div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Coombs / pemeriksaan ringkas -->
-                <div class="row q-col-gutter-md q-mt-md">
-                    <div class="col-12 col-md-4">
-                        <div class="detail-table">
-                            <div class="row-line">
-                                <div class="label">Coomb Test</div>
-                                <div class="colon">:</div>
-                                <div class="value text-bold">{{ lihat_target.coomb_test || '-' }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-4">
-                        <div class="detail-table">
-                            <div class="row-line">
-                                <div class="label">Tempat Coomb</div>
-                                <div class="colon">:</div>
-                                <div class="value text-bold">{{ lihat_target.coomb_tempat || '-' }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-4">
-                        <div class="detail-table">
-                            <div class="row-line">
-                                <div class="label">Hasil Coomb</div>
-                                <div class="colon">:</div>
-                                <div class="value text-bold">{{ lihat_target.coomb_hasil || '-' }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Untuk pasien wanita -->
-                <div v-if="lihat_target && lihat_target.jenis_kelamin === 'P'" class="q-mt-md">
-                    <q-separator spaced />
-                    <div class="text-subtitle1 text-weight-medium q-mb-sm">Khusus Pasien Wanita</div>
-                    <div class="row q-col-gutter-md">
-                        <div class="col-12 col-md-4">
-                            <div class="detail-table">
-                                <div class="row-line">
-                                    <div class="label">Jumlah Kehamilan</div>
-                                    <div class="colon">:</div>
-                                    <div class="value text-bold">{{ lihat_target.jumlah_kehamilan !== null ? lihat_target.jumlah_kehamilan : '-' }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <div class="detail-table">
-                                <div class="row-line">
-                                    <div class="label">Pernah Abortus</div>
-                                    <div class="colon">:</div>
-                                    <div class="value text-bold">{{ lihat_target.pernah_abortus || '-' }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-4">
-                            <div class="detail-table">
-                                <div class="row-line">
-                                    <div class="label">Pernah HDN</div>
-                                    <div class="colon">:</div>
-                                    <div class="value text-bold">{{ lihat_target.pernah_hdn || '-' }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hasil Pemeriksaan UPD -->
-                <div v-if="lihat_target && Number(lihat_target.status) >= 3" class="q-mt-md">
-                    <hr class="hrpagin2">
-                    <q-separator spaced />
-                    <div class="text-subtitle1 q-mb-sm text-bold text-center">Hasil Pemeriksaan UPD</div>
-
-                    <!-- Tahap 1: Hasil Pemeriksaan -->
-                    <div class="q-mb-md">
-                        <div class="text-subtitle2 text-weight-medium q-mb-sm text-primary">Tahap 1: Hasil Pemeriksaan</div>
-                        <div class="row q-col-gutter-md">
-                            <div class="col-12 col-md-4">
-                                <div class="text-subtitle2">Petugas Pemeriksa</div>
-                                <div class="text-body1 text-grey text-bold">{{ lihat_target.petugas_pemeriksa || '-' }}</div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <div class="text-subtitle2">Tanggal Pemeriksaan</div>
-                                <div class="text-body1 text-grey text-bold">{{ lihat_target.tanggal_pemeriksaan ? UMUM.tglConvert(lihat_target.tanggal_pemeriksaan) : '-' }}</div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <div class="text-subtitle2">Golongan Darah Hasil</div>
-                                <div class="text-body1 text-grey text-bold">{{ lihat_target.golongan_darah_hasil || '-' }} {{ lihat_target.rhesus_hasil ? lihat_target.rhesus_hasil : '' }}</div>
-                            </div>
-                        </div>
-                        <div class="row q-col-gutter-md q-mt-sm">
-                            <div class="col-12 col-md-4">
-                                <div class="text-subtitle2">Crossmatch 1</div>
-                                <div class="text-body1 text-grey text-bold">{{ lihat_target.crossmatch_1 || '-' }}</div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <div class="text-subtitle2">Crossmatch 2</div>
-                                <div class="text-body1 text-grey text-bold">{{ lihat_target.crossmatch_2 || '-' }}</div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <div class="text-subtitle2">Crossmatch 3</div>
-                                <div class="text-body1 text-grey text-bold">{{ lihat_target.crossmatch_3 || '-' }}</div>
-                            </div>
-                        </div>
-                        <div class="row q-col-gutter-md q-mt-sm">
-                            <div class="col-12 col-md-3">
-                                <div class="text-subtitle2">Jumlah Diberikan (Kantong)</div>
-                                <div class="text-body1 text-grey text-bold">{{ lihat_target.jumlah_darah_diberikan !== null ? lihat_target.jumlah_darah_diberikan + ' Kantong' : '-' }}</div>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <div class="text-subtitle2">Jumlah Diberikan (cc)</div>
-                                <div class="text-body1 text-grey text-bold">{{ lihat_target.jumlah_darah_diberikan_cc !== null ? lihat_target.jumlah_darah_diberikan_cc + ' cc' : '-' }}</div>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <div class="text-subtitle2">Nomor Kantong</div>
-                                <div class="text-body1 text-grey text-bold">{{ lihat_target.nomor_kantong || '-' }}</div>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <div class="text-subtitle2">Tanggal Expired</div>
-                                <div class="text-body1 text-grey text-bold">{{ UMUM.tglConvert(lihat_target.exp || '-') }}</div>
-                            </div>
-                        </div>
-                        <div class="row q-col-gutter-md q-mt-sm">
-                            <div class="col-12 col-md-12">
-                                <div class="text-subtitle2 q-mb-xs">Catatan Tambahan Pemeriksa</div>
-                                <div class="text-body1 text-grey text-bold">{{ lihat_target.catatan_tambahan || '-' }}</div>
-                            </div>
-                        </div>
-                       
-                    </div>
-
-                    <!-- Tahap 2: Pengambilan -->
-                    <div v-if="lihat_target && Number(lihat_target.status) == 4" class="q-mb-md">
                         <q-separator spaced />
-                        <div class="text-subtitle2 text-weight-medium q-mb-sm text-teal">Tahap 2: Pengambilan</div>
-                        <div class="row q-col-gutter-md">
-                            <div class="col-12 col-md-4">
-                                <div class="text-subtitle2">Petugas Pengeluar</div>
-                                <div class="text-body1 text-grey text-bold">{{ lihat_target.petugas_pengeluar || '-' }}</div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <div class="text-subtitle2">Penerima Darah</div>
-                                <div class="text-body1 text-grey text-bold">{{ lihat_target.penerima_darah || '-' }}</div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <div class="text-subtitle2">Waktu Pengambilan</div>
-                                <div class="text-body1 text-grey text-bold">{{ UMUM.tglConvertx(lihat_target.tanggal_pengambilan, true) || '-' }}</div>
+
+                        <!-- Riwayat Transfusi & Pemeriksaan Serologi -->
+                        <div class="q-mt-md">
+                            <div class="text-subtitle1 q-mb-sm text-bold text-center">Riwayat Transfusi & Pemeriksaan
+                                Serologi</div>
+                            <div class="row q-col-gutter-md">
+
+
+                                <!-- Transfusi Sebelumnya -->
+                                <div class="col-12 col-md-4">
+                                    <div class="detail-table">
+                                        <div class="row-line">
+                                            <div class="label">Transfusi Sebelumnya</div>
+                                            <div class="colon">:</div>
+                                            <div class="value text-bold">{{ lihat_target.transfusi_sebelumnya || '-' }}
+                                            </div>
+                                        </div>
+                                        <div class="row-line" v-if="lihat_target.transfusi_sebelumnya === 'Ya'">
+                                            <div class="label">Kapan</div>
+                                            <div class="colon">:</div>
+                                            <div class="value text-bold">{{ lihat_target.transfusi_kapan || '-' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Reaksi Transfusi -->
+                                <div class="col-12 col-md-8">
+                                    <div class="detail-table">
+                                        <div class="row-line">
+                                            <div class="label">Reaksi Transfusi</div>
+                                            <div class="colon">:</div>
+                                            <div class="value text-bold">{{ lihat_target.reaksi_transfusi || '-' }}
+                                            </div>
+                                        </div>
+                                        <div class="row-line" v-if="lihat_target.reaksi_transfusi === 'Ya'">
+                                            <div class="label">Gejala</div>
+                                            <div class="colon">:</div>
+                                            <div class="value text-bold">{{ lihat_target.gejala_transfusi || '-' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="q-mt-sm">
-                            <div class="text-subtitle2 q-mb-xs">Catatan Pengambilan</div>
-                            <div class="text-body1 text-grey text-bold">{{ lihat_target.catatan_pengambilan || '-' }}</div>
+
+                        <!-- Coombs / pemeriksaan ringkas -->
+                        <div class="row q-col-gutter-md q-mt-md">
+                            <div class="col-12 col-md-4">
+                                <div class="detail-table">
+                                    <div class="row-line">
+                                        <div class="label">Coomb Test</div>
+                                        <div class="colon">:</div>
+                                        <div class="value text-bold">{{ lihat_target.coomb_test || '-' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="detail-table">
+                                    <div class="row-line">
+                                        <div class="label">Tempat Coomb</div>
+                                        <div class="colon">:</div>
+                                        <div class="value text-bold">{{ lihat_target.coomb_tempat || '-' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="detail-table">
+                                    <div class="row-line">
+                                        <div class="label">Hasil Coomb</div>
+                                        <div class="colon">:</div>
+                                        <div class="value text-bold">{{ lihat_target.coomb_hasil || '-' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Untuk pasien wanita -->
+                        <div v-if="lihat_target && lihat_target.jenis_kelamin === 'P'" class="q-mt-md">
+                            <q-separator spaced />
+                            <div class="text-subtitle1 text-weight-medium q-mb-sm">Khusus Pasien Wanita</div>
+                            <div class="row q-col-gutter-md">
+                                <div class="col-12 col-md-4">
+                                    <div class="detail-table">
+                                        <div class="row-line">
+                                            <div class="label">Jumlah Kehamilan</div>
+                                            <div class="colon">:</div>
+                                            <div class="value text-bold">{{ lihat_target.jumlah_kehamilan !== null ?
+                                lihat_target.jumlah_kehamilan : '-' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <div class="detail-table">
+                                        <div class="row-line">
+                                            <div class="label">Pernah Abortus</div>
+                                            <div class="colon">:</div>
+                                            <div class="value text-bold">{{ lihat_target.pernah_abortus || '-' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <div class="detail-table">
+                                        <div class="row-line">
+                                            <div class="label">Pernah HDN</div>
+                                            <div class="colon">:</div>
+                                            <div class="value text-bold">{{ lihat_target.pernah_hdn || '-' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hasil Pemeriksaan UPD -->
+                        <div v-if="lihat_target && Number(lihat_target.status) >= 3" class="q-mt-md">
+                            <hr class="hrpagin2">
+                            <q-separator spaced />
+                            <div class="text-subtitle1 q-mb-sm text-bold text-center">Hasil Pemeriksaan UPD</div>
+
+                            <!-- Tahap 1: Hasil Pemeriksaan -->
+                            <div class="q-mb-md">
+                                <div class="text-subtitle2 text-weight-medium q-mb-sm text-primary">Tahap 1: Hasil
+                                    Pemeriksaan</div>
+                                <div class="row q-col-gutter-md">
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-subtitle2">Petugas Pemeriksa</div>
+                                        <div class="text-body1 text-grey text-bold">{{ lihat_target.petugas_pemeriksa ||
+                                '-' }}</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-subtitle2">Tanggal Pemeriksaan</div>
+                                        <div class="text-body1 text-grey text-bold">{{ lihat_target.tanggal_pemeriksaan
+                                ? UMUM.tglConvert(lihat_target.tanggal_pemeriksaan) : '-' }}</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-subtitle2">Golongan Darah Hasil</div>
+                                        <div class="text-body1 text-grey text-bold">{{ lihat_target.golongan_darah_hasil
+                                || '-' }} {{ lihat_target.rhesus_hasil ? lihat_target.rhesus_hasil : '' }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row q-col-gutter-md q-mt-sm">
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-subtitle2">Crossmatch 1</div>
+                                        <div class="text-body1 text-grey text-bold">{{ lihat_target.crossmatch_1 || '-'
+                                            }}</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-subtitle2">Crossmatch 2</div>
+                                        <div class="text-body1 text-grey text-bold">{{ lihat_target.crossmatch_2 || '-'
+                                            }}</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-subtitle2">Crossmatch 3</div>
+                                        <div class="text-body1 text-grey text-bold">{{ lihat_target.crossmatch_3 || '-'
+                                            }}</div>
+                                    </div>
+                                </div>
+                                <div class="row q-col-gutter-md q-mt-sm">
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-subtitle2">Jumlah Diberikan (Kantong)</div>
+                                        <div class="text-body1 text-grey text-bold">{{
+                                lihat_target.jumlah_darah_diberikan !== null ?
+                                    lihat_target.jumlah_darah_diberikan + ' Kantong' : '-' }}</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-subtitle2">Jumlah Diberikan (cc)</div>
+                                        <div class="text-body1 text-grey text-bold">{{
+                                lihat_target.jumlah_darah_diberikan_cc !== null ?
+                                    lihat_target.jumlah_darah_diberikan_cc + ' cc' : '-' }}</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-subtitle2">Nomor Kantong</div>
+                                        <div class="text-body1 text-grey text-bold">{{ lihat_target.nomor_kantong || '-'
+                                            }}</div>
+                                    </div>
+
+                                </div>
+                                <div class="row q-col-gutter-md q-mt-sm">
+
+
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-subtitle2">Tanggal Expired</div>
+                                        <div class="text-body1 text-grey text-bold">{{ UMUM.tglConvert(lihat_target.exp
+                                || '-') }}</div>
+                                    </div>
+                                    <div class="col-12 col-md-8">
+                                        <div class="text-subtitle2">Catatan Tambahan Pemeriksa</div>
+                                        <div class="text-body1 text-grey text-bold">{{ lihat_target.catatan_tambahan ||
+                                '-' }}</div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+
+                            <!-- Tahap 2: Pengambilan -->
+                            <div v-if="lihat_target && Number(lihat_target.status) == 4" class="q-mb-md">
+                                <q-separator spaced />
+                                <div class="text-subtitle2 text-weight-medium q-mb-sm text-teal">Tahap 2: Pengambilan
+                                </div>
+                                <div class="row q-col-gutter-md">
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-subtitle2">Petugas Pengeluar</div>
+                                        <div class="text-body1 text-grey text-bold">{{ lihat_target.petugas_pengeluar ||
+                                '-' }}</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-subtitle2">Penerima Darah</div>
+                                        <div class="text-body1 text-grey text-bold">{{ lihat_target.penerima_darah ||
+                                '-' }}</div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <div class="text-subtitle2">Waktu Pengambilan</div>
+                                        <div class="text-body1 text-grey text-bold">{{
+                                UMUM.tglConvertx(lihat_target.tanggal_pengambilan, true) || '-' }}</div>
+                                    </div>
+                                </div>
+                                <div class="q-mt-sm">
+                                    <div class="text-subtitle2 q-mb-xs">Catatan Pengambilan</div>
+                                    <div class="text-body1 text-grey text-bold">{{ lihat_target.catatan_pengambilan ||
+                                '-' }}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </q-card-section>
+                </q-card-section>
 
-        <!-- Footer / Actions -->
-        <q-card-actions class="bg-grey-4 mdl-footer">
-            <q-space />
-            <!-- Jika status = 1 (Diajukan) -->
-            <div v-if="lihat_target && Number(lihat_target.status) === 1 && tipe !== 3" class="row items-center q-gutter-sm">
-                <q-btn :loading="btn_periksa" color="primary" label="Diperiksa" dense @click="openPeriksaFor(lihat_target)">
-                    <q-tooltip content-class="bg-blue-8">Verifikasi & isi form UPD</q-tooltip>
-                </q-btn>
-                <q-btn :loading="btn_reject" color="negative" label="Ditolak" dense @click="openReject(lihat_target)">
-                    <q-tooltip content-class="bg-red-8">Tolak permintaan (wajib isi alasan)</q-tooltip>
-                </q-btn>
-            </div>
-            <!-- Jika status = 2 (Diperiksa) -->
-            <div v-else-if="lihat_target && Number(lihat_target.status) === 2 && tipe !== 3" class="row items-center q-gutter-sm">
-                <q-btn :loading="btn_periksa" color="green" label="Lanjutkan Pemeriksaan" dense @click="openPeriksaFor(lihat_target)">
-                    <q-tooltip content-class="bg-green-8">Lanjut isi hasil pemeriksaan UPD</q-tooltip>
-                </q-btn>
-                <q-btn :loading="btn_reject" color="negative" label="Ditolak" dense @click="openReject(lihat_target)">
-                    <q-tooltip content-class="bg-red-8">Tolak permintaan (wajib isi alasan)</q-tooltip>
-                </q-btn>
-            </div>
-            <!-- Jika status 3 atau 4 -->
-            <div v-else>
-                <q-btn label="Tutup" color="negative" v-close-popup @click="lihat_target = null" />
-            </div>
-        </q-card-actions>
-    </q-card>
-</q-dialog>
+                <!-- Footer / Actions -->
+                <q-card-actions class="bg-grey-4 mdl-footer">
+                    <q-space />
+                    <!-- Jika status = 1 (Diajukan) -->
+                    <div v-if="lihat_target && Number(lihat_target.status) === 1 && tipe !== 3"
+                        class="row items-center q-gutter-sm">
+                        <q-btn :loading="btn_periksa" color="primary" label="Diperiksa" dense
+                            @click="openPeriksaFor(lihat_target)">
+                            <q-tooltip content-class="bg-blue-8">Verifikasi & isi form UPD</q-tooltip>
+                        </q-btn>
+                        <q-btn :loading="btn_reject" color="negative" label="Ditolak" dense
+                            @click="openReject(lihat_target)">
+                            <q-tooltip content-class="bg-red-8">Tolak permintaan (wajib isi alasan)</q-tooltip>
+                        </q-btn>
+                    </div>
+                    <!-- Jika status = 2 (Diperiksa) -->
+                    <div v-else-if="lihat_target && Number(lihat_target.status) === 2 && tipe !== 3"
+                        class="row items-center q-gutter-sm">
+                        <q-btn :loading="btn_periksa" color="green" label="Lanjutkan Pemeriksaan" dense
+                            @click="openPeriksaFor(lihat_target)">
+                            <q-tooltip content-class="bg-green-8">Lanjut isi hasil pemeriksaan UPD</q-tooltip>
+                        </q-btn>
+                        <q-btn :loading="btn_reject" color="negative" label="Ditolak" dense
+                            @click="openReject(lihat_target)">
+                            <q-tooltip content-class="bg-red-8">Tolak permintaan (wajib isi alasan)</q-tooltip>
+                        </q-btn>
+                    </div>
+                    <!-- Jika status 3 atau 4 -->
+                    <div v-else>
+                        <q-btn label="Tutup" color="negative" v-close-popup @click="lihat_target = null" />
+                    </div>
+
+                    <!-- Tambahkan ini di q-card-actions modal detail (di sebelah tombol Tutup) -->
+                    <q-btn v-if="tipe === 2 || 1 && lihat_target && Number(lihat_target.status) === 3" dense glossy
+                        class="q-ml-sm" color="warning" icon="undo" @click="openRevertModal(lihat_target)">
+                        Kembalikan ke Diperiksa
+                        <q-tooltip content-class="bg-yellow">Kembalikan permintaan ke status Diperiksa (2) dan buka
+                            Pemeriksaan UPD</q-tooltip>
+                    </q-btn>
+
+                </q-card-actions>
+            </q-card>
+        </q-dialog>
 
 
 
@@ -969,11 +1019,11 @@
 
                                 <div class="col-12 col-md-6">
                                     <span class="h_lable">Tanggal Pemeriksaan</span>
-                                    <q-input outlined square :dense="true" class="bg-white" readonly
-                                        :value="displayTanggalPemeriksaan" @focus="$refs.dateStage1.show()" />
-                                    <q-popup-proxy ref="dateStage1" transition-show="scale" transition-hide="scale">
-                                        <q-date v-model="form1.tanggal_pemeriksaan" @input="$refs.dateStage1.hide()" />
-                                    </q-popup-proxy>
+<!-- tampilkan tanggal yang di-format dari timestamp (read-only) -->
+<q-input outlined square :dense="true" class="bg-white" readonly
+    :value="form1.tanggal_pemeriksaan ? formatDateFromTimestamp(form1.tanggal_pemeriksaan) : ''" />
+
+
                                 </div>
                             </div>
 
@@ -1238,7 +1288,7 @@
                                 <strong>Catatan Pengambilan:</strong>
                                 <div class="q-ml-sm" style="color:#fff; white-space:pre-wrap;">
                                     {{ taken_target && taken_target.catatan_pengambilan ?
-                                taken_target.catatan_pengambilan : '-' }}
+                                    taken_target.catatan_pengambilan : '-' }}
                                 </div>
                             </div>
 
@@ -1246,16 +1296,65 @@
                                 <strong>Jumlah Kantong:</strong>
                                 <div class="q-ml-sm" style="color:#fff; white-space:pre-wrap;">
                                     {{ taken_target && taken_target.jumlah_darah_diberikan ?
-                                taken_target.jumlah_darah_diberikan : '-' }} Kantong {{ taken_target && taken_target.jumlah_darah_diberikan_cc ?
-                                taken_target.jumlah_darah_diberikan_cc : '-' }}cc
+                                    taken_target.jumlah_darah_diberikan : '-' }} Kantong {{ taken_target &&
+                                    taken_target.jumlah_darah_diberikan_cc ?
+                                    taken_target.jumlah_darah_diberikan_cc : '-' }}cc
                                 </div>
                             </div>
 
+                            <div class="q-mb-sm">
+                                <strong>Tanggal Expired:</strong>
+                                <div class="q-ml-sm" style="color:#fff;">
+                                    {{ taken_target && taken_target.exp ?
+                                    UMUM.tglConvert(taken_target.exp) : '-' }}
+                                </div>
+                            </div>
                             <div class="q-mb-sm">
                                 <strong>Tanggal & Jam Pengambilan:</strong>
                                 <div class="q-ml-sm" style="color:#fff;">
                                     {{ taken_target && taken_target.tanggal_pengambilan ?
                                     UMUM.tglConvertx(taken_target.tanggal_pengambilan, true) : '-' }}
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <br>
+                    </div>
+
+                    <q-card-actions align="center">
+                        <q-btn label="Tutup" size="sm" color="negative" v-close-popup @click="closeTaken" />
+                        &nbsp;
+
+                        <q-btn v-if="tipe === 3" label="Diterima" size="sm" color="primary" :loading="loadingTaken"
+                            @click="confirmTaken" />
+                    </q-card-actions>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
+
+
+        <q-dialog v-model="mdl_taken_ruangan" persistent>
+            <q-card class="mdl-sm">
+                <q-card-section class="q-pt-none text-center hijauMudaGrad">
+                    <div>
+                        <br>
+                        <img src="img/approve.png" alt="" width="75"> <br>
+
+                        <!-- Judul -->
+                        <div class="q-mt-sm">
+                            <span class="h_notifikasi">PERMINTAAN DARAH SELESAI</span>
+                        </div>
+
+                        <!-- Konten info -->
+                        <div class="q-mt-md text-white" style="text-align:left; margin: 0 18px; margin-top: 18px">
+
+
+                            <div class="q-mb-sm text-center">
+                                <strong>Tanggal & Jam Tiba diruangan:</strong>
+                                <div class="q-mt-sm" style="color:#fff;">
+                                    {{ taken_target && taken_target.updated_at ?
+                                    UMUM.tglConvertx(taken_target.updated_at, true) : '-' }}
                                 </div>
                             </div>
 
@@ -1275,6 +1374,27 @@
                 </q-card-section>
             </q-card>
         </q-dialog>
+
+        <!-- ================================================ MODAL KEMBALIKAN KE DIPERIKSA ================================================ -->
+<q-dialog v-model="mdl_revert" persistent>
+  <q-card class="mdl-sm ">
+    <q-card-section class="q-pt-none text-center orageGrad">
+      <form @submit.prevent="confirmRevert">
+        <br>
+        <img src="img/alert.png" alt="" width="75" /> <br>
+        <span class="h_notifikasi">APAKAH ANDA YAKIN INGIN MENGEMBALIKAN PERMINTAAN INI KE STATUS DIPERIKSA (2)?</span>
+        <input type="submit" style="position: absolute; left: -9999px" />
+        <br><br>
+
+        <q-btn label="Batal" size="sm" color="negative" v-close-popup @click="revert_target = null" />
+        &nbsp;
+        <q-btn type="submit" label="Ya, Kembalikan" size="sm" color="primary" v-close-popup />
+
+      </form>
+    </q-card-section>
+  </q-card>
+</q-dialog>
+
 
 
 
@@ -1372,7 +1492,7 @@ export default {
             form1: {
                 id: null,
                 petugas_pemeriksa: '',
-                tanggal_pemeriksaan: '',
+                tanggal_pemeriksaan: null,
                 golongan_darah_hasil: '',
                 exp: '',
                 rhesus_hasil: '',
@@ -1429,7 +1549,7 @@ export default {
             mdl_reject: false,
             btn_periksa: false,
             btn_reject: false,
-            
+
             reject_reason: '',
             /* ===== Stage 2 (Pengambilan) state ===== */
             mdl_stage2: false,
@@ -1442,18 +1562,135 @@ export default {
             },
             loading2: false,
             mdl_taken: false,
+            mdl_taken_ruangan: false,
             taken_target: null,
             loadingTaken: false,
+
+            mdl_revert: false,
+    revert_target: null,
+    loadingRevert: false
 
 
         }
     },
-    computed: {
-        displayTanggalPemeriksaan() {
-            return this.form1 && this.form1.tanggal_pemeriksaan ? this.UMUM.tglConvert(this.form1.tanggal_pemeriksaan) : '';
-        },
-    },
+
     methods: {
+
+        openRevertModal(row) {
+    this.revert_target = row;
+    this.mdl_revert = true;
+  },
+
+  async confirmRevert() {
+  if (!this.revert_target || !this.revert_target.id) {
+    this.$q.notify({ type: 'negative', message: 'Data tidak valid' });
+    this.mdl_revert = false;
+    this.revert_target = null;
+    return;
+  }
+
+  const row = this.revert_target;
+  const payload = {
+    id: row.id,
+    previous_status: row.status,
+    status: 2,
+    status_keterangan: 'Dikembalikan ke Diperiksa oleh Admin UPD'
+  };
+
+  try {
+    this.loadingRevert = true;
+
+    const res = await this.updateStatusRequest(payload);
+
+    if (res && res.success) {
+      this.$q.notify({
+        type: 'positive',
+        message: res.message || 'Berhasil mengembalikan ke Diperiksa'
+      });
+
+      row.status = 2;
+
+      if (this.lihat_target && this.lihat_target.id === row.id) {
+        this.lihat_target.status = 2;
+        this.lihat_target.status_keterangan = payload.status_keterangan;
+      }
+
+      this.mdl_revert = false;
+      this.revert_target = null;
+
+      await this.openPeriksaFor(row);
+    } else {
+      this.$q.notify({
+        type: 'negative',
+        message: res?.message || 'Gagal mengubah status'
+      });
+
+      this.mdl_revert = false;
+      this.revert_target = null;
+    }
+
+  } catch (err) {
+    console.error('confirmRevert error', err);
+    this.$q.notify({
+      type: 'negative',
+      message: 'Terjadi kesalahan saat mengubah status'
+    });
+    this.mdl_revert = false;
+    this.revert_target = null;
+  } finally {
+    this.loadingRevert = false;
+  }
+},
+        async handleRevertToPeriksa(row) {
+            if (!row || !row.id) {
+                this.$q.notify({ type: 'negative', message: 'Data tidak valid' });
+                return;
+            }
+
+            // optional: konfirmasi singkat
+            const ok = await this.$q.dialog({
+                title: 'Konfirmasi',
+                message: 'Kembalikan permintaan ini ke status Diperiksa (2) dan buka form Pemeriksaan UPD?',
+                cancel: true,
+                persistent: true
+            }).onOk(() => true).onCancel(() => false).onDismiss(() => false);
+
+            if (!ok) return;
+
+            // payload untuk backend (sesuaikan field sesuai API Anda)
+            const payload = {
+                id: row.id,
+                previous_status: row.status,
+                status: 2,
+                status_keterangan: 'Dikembalikan ke Diperiksa oleh Admin UPD'
+            };
+
+            try {
+                this.$q.loading.show();
+                const res = await this.updateStatusRequest(payload);
+                if (res && res.success) {
+                    this.$q.notify({ type: 'positive', message: res.message || 'Berhasil mengembalikan ke Diperiksa' });
+
+                    // update lokal agar UI langsung reflektif
+                    row.status = 2;
+                    if (this.lihat_target && this.lihat_target.id === row.id) {
+                        this.lihat_target.status = 2;
+                        this.lihat_target.status_keterangan = payload.status_keterangan;
+                    }
+
+                    // buka modal pemeriksaan (Tahap 1) — ini sudah ada di file: openPeriksaFor
+                    await this.openPeriksaFor(row);
+                } else {
+                    this.$q.notify({ type: 'negative', message: res?.message || 'Gagal mengubah status' });
+                }
+            } catch (err) {
+                console.error('handleRevertToPeriksa error', err);
+                this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat mengubah status' });
+            } finally {
+                this.$q.loading.hide();
+            }
+        },
+
 
         statusColor(st) {
             const s = Number(st);
@@ -1462,6 +1699,7 @@ export default {
             if (s === 3) return 'secondary'; // Siap Diambil (gunakan warna berbeda)
             if (s === 4) return 'positive';  // Selesai (diambil)
             if (s === 5) return 'negative';  // Ditolak
+            if (s === 6) return 'accent';  // Ditolak
             return 'grey';
         },
         getView() {
@@ -1754,22 +1992,13 @@ export default {
 
 
         async openPeriksaFor(row) {
-            if (!row || !row.id) {
-                this.$q.notify({ type: 'negative', message: 'Data permintaan tidak valid' });
-                return;
-            }
-
+     
             this.btn_periksa = true;
 
             try {
                 // set status = 2 (Diperiksa)
                 const payload = { id: row.id, status: 2 };
                 const res = await this.updateStatusRequest(payload);
-
-                if (!res || !res.success) {
-                    this.$q.notify({ type: 'negative', message: res && res.message ? res.message : 'Gagal ubah status menjadi Diperiksa' });
-                    return;
-                }
 
                 // update local UI
                 row.status = 2;
@@ -1785,7 +2014,9 @@ export default {
                 this.form1 = {
                     id: row.id,
                     petugas_pemeriksa: row.petugas_pemeriksa || '',
-                    tanggal_pemeriksaan: row.tanggal_pemeriksaan || new Date().toISOString().slice(0, 10),
+                   // set tanggal pemeriksaan sebagai TIMESTAMP (milidetik) lokal
+tanggal_pemeriksaan: Date.now(),
+
                     exp: row.exp || new Date().toISOString().slice(0, 10),
                     golongan_darah_hasil: row.golongan_darah_hasil || row.golongan_darah || '',
                     rhesus_hasil: row.rhesus_hasil || row.rhesus || '',
@@ -1880,7 +2111,7 @@ export default {
             }
         },
 
-       
+
         // Stage 2 (simpan pengambilan) -> status = 4 (Selesai)
         async saveStage2() {
             if (!this.stage2_target || !this.stage2_target.id) {
@@ -2081,6 +2312,12 @@ export default {
                 this.mdl_taken = true;
                 return;
             }
+            if (st === 4) {
+                // Buka modal read-only untuk data pengambilan
+                this.taken_target = Object.assign({}, row);
+                this.mdl_taken_ruangan = true;
+                return;
+            }
 
             // fallback: jika bukan 3 atau 6, buka keterangan seperti biasa
             this.lihatKeterangan(row);
@@ -2088,6 +2325,7 @@ export default {
 
         closeTaken() {
             this.mdl_taken = false;
+            this.mdl_taken_ruangan = false;
             this.taken_target = null;
         },
 
@@ -2171,10 +2409,19 @@ export default {
             if (c === 1) return 'Menunggu Diperiksa oleh Admin UPD'
             if (c === 2) return 'Permintaan Sedang diperiksa'
             if (c === 3) return 'Siap Diambil (Menunggu Pengambilan)'
-            if (c === 4) return 'Permintaan Darah sudah berhasil'
+            if (c === 4) return 'Permintaan Darah sudah Berhasil'
+            if (c === 6) return 'Darah Telah di Ambil Petugas Ruangan/Keluarga Pasien'
             if (c === 5) return keterangan || 'Ditolak'
             return '-'
-        }
+        },
+        formatDateFromTimestamp(ts) {
+    if (!ts) return '';
+    const d = (typeof ts === 'number') ? new Date(ts) : new Date(Number(ts));
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    // atau return human readable: `${pad(d.getDate())}-${d.toLocaleString('default',{month:'short'})}-${d.getFullYear()}`
+  },
+
     },
 
     watch: {
