@@ -257,13 +257,17 @@
 export default {
     data() {
         return {
+            list_permintaan: [],
+            mdl_add: false,
+            btn_add: false,
             form: {
-                golongan_darah: '',
-                rhesus: '',
-                komponen_id: null,
-                jumlah: 0,
-                tipe_transaksi: '',
-                keterangan: ''
+                permintaan_id: null,
+                jam_transfusi: null,
+                jenis_reaksi: '',
+                jam_terjadi: null,
+                jam_dilaporkan: null,
+                petugas_pelapor: '',
+                tindakan: ''
             },
             form_edit: {
                 id_transaksi: '',
@@ -302,6 +306,43 @@ export default {
     },
     methods: {
 
+        async getData() {
+  try {
+    const baseURL = this.$store.state.url.REAKSI_TRANSFUSI
+      || (this.$store.state.url.BASE || '') + "api/v1/reaksi_transfusi/";
+
+    // jika form.ruangan_id ada, tambahkan param
+    const url = this.form.ruangan_id ? `${baseURL}?ruangan_id=${this.form.ruangan_id}` : baseURL;
+
+    console.log("fetch url:", url);
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "content-type": "application/json",
+        authorization: "kikensbatara " + localStorage.token
+      }
+    });
+
+    const json = await res.json();
+    console.log("getData json:", json);
+
+    if (json.status) {
+      this.list_permintaan = json.permintaan || [];
+      this.table_data = json.reaksi || [];
+      if (this.list_permintaan.length && !this.form.permintaan_id) {
+        this.form.permintaan_id = this.list_permintaan[0].id;
+      }
+    } else {
+      this.list_permintaan = [];
+      this.table_data = [];
+    }
+  } catch (err) {
+    console.error("getData error:", err);
+    this.list_permintaan = [];
+    this.table_data = [];
+  }
+},
         getView() {
             const query = new URLSearchParams({
                 page: this.page_first,
@@ -528,8 +569,25 @@ export default {
     },
 
     mounted() {
-        this.getKomponen()
-        this.getView()
+        try {
+            const get_profile = JSON.parse(localStorage.profile || '{}')
+            if (get_profile && get_profile.profile) {
+                this.tipe = Number(get_profile.profile.stokdarah_konut)
+                this.user = get_profile
+                // jika admin ruangan otomatis isi rumah_sakit_id / ruangan_id jika tersedia di profile
+                if (get_profile.profile.ruangan_id) {
+                    this.form.ruangan_id = Number(get_profile.profile.ruangan_id)
+                }
+                if (get_profile.profile.rumah_sakit_id) {
+                    this.form.rumah_sakit_id = Number(get_profile.profile.rumah_sakit_id)
+                }
+            }
+        } catch (e) {
+            console.warn('Gagal parse localStorage.profile', e)
+        }
+        this.getData();
+        this.getKomponen();
+        this.getView();
     }
 }
 </script>
