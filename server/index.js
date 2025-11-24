@@ -81,6 +81,8 @@ const transaksi_darah = require('./apiMysql/client/manajemen_darah/transaksi_dar
 app.use('/api/v1/transaksi_darah', middleware.isLoggedIn, transaksi_darah);
 const permintaan_darah = require('./apiMysql/client/manajemen_darah/permintaan_darah');
 app.use('/api/v1/permintaan_darah', middleware.isLoggedIn, permintaan_darah);
+const reaksi_transfusi = require('./apiMysql/client/manajemen_darah/reaksi_transfusi');
+app.use('/api/v1/reaksi_transfusi', middleware.isLoggedIn, reaksi_transfusi);
 
 // =================== CLIENT =====================
 
