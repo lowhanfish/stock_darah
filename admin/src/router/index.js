@@ -65,6 +65,12 @@ const routes = [
     beforeEnter: isLoggedIn,
   },
   {
+    path: '/reaksi_transfusi',
+    name: 'reaksi_transfusi',
+    component: () => import('../views/darah/reaksi_transfusi.vue'),
+    beforeEnter: isLoggedIn,
+  },
+  {
     path: '/transaksi_darah',
     name: 'Transaksi Darah',
     component: () => import('../views/darah/transaksi_darah.vue'),
