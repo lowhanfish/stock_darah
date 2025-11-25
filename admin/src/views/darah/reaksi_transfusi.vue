@@ -129,10 +129,30 @@
                     <q-card-section class="q-pt-none">
 
                         <!-- Pilih Permintaan (Nama Pasien) -->
-                        <span class="h_lable">Pilih Permintaan (Nama Pasien)</span>
+                        <!-- <span class="h_lable">Pilih Permintaan (Nama Pasien)</span>
                         <q-select v-model="form.permintaan_id" outlined square :dense="true" class="bg-white margin_btn"
                             :options="list_permintaan" option-value="id" option-label="nama_pasien" emit-value
-                            map-options required />
+                            map-options required /> -->
+
+                        <span class="h_lable">Pilih Permintaan (Nama Pasien)</span>
+                        <q-select ref="select" v-model="form.permintaan_id" outlined square :dense="true"
+                            class="bg-white margin_btn" :options="list_permintaan" option-value="id"
+                            option-label="nama_pasien" emit-value map-options required>
+                            <template v-slot:option="scope">
+                                <q-item v-bind="scope.itemProps" clickable @click="handleOptionClick(scope)">
+                                    <q-item-section>
+                                        <q-item-label class="text-dark text-bold">
+                                            {{ scope.opt.nama_pasien }}
+                                        </q-item-label>
+                                        <q-item-label class="text-blue text-bold" style="font-size: 12px;">
+                                            {{ UMUM.tglConvert(scope.opt.tanggal_lahir) }}
+                                        </q-item-label>
+                                    </q-item-section>
+                                </q-item>
+                            </template>
+                        </q-select>
+
+
 
                         <!-- Jam Transfusi -->
                         <span class="h_lable">Jam Transfusi</span>
@@ -254,9 +274,11 @@
 </template>
 
 <script>
+import UMUM from "../../library/umum.js";
 export default {
     data() {
         return {
+            UMUM: UMUM,
             list_permintaan: [],
             mdl_add: false,
             btn_add: false,
@@ -306,43 +328,49 @@ export default {
     },
     methods: {
 
+        handleOptionClick(scope) {
+            this.form.permintaan_id = scope.opt.id;
+            this.$refs.select.hidePopup();
+        },
+
         async getData() {
-  try {
-    const baseURL = this.$store.state.url.REAKSI_TRANSFUSI
-      || (this.$store.state.url.BASE || '') + "api/v1/reaksi_transfusi/";
+            try {
+                const baseURL = this.$store.state.url.REAKSI_TRANSFUSI
+                    || (this.$store.state.url.BASE || '') + "api/v1/reaksi_transfusi/";
 
-    // jika form.ruangan_id ada, tambahkan param
-    const url = this.form.ruangan_id ? `${baseURL}?ruangan_id=${this.form.ruangan_id}` : baseURL;
+                // jika form.ruangan_id ada, tambahkan param
+                const url = this.form.ruangan_id ? `${baseURL}?ruangan_id=${this.form.ruangan_id}` : baseURL;
 
-    console.log("fetch url:", url);
+                console.log("fetch url:", url);
 
-    const res = await fetch(url, {
-      method: "GET",
-      headers: {
-        "content-type": "application/json",
-        authorization: "kikensbatara " + localStorage.token
-      }
-    });
+                const res = await fetch(url, {
+                    method: "GET",
+                    headers: {
+                        "content-type": "application/json",
+                        authorization: "kikensbatara " + localStorage.token
+                    }
+                });
 
-    const json = await res.json();
-    console.log("getData json:", json);
+                const json = await res.json();
+                console.log("getData json:", json);
 
-    if (json.status) {
-      this.list_permintaan = json.permintaan || [];
-      this.table_data = json.reaksi || [];
-      if (this.list_permintaan.length && !this.form.permintaan_id) {
-        this.form.permintaan_id = this.list_permintaan[0].id;
-      }
-    } else {
-      this.list_permintaan = [];
-      this.table_data = [];
-    }
-  } catch (err) {
-    console.error("getData error:", err);
-    this.list_permintaan = [];
-    this.table_data = [];
-  }
-},
+                if (json.status) {
+                    this.list_permintaan = json.permintaan || [];
+                    this.table_data = json.reaksi || [];
+                    if (this.list_permintaan.length && !this.form.permintaan_id) {
+                        this.form.permintaan_id = this.list_permintaan[0].id;
+                    }
+                } else {
+                    this.list_permintaan = [];
+                    this.table_data = [];
+                }
+            } catch (err) {
+                console.error("getData error:", err);
+                this.list_permintaan = [];
+                this.table_data = [];
+            }
+        },
+
         getView() {
             const query = new URLSearchParams({
                 page: this.page_first,
