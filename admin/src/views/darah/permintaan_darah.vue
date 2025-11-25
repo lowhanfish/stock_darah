@@ -1019,9 +1019,9 @@
 
                                 <div class="col-12 col-md-6">
                                     <span class="h_lable">Tanggal Pemeriksaan</span>
-<!-- tampilkan tanggal yang di-format dari timestamp (read-only) -->
-<q-input outlined square :dense="true" class="bg-white" readonly
-    :value="form1.tanggal_pemeriksaan ? formatDateFromTimestamp(form1.tanggal_pemeriksaan) : ''" />
+                                    <!-- tampilkan tanggal yang di-format dari timestamp (read-only) -->
+                                    <q-input outlined square :dense="true" class="bg-white" readonly
+                                        :value="form1.tanggal_pemeriksaan ? formatDateFromTimestamp(form1.tanggal_pemeriksaan) : ''" />
 
 
                                 </div>
@@ -1288,7 +1288,7 @@
                                 <strong>Catatan Pengambilan:</strong>
                                 <div class="q-ml-sm" style="color:#fff; white-space:pre-wrap;">
                                     {{ taken_target && taken_target.catatan_pengambilan ?
-                                    taken_target.catatan_pengambilan : '-' }}
+                                taken_target.catatan_pengambilan : '-' }}
                                 </div>
                             </div>
 
@@ -1296,9 +1296,9 @@
                                 <strong>Jumlah Kantong:</strong>
                                 <div class="q-ml-sm" style="color:#fff; white-space:pre-wrap;">
                                     {{ taken_target && taken_target.jumlah_darah_diberikan ?
-                                    taken_target.jumlah_darah_diberikan : '-' }} Kantong {{ taken_target &&
-                                    taken_target.jumlah_darah_diberikan_cc ?
-                                    taken_target.jumlah_darah_diberikan_cc : '-' }}cc
+                                taken_target.jumlah_darah_diberikan : '-' }} Kantong {{ taken_target &&
+                                taken_target.jumlah_darah_diberikan_cc ?
+                                taken_target.jumlah_darah_diberikan_cc : '-' }}cc
                                 </div>
                             </div>
 
@@ -1306,14 +1306,14 @@
                                 <strong>Tanggal Expired:</strong>
                                 <div class="q-ml-sm" style="color:#fff;">
                                     {{ taken_target && taken_target.exp ?
-                                    UMUM.tglConvert(taken_target.exp) : '-' }}
+                                UMUM.tglConvert(taken_target.exp) : '-' }}
                                 </div>
                             </div>
                             <div class="q-mb-sm">
                                 <strong>Tanggal & Jam Pengambilan:</strong>
                                 <div class="q-ml-sm" style="color:#fff;">
                                     {{ taken_target && taken_target.tanggal_pengambilan ?
-                                    UMUM.tglConvertx(taken_target.tanggal_pengambilan, true) : '-' }}
+                                UMUM.tglConvertx(taken_target.tanggal_pengambilan, true) : '-' }}
                                 </div>
                             </div>
 
@@ -1376,24 +1376,25 @@
         </q-dialog>
 
         <!-- ================================================ MODAL KEMBALIKAN KE DIPERIKSA ================================================ -->
-<q-dialog v-model="mdl_revert" persistent>
-  <q-card class="mdl-sm ">
-    <q-card-section class="q-pt-none text-center orageGrad">
-      <form @submit.prevent="confirmRevert">
-        <br>
-        <img src="img/alert.png" alt="" width="75" /> <br>
-        <span class="h_notifikasi">APAKAH ANDA YAKIN INGIN MENGEMBALIKAN PERMINTAAN INI KE STATUS DIPERIKSA (2)?</span>
-        <input type="submit" style="position: absolute; left: -9999px" />
-        <br><br>
+        <q-dialog v-model="mdl_revert" persistent>
+            <q-card class="mdl-sm ">
+                <q-card-section class="q-pt-none text-center orageGrad">
+                    <form @submit.prevent="confirmRevert">
+                        <br>
+                        <img src="img/alert.png" alt="" width="75" /> <br>
+                        <span class="h_notifikasi">APAKAH ANDA YAKIN INGIN MENGEMBALIKAN PERMINTAAN INI KE STATUS
+                            DIPERIKSA (2)?</span>
+                        <input type="submit" style="position: absolute; left: -9999px" />
+                        <br><br>
 
-        <q-btn label="Batal" size="sm" color="negative" v-close-popup @click="revert_target = null" />
-        &nbsp;
-        <q-btn type="submit" label="Ya, Kembalikan" size="sm" color="primary" v-close-popup />
+                        <q-btn label="Batal" size="sm" color="negative" v-close-popup @click="revert_target = null" />
+                        &nbsp;
+                        <q-btn type="submit" label="Ya, Kembalikan" size="sm" color="primary" v-close-popup />
 
-      </form>
-    </q-card-section>
-  </q-card>
-</q-dialog>
+                    </form>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
 
 
 
@@ -1567,8 +1568,8 @@ export default {
             loadingTaken: false,
 
             mdl_revert: false,
-    revert_target: null,
-    loadingRevert: false
+            revert_target: null,
+            loadingRevert: false
 
 
         }
@@ -1577,70 +1578,70 @@ export default {
     methods: {
 
         openRevertModal(row) {
-    this.revert_target = row;
-    this.mdl_revert = true;
-  },
+            this.revert_target = row;
+            this.mdl_revert = true;
+        },
 
-  async confirmRevert() {
-  if (!this.revert_target || !this.revert_target.id) {
-    this.$q.notify({ type: 'negative', message: 'Data tidak valid' });
-    this.mdl_revert = false;
-    this.revert_target = null;
-    return;
-  }
+        async confirmRevert() {
+            if (!this.revert_target || !this.revert_target.id) {
+                this.$q.notify({ type: 'negative', message: 'Data tidak valid' });
+                this.mdl_revert = false;
+                this.revert_target = null;
+                return;
+            }
 
-  const row = this.revert_target;
-  const payload = {
-    id: row.id,
-    previous_status: row.status,
-    status: 2,
-    status_keterangan: 'Dikembalikan ke Diperiksa oleh Admin UPD'
-  };
+            const row = this.revert_target;
+            const payload = {
+                id: row.id,
+                previous_status: row.status,
+                status: 2,
+                status_keterangan: 'Dikembalikan ke Diperiksa oleh Admin UPD'
+            };
 
-  try {
-    this.loadingRevert = true;
+            try {
+                this.loadingRevert = true;
 
-    const res = await this.updateStatusRequest(payload);
+                const res = await this.updateStatusRequest(payload);
 
-    if (res && res.success) {
-      this.$q.notify({
-        type: 'positive',
-        message: res.message || 'Berhasil mengembalikan ke Diperiksa'
-      });
+                if (res && res.success) {
+                    this.$q.notify({
+                        type: 'positive',
+                        message: res.message || 'Berhasil mengembalikan ke Diperiksa'
+                    });
 
-      row.status = 2;
+                    row.status = 2;
 
-      if (this.lihat_target && this.lihat_target.id === row.id) {
-        this.lihat_target.status = 2;
-        this.lihat_target.status_keterangan = payload.status_keterangan;
-      }
+                    if (this.lihat_target && this.lihat_target.id === row.id) {
+                        this.lihat_target.status = 2;
+                        this.lihat_target.status_keterangan = payload.status_keterangan;
+                    }
 
-      this.mdl_revert = false;
-      this.revert_target = null;
+                    this.mdl_revert = false;
+                    this.revert_target = null;
 
-      await this.openPeriksaFor(row);
-    } else {
-      this.$q.notify({
-        type: 'negative',
-        message: res?.message || 'Gagal mengubah status'
-      });
+                    await this.openPeriksaFor(row);
+                } else {
+                    this.$q.notify({
+                        type: 'negative',
+                        message: res?.message || 'Gagal mengubah status'
+                    });
 
-      this.mdl_revert = false;
-      this.revert_target = null;
-    }
+                    this.mdl_revert = false;
+                    this.revert_target = null;
+                }
 
-  } catch (err) {
-    console.error('confirmRevert error', err);
-    this.$q.notify({
-      type: 'negative',
-      message: 'Terjadi kesalahan saat mengubah status'
-    });
-    this.mdl_revert = false;
-    this.revert_target = null;
-  } finally {
-    this.loadingRevert = false;
-  }
-},
+            } catch (err) {
+                console.error('confirmRevert error', err);
+                this.$q.notify({
+                    type: 'negative',
+                    message: 'Terjadi kesalahan saat mengubah status'
+                });
+                this.mdl_revert = false;
+                this.revert_target = null;
+            } finally {
+                this.loadingRevert = false;
+            }
+        },
         async handleRevertToPeriksa(row) {
             if (!row || !row.id) {
                 this.$q.notify({ type: 'negative', message: 'Data tidak valid' });
@@ -1992,7 +1993,7 @@ export default {
 
 
         async openPeriksaFor(row) {
-     
+
             this.btn_periksa = true;
 
             try {
@@ -2014,8 +2015,8 @@ export default {
                 this.form1 = {
                     id: row.id,
                     petugas_pemeriksa: row.petugas_pemeriksa || '',
-                   // set tanggal pemeriksaan sebagai TIMESTAMP (milidetik) lokal
-tanggal_pemeriksaan: Date.now(),
+                    // set tanggal pemeriksaan sebagai TIMESTAMP (milidetik) lokal
+                    tanggal_pemeriksaan: Date.now(),
 
                     exp: row.exp || new Date().toISOString().slice(0, 10),
                     golongan_darah_hasil: row.golongan_darah_hasil || row.golongan_darah || '',
@@ -2415,12 +2416,12 @@ tanggal_pemeriksaan: Date.now(),
             return '-'
         },
         formatDateFromTimestamp(ts) {
-    if (!ts) return '';
-    const d = (typeof ts === 'number') ? new Date(ts) : new Date(Number(ts));
-    const pad = n => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-    // atau return human readable: `${pad(d.getDate())}-${d.toLocaleString('default',{month:'short'})}-${d.getFullYear()}`
-  },
+            if (!ts) return '';
+            const d = (typeof ts === 'number') ? new Date(ts) : new Date(Number(ts));
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+            // atau return human readable: `${pad(d.getDate())}-${d.toLocaleString('default',{month:'short'})}-${d.getFullYear()}`
+        },
 
     },
 

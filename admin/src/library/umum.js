@@ -25,20 +25,20 @@ const tglConvertx = (tgl, withTime = false) => {
   var getBulan = date.getMonth() + 1; 
   var bulan = '';
 
-  if (getBulan == 1) bulan = 'Januari';
-  else if (getBulan == 2) bulan = 'Februari';
+  if (getBulan == 1) bulan = 'Jan';
+  else if (getBulan == 2) bulan = 'Febr';
   else if (getBulan == 3) bulan = 'Maret';
   else if (getBulan == 4) bulan = 'April';
   else if (getBulan == 5) bulan = 'Mei';
   else if (getBulan == 6) bulan = 'Juni';
   else if (getBulan == 7) bulan = 'Juli';
-  else if (getBulan == 8) bulan = 'Agustus';
-  else if (getBulan == 9) bulan = 'September';
-  else if (getBulan == 10) bulan = 'Oktober';
-  else if (getBulan == 11) bulan = 'November';
-  else if (getBulan == 12) bulan = 'Desember';
+  else if (getBulan == 8) bulan = 'Agust';
+  else if (getBulan == 9) bulan = 'Sept';
+  else if (getBulan == 10) bulan = 'Okt';
+  else if (getBulan == 11) bulan = 'Nov';
+  else if (getBulan == 12) bulan = 'Des';
 
-  let tglStr = date.getDate() + " " + bulan + " " + date.getFullYear() + " Pukul : ";
+  let tglStr = date.getDate() + " " + bulan + " " + date.getFullYear();
 
   if (withTime) {
       let jam = date.getHours().toString().padStart(2, '0');

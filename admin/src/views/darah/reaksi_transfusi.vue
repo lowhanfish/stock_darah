@@ -65,30 +65,33 @@
                 <thead class="h_table_head main2x text-white">
                     <tr>
                         <th width="5%" class="text-center">No</th>
-                        <th width="5%">Gol.Darah</th>
-                        <th width="5%" class="text-center">Rhesus</th>
-                        <th width="20%">Komponen</th>
-                        <th width="5%" class="text-center">Jumlah Kantong</th>
-                        <th width="10%" class="text-center">Tipe</th>
-                        <th width="15%">Tanggal</th>
-                        <th width="15%">Keterangan</th>
-                        <th width="10%">Aksi</th>
+                        <th width="5%" class="text-center">Pemeriksaan Pretransfusi </th>
+                        <th width="15%" class="text-center">Nama Pasien </th>
+                        <th width="10%" class="text-center">Waktu Transfusi</th>
+                        <th width="10%">Jenis Reaksi</th>
+                        <th width="10%" class="text-center">Waktu Terjadi Reaksi</th>
+                        <th width="10%" class="text-center">Waktu dilaporkan</th>
+                        <th width="10%">Petugas Pelapor</th>
+                        <th width="15%" class="text-center">Tindakan</th>
+                        <th width="10%" class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(data, index) in list_data" :key="data.id_transaksi + '-' + index">
+                    <tr v-for="(data, index) in list_data" :key="data.id + '-' + index">
                         <td class="text-center">{{ indexing(index + 1) }}</td>
-                        <td class="text-center">{{ data.golongan_darah }}</td>
-                        <td class="text-center">{{ data.rhesus }}</td>
-                        <td>{{ data.nama_komponen }}</td>
-                        <td class="text-center">{{ data.jumlah }}</td>
                         <td class="text-center">
-                            <q-badge :color="data.tipe_transaksi === 'masuk' ? 'green' : 'red'">
-                                {{ data.tipe_transaksi.toUpperCase() }}
-                            </q-badge>
+                            <q-btn color="light-green-6" icon="medical_services" @click="openPemeriksaan(data)">
+                                <!-- Pemeriksaan Pretransfusi -->
+                                <q-tooltip content-class="bg-green-7">Lanjut Pemeriksaan Pretransfusi</q-tooltip>
+                            </q-btn>
                         </td>
-                        <td>{{ formatTanggal(data.tanggal) }}</td>
-                        <td>{{ data.keterangan || '-' }}</td>
+                        <td class="text-center">{{ data.nama_pasien }}</td>
+                        <td class="text-center">{{ UMUM.tglConvertx(data.jam_transfusi, true) }}</td>
+                        <td>{{ data.jenis_reaksi }}</td>
+                        <td class="text-center">{{ UMUM.tglConvertx(data.jam_terjadi, true) }}</td>
+                        <td class="text-center">{{ UMUM.tglConvertx(data.jam_dilaporkan, true) }}</td>
+                        <td class="text-center">{{ data.petugas_pelapor }}</td>
+                        <td class="text-center">{{ data.tindakan }}</td>
                         <td class="text-center q-gutter-sm">
                             <q-btn dense round color="warning" icon="edit" @click="openEdit(data)">
                                 <q-tooltip content-class="bg-amber-7">Edit Data</q-tooltip>
@@ -104,7 +107,7 @@
 
                     <tr v-if="list_data.length === 0">
                         <td colspan="8" class="text-center text-grey">
-                            Belum ada data transaksi.
+                            Belum ada data.
                         </td>
                     </tr>
                 </tbody>
@@ -151,8 +154,6 @@
                                 </q-item>
                             </template>
                         </q-select>
-
-
 
                         <!-- Jam Transfusi -->
                         <span class="h_lable">Jam Transfusi</span>
@@ -371,17 +372,73 @@ export default {
             }
         },
 
+        addData() {
+            console.log('DEBUG addData payload:', this.form);
+            this.btn_add = true;
+
+            fetch(this.$store.state.url.REAKSI_TRANSFUSI + "addData", {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json",
+                    authorization: "kikensbatara " + localStorage.token
+                },
+                body: JSON.stringify(this.form)
+            })
+                .then(res => res.json())
+                .then(res_data => {
+                    if (res_data.success || res_data.status) {
+                        this.$q.notify({
+                            type: "positive",
+                            message: res_data.message || "Laporan Reaksi Transfusi berhasil ditambahkan"
+                        });
+
+                        this.mdl_add = false;
+                        this.resetForm();
+                        this.getData();  // refresh tabel
+                    } else {
+                        this.$q.notify({
+                            type: "negative",
+                            message: res_data.message || "Gagal menambah laporan reaksi transfusi"
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error("Error addData:", err);
+                    this.$q.notify({
+                        type: "negative",
+                        message: "Terjadi kesalahan saat menyimpan data"
+                    });
+                })
+                .finally(() => {
+                    this.btn_add = false;
+                });
+        },
+
+        resetForm() {
+            this.form = {
+                permintaan_id: null,
+
+                jam_transfusi: "",
+                jenis_reaksi: "",
+                jam_terjadi: "",
+                jam_dilaporkan: "",
+                petugas_pelapor: "",
+                tindakan: "",
+
+                // jika Anda menambahkan ruangan_id saat mounted
+                ruangan_id: this.form?.ruangan_id || null,
+                rumah_sakit_id: this.form?.rumah_sakit_id || null
+            };
+        },
+
         getView() {
             const query = new URLSearchParams({
                 page: this.page_first,
                 limit: this.page_limit,
-                cari_value: this.cari_value || '',
-                komponen_id: this.filter.komponen_id || '',
-                golongan_darah: this.filter.golongan_darah || '',
-                tipe_transaksi: this.filter.tipe_transaksi || ''
-            }).toString()
+                cari_value: this.cari_value || ''
+            }).toString();
 
-            fetch(this.$store.state.url.TRANSAKSI + "view?" + query, {
+            fetch(this.$store.state.url.REAKSI_TRANSFUSI + "view?" + query, {
                 method: "GET",
                 headers: {
                     "content-type": "application/json",
@@ -390,22 +447,31 @@ export default {
             })
                 .then(res => res.json())
                 .then(res_data => {
-                    if (res_data.success) {
-                        this.list_data = res_data.data || []
-                        this.total_data = res_data.total_data || 0
-                        this.page_last = res_data.total_pages || 1
-                        this.jml_data = this.list_data.length
-                        // jaga-jaga kalau page_current > page_last setelah filter/cari
-                        if (this.page_first > this.page_last) this.page_first = this.page_last || 1
-                    } else {
-                        this.$q.notify({ type: 'negative', message: res_data.message || 'Gagal memuat data transaksi darah' })
+                    console.log('getView response:', res_data);
 
+                    if (res_data.success) {
+                        this.list_data = res_data.data || [];
+                        this.total_data = res_data.total_data || 0;
+                        this.page_last = res_data.total_pages || 1;
+                        this.jml_data = this.list_data.length;
+
+                        if (this.page_first > this.page_last) {
+                            this.page_first = this.page_last || 1;
+                        }
+                    } else {
+                        this.$q.notify({
+                            type: 'negative',
+                            message: res_data.message || 'Gagal memuat data reaksi transfusi'
+                        });
                     }
                 })
                 .catch(err => {
-                    console.error('Error fetching transaksi:', err)
-                    this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat memuat data transaksi' })
-                })
+                    console.error('Error fetching reaksi transfusi:', err);
+                    this.$q.notify({
+                        type: 'negative',
+                        message: 'Terjadi kesalahan saat memuat data reaksi transfusi'
+                    });
+                });
         },
 
         getKomponen() {
@@ -426,47 +492,47 @@ export default {
 
 
 
-        addData() {
-            this.btn_add = true
+        // addData() {
+        //     this.btn_add = true
 
-            fetch(this.$store.state.url.TRANSAKSI + "addData", {
-                method: "POST",
-                headers: {
-                    "content-type": "application/json",
-                    authorization: "kikensbatara " + localStorage.token
-                },
-                body: JSON.stringify(this.form)
-            })
-                .then(res => res.json())
-                .then(res_data => {
-                    if (res_data.success) {
-                        this.$q.notify({ type: "positive", message: res_data.message || "Transaksi berhasil ditambahkan" })
-                        this.mdl_add = false
-                        this.resetForm()
-                        this.getView()
-                    } else {
-                        this.$q.notify({ type: "negative", message: res_data.message || "Gagal menambah transaksi" })
-                    }
-                })
-                .catch(err => {
-                    console.error("Error addData:", err)
-                    this.$q.notify({ type: "negative", message: "Gagal menambah transaksi darah" })
-                })
-                .finally(() => {
-                    this.btn_add = false
-                })
-        },
+        //     fetch(this.$store.state.url.TRANSAKSI + "addData", {
+        //         method: "POST",
+        //         headers: {
+        //             "content-type": "application/json",
+        //             authorization: "kikensbatara " + localStorage.token
+        //         },
+        //         body: JSON.stringify(this.form)
+        //     })
+        //         .then(res => res.json())
+        //         .then(res_data => {
+        //             if (res_data.success) {
+        //                 this.$q.notify({ type: "positive", message: res_data.message || "Transaksi berhasil ditambahkan" })
+        //                 this.mdl_add = false
+        //                 this.resetForm()
+        //                 this.getView()
+        //             } else {
+        //                 this.$q.notify({ type: "negative", message: res_data.message || "Gagal menambah transaksi" })
+        //             }
+        //         })
+        //         .catch(err => {
+        //             console.error("Error addData:", err)
+        //             this.$q.notify({ type: "negative", message: "Gagal menambah transaksi darah" })
+        //         })
+        //         .finally(() => {
+        //             this.btn_add = false
+        //         })
+        // },
 
-        resetForm() {
-            this.form = {
-                golongan_darah: '',
-                rhesus: '',
-                komponen_id: null,
-                jumlah: 0,
-                tipe_transaksi: '',
-                keterangan: ''
-            }
-        },
+        // resetForm() {
+        //     this.form = {
+        //         golongan_darah: '',
+        //         rhesus: '',
+        //         komponen_id: null,
+        //         jumlah: 0,
+        //         tipe_transaksi: '',
+        //         keterangan: ''
+        //     }
+        // },
 
         // 🔹 Buka modal edit dan isi data
         openEdit(data) {
