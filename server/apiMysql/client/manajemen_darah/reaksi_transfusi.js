@@ -264,7 +264,7 @@ router.post('/:id/send', (req, res) => {
   });
 });
 
-// POST /api/v1/reaksi_transfusi/pemeriksaan/add
+
 // POST /api/v1/reaksi_transfusi/pemeriksaan/add
 router.post('/pemeriksaan/add', (req, res) => {
   try {
@@ -410,7 +410,6 @@ router.post('/pemeriksaan/add', (req, res) => {
 });
 
 
-// GET /api/v1/reaksi_transfusi/pemeriksaan/view?reaksi_id=...
 router.get('/pemeriksaan/view', (req, res) => {
   try {
     const reaksi_id = req.query.reaksi_id;
@@ -445,27 +444,19 @@ router.get('/pemeriksaan/view', (req, res) => {
 });
 
 
-
 router.get('/pemeriksaan/pdf', checkTokenSeetUser, isLoggedIn, (req, res) => {
-  console.log('=== START PDF GENERATION ===');
-  console.log('Query params:', req.query);
-  console.log('User:', req.user ? req.user.profile : 'No user');
-
+  
   const profile = req.user && req.user.profile ? req.user.profile : null;
   const role = Number(profile?.stokdarah_konut || 0);
-  console.log('User role:', role);
+
   if (role !== 1 && role !== 2 && role !== 3) {
-    console.log('Access denied for role:', role);
     return res.status(403).json({ success: false, message: 'Akses ditolak' });
   }
 
   const reaksiId = req.query.reaksi_id;
   if (!reaksiId) {
-    console.log('Missing reaksi_id');
     return res.status(400).json({ success: false, message: 'reaksi_id wajib' });
   }
-
-  console.log('Fetching data for reaksi_id:', reaksiId);
 
   const sql = `
     SELECT 
@@ -477,7 +468,6 @@ router.get('/pemeriksaan/pdf', checkTokenSeetUser, isLoggedIn, (req, res) => {
       pr.no_kantong, pr.asal_darah, pr.komponen_darah, pr.golongan_darah,
       pr.uji_silang_serasi, pr.konfirm_gol_pasien, pr.konfirm_rhesus_pasien,
       pr.konfirm_gol_donor, pr.konfirm_rhesus_donor, pr.uji_silang_konfirmasi,
-      pr.pemeriksaan_at, pr.created_at AS pemeriksaan_created,
       r.created_at AS reaksi_created,
       kd.nama_komponen
     FROM reaksi_transfusi r
@@ -490,16 +480,13 @@ router.get('/pemeriksaan/pdf', checkTokenSeetUser, isLoggedIn, (req, res) => {
 
   db.query(sql, [reaksiId], async (err, rows) => {
     if (err) {
-      console.error('DB error:', err);
       return res.status(500).json({ success: false, message: 'Server error' });
     }
     if (!rows || rows.length === 0) {
-      console.log('No data found for reaksi_id:', reaksiId);
       return res.status(404).json({ success: false, message: 'Data tidak ditemukan' });
     }
 
     const data = rows[0];
-    console.log('Data fetched:', data ? 'OK' : 'Empty');
 
     // Generate QR Code
     let qrcodeUrl = '';
@@ -510,53 +497,35 @@ router.get('/pemeriksaan/pdf', checkTokenSeetUser, isLoggedIn, (req, res) => {
         margin: 1,
         color: { dark: '#000000', light: '#FFFFFF' }
       });
-      console.log('QR Code generated');
     } catch (qrErr) {
-      console.error('Error generating QR code:', qrErr);
       qrcodeUrl = '';
     }
     data.qrcode_url = qrcodeUrl;
 
     try {
       const templatePath = path.join(__dirname, '../../../services/reaksiTransfusiTemplate.ejs');
-      console.log('Template path:', templatePath);
 
       if (!fs.existsSync(templatePath)) {
-        console.error('Template file not found at:', templatePath);
         return res.status(500).json({ success: false, message: 'Template file tidak ditemukan' });
       }
 
       let kopImageUrl = '';
       const imagePath = path.join(__dirname, '../../../uploads/kop.png');
-      console.log('Image path:', imagePath);
       if (fs.existsSync(imagePath)) {
         const imageBuffer = fs.readFileSync(imagePath);
         const base64Image = imageBuffer.toString('base64');
         if (base64Image && base64Image.length > 100) {
           kopImageUrl = `data:image/png;base64,${base64Image}`;
-          console.log('Image loaded as base64, length:', base64Image.length);
-        } else {
-          console.warn('Base64 image invalid');
         }
-      } else {
-        console.warn('Kop image not found');
       }
 
-      console.log('Rendering EJS...');
       const html = await ejs.renderFile(templatePath, {
         data,
         kopImageUrl,
         checkerName: (req.user && req.user.profile ? req.user.profile.name : '-')
       });
-      console.log('EJS rendered, HTML length:', html.length);
-
-      // Save HTML untuk debug
-      const tempHtmlPath = path.join(__dirname, '../../../temp_reaksi_' + reaksiId + '.html');
-      fs.writeFileSync(tempHtmlPath, html);
-      console.log('HTML saved to temp file:', tempHtmlPath);
 
       if (!html || html.trim().length === 0) {
-        console.error('Rendered HTML is empty');
         return res.status(500).json({ success: false, message: 'HTML kosong, gagal generate PDF' });
       }
 
@@ -573,37 +542,24 @@ router.get('/pemeriksaan/pdf', checkTokenSeetUser, isLoggedIn, (req, res) => {
 
       pdf.create(html, options).toBuffer((err, pdfBuffer) => {
         if (err) {
-          console.error('html-pdf error:', err);
           return res.status(500).json({ success: false, message: 'Gagal generate PDF' });
         }
 
-        console.log('PDF generated with html-pdf, buffer size:', pdfBuffer.length);
-
         if (!pdfBuffer || pdfBuffer.length === 0) {
-          console.error('PDF buffer is empty');
           return res.status(500).json({ success: false, message: 'PDF kosong' });
         }
 
-        // Save PDF ke temp
-        const tempPdfPath = path.join(__dirname, '../../../temp_reaksi_' + reaksiId + '.pdf');
-        fs.writeFileSync(tempPdfPath, pdfBuffer);
-        console.log('PDF saved to temp file:', tempPdfPath);
-
-        // Kirim PDF
+        // Kirim PDF langsung sebagai buffer
         res.setHeader('Content-Type', 'application/pdf');
-        // res.setHeader('Content-Disposition', `attachment; filename=reaksi_transfusi_${reaksiId}.pdf`);
         res.setHeader('Content-Disposition', `inline; filename=reaksi_transfusi_${reaksiId}.pdf`);
 
         return res.send(pdfBuffer);
       });
 
     } catch (ex) {
-      console.error('Error generate PDF:', ex);
       return res.status(500).json({ success: false, message: 'Gagal generate PDF: ' + ex.message });
     }
   });
 });
-
-// ... route lainnya ...
 
 module.exports = router;
