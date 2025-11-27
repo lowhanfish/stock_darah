@@ -101,7 +101,7 @@
                             </div>
                             <div class="text-blue text-bold" style="font-size: 12px;">
 
-                           {{ data.nama_ruangan }}
+                                {{ data.nama_ruangan }}
 
                             </div>
 
@@ -516,6 +516,68 @@
             </q-card>
         </q-dialog>
 
+        <!-- MODAL EDIT DATA -->
+        <q-dialog v-model="mdl_edit" persistent>
+            <q-card class="mdl-md">
+                <q-card-section class="main2 text-white">
+                    <div class="text-h6 h_modalhead">Edit Reaksi Transfusi</div>
+                </q-card-section>
+
+                <form @submit.prevent="updateData">
+                    <q-card-section class="q-pt-none">
+
+                        <span class="h_lable">Pilih Permintaan (Nama Pasien)</span>
+                        <q-select ref="selectEdit" v-model="form_edit.permintaan_id" outlined square :dense="true"
+                            class="bg-white margin_btn" :options="list_permintaan" option-value="id"
+                            option-label="nama_pasien" emit-value map-options required>
+                            <template v-slot:option="scope">
+                                <q-item v-bind="scope.itemProps">
+                                    <q-item-section>
+                                        <q-item-label class="text-dark text-bold">
+                                            {{ scope.opt.nama_pasien }}
+                                        </q-item-label>
+                                        <q-item-label class="text-blue text-bold" style="font-size: 12px;">
+                                            {{ UMUM.tglConvert(scope.opt.tanggal_lahir) }}
+                                        </q-item-label>
+                                    </q-item-section>
+                                </q-item>
+                            </template>
+                        </q-select>
+
+                        <span class="h_lable">Jam Transfusi</span>
+                        <q-input v-model="form_edit.jam_transfusi" type="datetime-local" outlined square :dense="true"
+                            class="bg-white margin_btn" required />
+
+                        <span class="h_lable">Jenis Reaksi</span>
+                        <q-input v-model="form_edit.jenis_reaksi" outlined square :dense="true"
+                            class="bg-white margin_btn" required />
+
+                        <span class="h_lable">Jam Terjadinya Reaksi</span>
+                        <q-input v-model="form_edit.jam_terjadi" type="datetime-local" outlined square :dense="true"
+                            class="bg-white margin_btn" required />
+
+                        <span class="h_lable">Jam Dilaporkan</span>
+                        <q-input v-model="form_edit.jam_dilaporkan" type="datetime-local" outlined square :dense="true"
+                            class="bg-white margin_btn" required />
+
+                        <span class="h_lable">Petugas Yang Melaporkan</span>
+                        <q-input v-model="form_edit.petugas_pelapor" outlined square :dense="true"
+                            class="bg-white margin_btn" required />
+
+                        <span class="h_lable">Tindakan Yang Dilakukan</span>
+                        <q-input v-model="form_edit.tindakan" type="textarea" outlined square :dense="true"
+                            class="bg-white margin_btn" required />
+
+                    </q-card-section>
+
+                    <q-card-actions class="bg-grey-4 mdl-footer" align="right">
+                        <q-btn :loading="btn_edit" color="warning" type="submit" label="Simpan Perubahan" />
+                        <q-btn label="Batal" color="negative" v-close-popup />
+                    </q-card-actions>
+                </form>
+            </q-card>
+        </q-dialog>
+
 
 
 
@@ -557,6 +619,16 @@ export default {
 
             mdl_edit: false,
             btn_edit: false,
+            form_edit: {
+                id: null,
+                permintaan_id: null,
+                jam_transfusi: null,
+                jenis_reaksi: '',
+                jam_terjadi: null,
+                jam_dilaporkan: null,
+                petugas_pelapor: '',
+                tindakan: ''
+            },
 
             mdl_hapus: false,
             btn_hapus: false,
@@ -1000,6 +1072,85 @@ export default {
             this.pdfName = null;
             this.mdl_pdf_view = false;
         },
+
+        formatDatetimeLocal(dateStr) {
+        if (!dateStr) return '';
+        
+        // 1. Ubah string dari database menjadi Objek Date
+        // Browser otomatis akan mengonversi UTC ke Waktu Lokal (WIB/WITA/WIT) di sini
+        const d = new Date(dateStr);
+
+        // Validasi jika tanggal error/invalid
+        if (isNaN(d.getTime())) return '';
+
+        // 2. Ambil komponen waktu berdasarkan LOKAL komputer user
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0'); // Ingat: getMonth() mulai dari 0
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');     // Ini akan mengambil jam lokal, bukan UTC
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+
+        // 3. Gabungkan menjadi format string yang diterima input datetime-local (YYYY-MM-DDTHH:mm)
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    },
+
+    openEdit(data) {
+        // Copy data dari baris tabel ke form_edit
+        this.form_edit = {
+            id: data.id,
+            permintaan_id: data.permintaan_id,
+            // Format tanggal agar terbaca di input type="datetime-local"
+            jam_transfusi: this.formatDatetimeLocal(data.jam_transfusi),
+            jenis_reaksi: data.jenis_reaksi,
+            jam_terjadi: this.formatDatetimeLocal(data.jam_terjadi),
+            jam_dilaporkan: this.formatDatetimeLocal(data.jam_dilaporkan),
+            petugas_pelapor: data.petugas_pelapor,
+            tindakan: data.tindakan
+        };
+        
+        this.mdl_edit = true;
+    },
+
+    updateData() {
+        this.btn_edit = true;
+        const baseURL = this.$store.state.url.REAKSI_TRANSFUSI 
+                     || (this.$store.state.url.BASE || '') + "api/v1/reaksi_transfusi/";
+
+        fetch(baseURL + "editData", {
+            method: "POST",
+            headers: {
+                "content-type": "application/json",
+                authorization: "kikensbatara " + localStorage.token
+            },
+            body: JSON.stringify(this.form_edit)
+        })
+        .then(res => res.json())
+        .then(res_data => {
+            if (res_data.success || res_data.status) {
+                this.$q.notify({
+                    type: "positive",
+                    message: res_data.message || "Data berhasil diperbarui"
+                });
+                this.mdl_edit = false;
+                this.getView(); // Refresh tabel
+            } else {
+                this.$q.notify({
+                    type: "negative",
+                    message: res_data.message || "Gagal memperbarui data"
+                });
+            }
+        })
+        .catch(err => {
+            console.error("Error updateData:", err);
+            this.$q.notify({
+                type: "negative",
+                message: "Terjadi kesalahan saat menyimpan perubahan"
+            });
+        })
+        .finally(() => {
+            this.btn_edit = false;
+        });
+    },
 
         openDelete(data) {
             this.hapus_target = data;
