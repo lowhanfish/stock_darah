@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <title>Laporan Reaksi Transfusi</title>
+  <style>
+    /* Reset dan Font Formal */
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Times New Roman', Times, serif; 
+      color: #000;
+      line-height: 1.4;
+      font-size: 11pt; /* Font dasar diperkecil sedikit */
+    }
+  
+    /* BOX-SIZING PENTING */
+    *, *::before, *::after {
+      box-sizing: border-box; 
+    }
+  
+    .page {
+        padding: 0;
+    } 
+  
+    /* KOP SURAT */
+    .kop {
+      display: table; 
+      width: 100%;
+      margin-bottom: 5px; 
+    }
+  
+    .kop > div {
+      display: table-cell;
+      vertical-align: middle; /* Ganti dari middle ke top agar logo sejajar atas teks jika ada masalah render */
+    }
+  
+    .kop .left { 
+        width: 15%; /* Lebar untuk logo */
+        text-align: center;
+        padding-top: 5px; /* Sedikit padding atas agar tidak terlalu mepet ke tepi */
+      }
+      
+      .kop .center { 
+        /* KUNCI PERUBAHAN: Dibuat Full Width (85%) */
+        width: 85%; 
+        text-align: center; 
+        padding: 0 10px; /* Padding horisontal tetap dijaga */
+      }
+    
+      .kop .right { 
+        /* KUNCI PERUBAHAN: Dihapus / Dibuat 0 lebar */
+        display: none; 
+        width: 0; 
+      }
+  
+    /* Kontrol ukuran logo */
+    .kop-logo {
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+    .kop-logo img {
+      max-height: 70px; /* Tinggi logo dikurangi */
+      width: auto;
+      height: auto;
+    }
+  
+    /* STYLING TEKS KOP - KUNCI PERUBAHAN */
+    .line1 { font-size: 11pt; font-weight: bold; letter-spacing: 0.4px; margin: 0; } /* Ukuran dikecilkan dan weight dikurangi (dari 900 ke bold/700) */
+    .line2 { font-size: 10pt; font-weight: bold; margin: 2px 0 0 0; }             /* Ukuran dikecilkan */
+    .line3 { font-size: 10pt; font-weight: 700; margin: 2px 0 6px 0; }            /* Ukuran dikecilkan */
+    .alamat { font-size: 6pt; font-weight: normal; line-height: 1.3; margin: 0; } /* Ukuran dikecilkan */
+  
+    /* Garis pemisah */
+    .sep-thick { 
+      height: 3px; /* Garis utama dibuat sedikit lebih tipis (dari 4px ke 3px) */
+      background: #000; 
+      margin-top: 8px; 
+      border-bottom: 1px solid #000; 
+    }
+    .sep-thin { 
+      display: none; 
+    } 
+  
+    /* Judul laporan */
+    .judul {
+      text-align: center;
+      font-weight: bold;
+      font-size: 12pt; /* Ukuran dikurangi (dari 16pt ke 14pt) */
+      margin: 18px 0 25px 0; 
+    }
+  
+    /* Konten - Font Size */
+.content { font-size: 6.5pt; } 
+
+/* Wrapper untuk Ruang Perawatan */
+.ruangan-wrapper {
+    font-size: 8pt;
+    font-weight: 600;
+    margin: 5px 0 5px 0;
+    padding-bottom: 1px;
+    border-bottom: 1px solid #000;
+    border-top: 1px solid #000;
+}
+/* Tabel Data Dua Kolom (PASIEN) */
+.info-table-multi { 
+    width: 100%; 
+    margin: 0 auto; 
+    border-collapse: collapse; 
+    font-size: 8.5pt; /* Ditingkatkan agar terbaca dan sejajar lebih baik */
+}
+.info-table-multi .label { 
+  width: 18%; /* Ditingkatkan agar label lebih panjang (misalnya: 'Tanggal Lahir') muat */
+  text-align: left; /* KUNCI: Sejajarkan Label ke KANAN */
+  font-weight: 400; 
+  padding-right: 5px;
+}
+.info-table-multi .colon { 
+  width: 1%; /* Dibuat sangat sempit */
+  text-align: center; 
+  font-weight: 400; 
+  padding: 0;
+}
+.info-table-multi .value { 
+  width: 30%; 
+  text-align: left; 
+  font-weight: 400; 
+  padding-right: 15px; 
+  padding-left: 5px; 
+  white-space: normal; /* Biarkan konten nilai membungkus */
+}
+ /* Tabel Data Detail Reaksi & Pemeriksaan */
+.info-table-reaksi { 
+    width: 100%; 
+    margin: 10px 0; 
+    border-collapse: collapse; 
+    font-size: 8pt; /* Font size yang konsisten */
+  }
+  .info-table-reaksi td {
+      padding: 3px 0;
+      vertical-align: top;
+  }
+  .info-table-reaksi .label { 
+    width: 35%; /* Dibuat 35% untuk menampung label terpanjang */
+    text-align: left; /* KUNCI: Sejajarkan Label ke KANAN agar titik dua sejajar */
+    
+    padding-right: 5px;
+  }
+  .info-table-reaksi .colon { 
+    width: 1%; 
+    text-align: center; 
+    font-weight: bold; 
+    padding: 0;
+  }
+  .info-table-reaksi .value { 
+    width: 64%; 
+    text-align: left; 
+    font-weight: normal; 
+    padding-left: 5px; 
+    white-space: normal; /* Biarkan konten nilai membungkus */
+  }
+/* Styling Data Reaksi di Bawah Tabel */
+.data-reaksi {
+    margin-top: 15px;
+    padding-left: 20px;
+}
+.data-reaksi p {
+    margin-bottom: 5px;
+    font-size: 10.5pt;
+}
+
+/* Catatan Kaki */
+.footer-note { 
+  font-size: 8.5pt; 
+  color: #555;
+  width: 100%; /* Dibuat 100% karena layout sekarang 100% */
+  margin-top: 50px; 
+  text-align: right; 
+}
+  
+    /* Safety: reset h* default margins */
+    h1, h2, h3, h4, h5, h6, p { margin: 0; padding: 0; }
+
+ /* Wrapper Tanda Tangan */
+.ttd-wrapper {
+    width: 100%;
+    margin-top: 40px; 
+    /* KUNCI: Membuat wrapper menjadi blok yang rata kanan */
+    text-align: right; 
+    padding-right: 20px; /* Jarak dari tepi kanan dokumen */
+}
+
+.ttd-block {
+    /* Blok TTD itu sendiri hanya mengambil lebar yang dibutuhkan */
+    display: inline-block; 
+    text-align: center;
+    font-size: 9pt; 
+    line-height: 1.2;
+    padding-left: 200px; /* Jarak agar nama TTD tidak terlalu di kanan, sesuaikan jika perlu */
+}
+
+.ttd-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.ttd-name {
+    font-weight: bold;
+    margin-top: 0;
+    text-decoration: underline;
+}
+
+/* Kontrol Ukuran QR Code */
+.ttd-qrcode {
+    width: 80px;  /* Sesuaikan ukuran QR code, misalnya 80x80 piksel */
+    height: 80px;
+    margin: 5px 0 5px 0; /* Memberi jarak atas dan bawah dari teks */
+    display: block; /* Penting agar QR code berada di baris sendiri di tengah blok */
+    margin-left: auto; /* Mengatur QR code agar berada di tengah blok TTD */
+    margin-right: auto;
+}
+
+/* Revisi TTD Block (Jika TTD Block tidak menggunakan margin auto) */
+.ttd-block {
+    display: inline-block; 
+    text-align: center;
+    font-size: 9pt; 
+    line-height: 1.2;
+    /* Anda mungkin tidak memerlukan padding-left: 200px jika menggunakan text-align: right pada wrapper */
+}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="kop" role="banner" aria-label="kop surat">
+      <div class="left">
+        <div class="kop-logo">
+          <% if (kopImageUrl && kopImageUrl.length > 0) { %>
+            <img src="<%= kopImageUrl %>" alt="logo" />
+          <% } else { %>
+            <img src="/uploads/kop.png" alt="logo" />
+          <% } %>
+        </div>
+      </div>
+
+      <div class="center">
+        <div class="line1">PEMERINTAH KABUPATEN KONAWE UTARA</div>
+        <div class="line2">INSTALASI LABORATORIUM</div>
+        <div class="line3">SUB INSTALASI TRANSFUSI DARAH</div>
+        <div class="alamat">
+          Jl. Poros Kendari-Asera, Desa Lahimbua, Kec. Andowia 93353
+          No. Telp. 085345432016, e-mail: blud.rsudkonut99@gmail.com
+        </div>
+      </div>
+
+      <div class="right"></div>
+    </div>
+
+    <div class="sep-thick" aria-hidden="true"></div>
+    <div class="sep-thin" aria-hidden="true"></div>
+
+    <div class="judul"><u>REAKSI TRANSFUSI</u></div>
+
+    <div class="content">
+        <!-- <div class="ruangan-wrapper">
+          Ruang perawatan : [DATA RUANG PERAWATAN] 
+          </div> -->
+        <table class="info-table-multi" role="table" aria-label="data pasien dua kolom">
+          <tr>
+            <td class="label">Nama</td><td class="colon">:</td><td class="value"><%= data.nama_pasien || '-' %></td>
+            <td class="label">Diagnosis</td><td class="colon">:</td><td class="value"> <%= data.diagnosis_klinis || '-' %> </td>
+          </tr>
+          <tr>
+            <td class="label">No. RM</td><td class="colon">:</td><td class="value"><%= data.nomor_rm || '-' %></td>
+            <td class="label">DPJP</td><td class="colon">:</td><td class="value"> <%= data.nama_dokter || '-' %> </td>
+          </tr>
+          <tr>
+            <td class="label">Tanggal Lahir</td><td class="colon">:</td><td class="value"><%= data.tanggal_lahir ? (new Date(data.tanggal_lahir)).toLocaleDateString('id-ID') : '-' %></td>
+            <td class="label">Tanggal Transfusi</td><td class="colon">:</td><td class="value">
+                <% 
+    const tglTransfusi = data.jam_transfusi; 
+    if (tglTransfusi) {
+      const dateObject = new Date(tglTransfusi);
+      // Opsi hanya untuk format Tanggal
+      const options = { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric' 
+      };
+  %>
+      <%= dateObject.toLocaleString('id-ID', options) %>
+  <% } else { %>
+      -
+  <% } %>
+              </td>
+          </tr>
+          <tr>
+            <td class="label">Umur</td><td class="colon">:</td><td class="value"> <% 
+                const tglLahirUmur = data.tanggal_lahir; 
+                let umurTeks = '-'; // Default jika data tidak ada
+                
+                if (tglLahirUmur) {
+                  const dob = new Date(tglLahirUmur);
+                  const today = new Date(); // Tanggal hari ini saat laporan dicetak
+                  
+                  let ageInYears = today.getFullYear() - dob.getFullYear();
+                  const monthDifference = today.getMonth() - dob.getMonth();
+                  
+                  // Cek: Apakah bulan hari ini lebih kecil dari bulan lahir, 
+                  // ATAU (bulan sama TAPI tanggal hari ini lebih kecil dari tanggal lahir)?
+                  if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < dob.getDate())) {
+                    ageInYears--; // Jika ya, kurangi 1 tahun (ulang tahun belum tiba)
+                  }
+                  
+                  umurTeks = ageInYears + ' tahun'; 
+                }
+              %>
+              <%= umurTeks %> </td>
+            <td class="label">Jam Transfusi</td><td class="colon">:</td><td class="value"> <% 
+                const jamTransfusi = data.jam_transfusi; 
+                if (jamTransfusi) {
+                  const dateObject = new Date(jamTransfusi);
+                  // Opsi hanya untuk format Waktu
+                  const options = {
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    hour12: false,
+                    timeZone: 'Asia/Makassar' // WITA
+                  };
+                  
+                  // Menggunakan replace untuk mengganti pemisah jam default (mungkin titik) menjadi titik dua (:)
+                  const formattedTime = dateObject.toLocaleString('id-ID', options).replace('.', ':');
+              %>
+                  <%= formattedTime %> WITA
+              <% } else { %>
+                  -
+              <% } %> </td>
+          </tr>
+          <tr>
+              <td class="label">Alamat</td><td class="colon">:</td><td class="value" colspan="4"><%= data.alamat || '-' %></td>
+          </tr>
+        </table>
+  
+        <div class="sep-thin" style="margin-top: 10px; margin-bottom: 5px;"></div> 
+  
+      
+            <div class="ruangan-wrapper">
+                Ruang perawatan : <%= data.nama_ruangan%>
+            </div>
+      
+            <table class="info-table-reaksi" role="table" aria-label="data detail reaksi">
+                <tr>
+                    <td class="label">Jenis Reaksi Transfusi</td><td class="colon">:</td><td class="value"><%= data.jenis_reaksi || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="label">Jam Terjadinya Reaksi</td><td class="colon">:</td><td class="value">
+                        <% 
+                            // Asumsi data.jam_reaksi adalah variabel waktu reaksi
+                            const jamReaksi = data.jam_terjadi; 
+                            if (jamReaksi) {
+                                const dateObject = new Date(jamReaksi);
+                                const options = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Makassar' };
+                                const formattedTime = dateObject.toLocaleString('id-ID', options).replace('.', ':');
+                            %>
+                                <%= formattedTime %> WITA
+                            <% } else { %>
+                                -
+                            <% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Jam Dilaporkan</td><td class="colon">:</td><td class="value">
+                        <% 
+                            // Asumsi data.jam_dilaporkan adalah variabel waktu pelaporan
+                            const jamDilaporkan = data.jam_dilaporkan; 
+                            if (jamDilaporkan) {
+                                const dateObject = new Date(jamDilaporkan);
+                                const options = { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Makassar' };
+                                const formattedTime = dateObject.toLocaleString('id-ID', options).replace('.', ':');
+                            %>
+                                <%= formattedTime %> WITA
+                            <% } else { %>
+                                -
+                            <% } %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Petugas Yang Melaporkan</td><td class="colon">:</td><td class="value"><%= data.petugas_pelapor || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="label">Tiindakan Yang Dilakukan</td><td class="colon">:</td><td class="value"><%= data.tindakan_dilakukan || '-' %></td>
+                </tr>
+            </table>
+
+            <div class="ruangan-wrapper">
+                Pemeriksaan Pretransfusi 
+            </div>
+      
+            <table class="info-table-reaksi" role="table" aria-label="data detail reaksi">
+                <tr>
+                    <td class="label">Asal Darah</td><td class="colon">:</td><td class="value"><%= data.jenis_reaksi || '-' %></td>
+                </tr>
+                <tr>
+                    <td class="label">No. Kantong</td><td class="colon">:</td><td class="value">
+                        <%= data.no_kantong || '-' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Komponen Darah</td><td class="colon">:</td><td class="value">
+                        <%= data.nama_komponen || '-' %>
+                        
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Golongan Darah</td><td class="colon">:</td><td class="value">
+
+                        <%= data.golongan_darah || '-' %>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Uji Silang Serasi</td><td class="colon">:</td><td class="value">
+
+                        <%= data.uji_silang_serasi || '-' %>
+                    </td>
+                </tr>
+            </table>
+            <div class="ruangan-wrapper">
+                Konfirmasi Pasca Transfusi
+            </div>
+            
+            <table class="info-table-reaksi" role="table" aria-label="data detail reaksi">
+                <tr>
+                    <td class="label">Golonga Darah Pasien</td><td class="colon">:</td><td class="value">
+                        <%= data.konfirm_gol_pasien || '-' %><%= data.konfirm_rhesus_pasien || '-' %>
+                        
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Golongan Darah Donor</td><td class="colon">:</td><td class="value">
+                        <%= data.konfirm_gol_donor || '-' %><%= data.konfirm_rhesus_donor || '-' %>
+                        
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Uji Silang Serasi Konfirmasi</td><td class="colon">:</td><td class="value">
+                        
+                        <%= data.uji_silang_konfirmasi || '-' %>
+                    </td>
+                </tr>
+            </table>
+        
+    </div>
+    <div class="ttd-wrapper">
+        <div class="ttd-block">
+            <p class="ttd-title"><u>DPJP LABORATORIUM</u></p>
+            
+            <img 
+                src="<%= data.qrcode_url %>" 
+                alt="Kode QR Validasi Dokumen" 
+                class="ttd-qrcode"
+            />
+            
+            <p class="ttd-name">
+                (  <%= data.nama_dokter || '-' %> )
+            </p>
+        </div>
+    </div>
+    
+    <!-- <div class="footer-note">Dicetak: <%= (new Date()).toLocaleString('id-ID') %></div> -->
+  </div>
+</body>
+</html>

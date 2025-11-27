@@ -1,18 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../../../db/MySql/umum'); // koneksi database
+const path = require('path');
+const ejs = require('ejs');
+const puppeteer = require('puppeteer')
+const { checkTokenSeetUser, isLoggedIn } = require('../../../auth/middlewares');
+const fs = require('fs'); // Tambahkan di atas file jika belum ada
+const pdf = require('html-pdf');
+
+const qrcode = require('qrcode');
+
 
 
 router.get('/', (req, res) => {
   // ambil ruangan_id dari query (opsional)
   const ruanganId = req.query.ruangan_id;
 
-  let sql = 'SELECT id, nama_pasien FROM permintaan_darah';
+  let sql = 'SELECT id, nama_pasien, tanggal_lahir FROM permintaan_darah';
   const params = [];
 
   if (ruanganId) {
-    sql += ' WHERE ruangan_id = ?';
+    sql += ' WHERE ruangan_id = ? AND status = 4';
     params.push(ruanganId);
+  } else {
+    sql += ' WHERE status = 4';
   }
 
   sql += ' ORDER BY id DESC LIMIT 50';
@@ -29,1084 +40,570 @@ router.get('/', (req, res) => {
   });
 });
 
-function normalizeDate(value) {
-  if (!value) return null;
-  if (typeof value === 'string') {
-    // format ISO seperti '2025-11-09T16:00:00.000Z' → ambil tanggalnya saja
-    if (value.includes('T')) return value.split('T')[0];
-  }
-  return value;
+function toSqlDatetime(v) {
+  if (!v) return null;
+  // Accept already MySQL datetime or HTML datetime-local (YYYY-MM-DDTHH:MM)
+  return String(v).replace('T', ' ');
 }
 
-function formatDate(dateString) {
-  if (!dateString) return null;
+router.post('/addData', (req, res) => {
   try {
+    const {
+      permintaan_id,
+      jam_transfusi,
+      jenis_reaksi,
+      jam_terjadi,
+      jam_dilaporkan,
+      petugas_pelapor,
+      tindakan,
+      ruangan_id,
+      rumah_sakit_id
+    } = req.body || {};
 
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
+    // Basic validation
+    if (!permintaan_id) {
+      return res.status(400).json({ success: false, status: false, message: 'permintaan_id wajib diisi' });
+    }
+    if (!jenis_reaksi) {
+      return res.status(400).json({ success: false, status: false, message: 'jenis_reaksi wajib diisi' });
+    }
 
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  } catch (e) {
-    return null;
+    // Ensure permintaan exists
+    db.query('SELECT id, nama_pasien FROM permintaan_darah WHERE id = ? LIMIT 1', [permintaan_id], (err, rows) => {
+      if (err) {
+        console.error('DB error check permintaan:', err);
+        return res.status(500).json({ success: false, status: false, message: 'Server error' });
+      }
+
+      if (!rows || rows.length === 0) {
+        return res.status(404).json({ success: false, status: false, message: 'Permintaan tidak ditemukan' });
+      }
+
+      // Prepare values
+      const vJamTransfusi = toSqlDatetime(jam_transfusi);
+      const vJamTerjadi = toSqlDatetime(jam_terjadi);
+      const vJamDilaporkan = toSqlDatetime(jam_dilaporkan) || null; // DB has default CURRENT_TIMESTAMP
+      const vPetugas = petugas_pelapor || (req.user && req.user.name) || null;
+      const vTindakan = tindakan || null;
+
+      const insertSql = `
+        INSERT INTO reaksi_transfusi
+          (permintaan_id, jam_transfusi, jenis_reaksi, jam_terjadi, jam_dilaporkan, petugas_pelapor, tindakan, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+      `;
+
+      const params = [
+        permintaan_id,
+        vJamTransfusi,
+        jenis_reaksi,
+        vJamTerjadi,
+        vJamDilaporkan,
+        vPetugas,
+        vTindakan
+      ];
+
+      db.query(insertSql, params, (err2, result) => {
+        if (err2) {
+          console.error('DB error insert reaksi_transfusi:', err2);
+          return res.status(500).json({ success: false, status: false, message: 'Server error' });
+        }
+
+        const newId = result.insertId;
+
+        // Return the newly created row (joined with permintaan_darah for context)
+        const selectSql = `
+          SELECT r.*, p.nama_pasien, p.nomor_rm, p.tanggal_lahir
+          FROM reaksi_transfusi r
+          LEFT JOIN permintaan_darah p ON p.id = r.permintaan_id
+          WHERE r.id = ?
+          LIMIT 1
+        `;
+        db.query(selectSql, [newId], (err3, newRows) => {
+          if (err3) {
+            console.error('DB error fetch new reaksi:', err3);
+            return res.status(500).json({ success: true, status: true, message: 'Laporan disimpan, namun gagal mengambil data hasil', data: { id: newId } });
+          }
+
+          const data = (Array.isArray(newRows) && newRows[0]) ? newRows[0] : { id: newId };
+
+          return res.json({
+            success: true,
+            status: true,
+            message: 'Laporan reaksi transfusi berhasil disimpan',
+            data
+          });
+        });
+      });
+    });
+
+  } catch (ex) {
+    console.error('Unhandled error POST /addData reaksi_transfusi:', ex);
+    return res.status(500).json({ success: false, status: false, message: 'Server error' });
   }
-}
+});
 
-// ===================================================
-// GET: view (list) permintaan_darah dengan pagination + filter
-// ===================================================
+
+// GET /api/v1/reaksi_transfusi/view?page=1&limit=10&cari_value=...
 router.get('/view', (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
   const offset = (page - 1) * limit;
 
-  const rawSearch = req.query.cari_value || '';
-  const cari_value = rawSearch ? `%${rawSearch}%` : '%%';
-  const komponen_id = req.query.komponen_id || '';
-  const golongan_darah = req.query.golongan_darah || '';
-  const status = req.query.status || '';
+  const cari = req.query.cari_value || '';
+  const ruanganId = req.query.ruangan_id || (req.user && req.user.profile && req.user.profile.ruangan_id) || null;
 
-  // build filters
-  const filters = [];
+  // Determine user type/role (support both naming conventions)
+  const userProfile = req.user && req.user.profile ? req.user.profile : null;
+  const userTipe = userProfile ? (Number(userProfile.stokdarah_konut || userProfile.role || 0)) : null;
+
+  let where = " WHERE 1=1 ";
   const params = [];
 
-  // search across nama_pasien, nama_dokter, nomor_rm, diagnosis_klinis
-  filters.push(`(p.nama_pasien LIKE ? OR p.nama_dokter LIKE ? OR p.nomor_rm LIKE ? OR p.diagnosis_klinis LIKE ?)`);
-  params.push(cari_value, cari_value, cari_value, cari_value);
-
-  if (komponen_id) {
-    filters.push('p.komponen_id = ?');
-    params.push(komponen_id);
-  }
-  if (golongan_darah) {
-    filters.push('p.golongan_darah = ?');
-    params.push(golongan_darah);
-  }
-  if (status !== '' && !isNaN(status)) {
-    filters.push('p.status = ?');
-    params.push(Number(status));
+  // filter ruangan
+  if (ruanganId) {
+    where += " AND p.ruangan_id = ? ";
+    params.push(ruanganId);
   }
 
-  // =========================
-  try {
-    const auth = req.headers && req.headers.authorization ? req.headers.authorization : '';
-    // bentuk header yang dipakai di frontend: "kikensbatara <token>"
-    if (auth) {
-      const parts = auth.split(' ');
-      const token = parts.length > 1 ? parts[1] : parts[0];
-      if (token && process.env.TOKEN_SECRET) {
-        try {
-          const decoded = require('jsonwebtoken').verify(token, process.env.TOKEN_SECRET);
-          // decoded diharapkan memiliki struktur: { profile: { stokdarah_konut: '3', ruangan_id: 12, ... } }
-          if (decoded && decoded.profile) {
-            const role = decoded.profile.stokdarah_konut != null ? String(decoded.profile.stokdarah_konut) : null;
-            const ruanganIdFromToken = decoded.profile.ruangan_id ? Number(decoded.profile.ruangan_id) : null;
-            if (role === '3' && ruanganIdFromToken) {
-              // hanya tampilkan permintaan dari ruangan user itu
-              filters.push('p.ruangan_id = ?');
-              params.push(ruanganIdFromToken);
-            }
-          }
-        } catch (e) {
-          // token invalid / expired -> jangan gagal total, tetap tampilkan sesuai role (no extra filter)
-          console.warn('Warning: gagal decode token pada /permintaan_darah/view — token mungkin invalid', e);
-        }
-      }
-    }
-  } catch (eAny) {
-    // non-fatal
-    console.warn('Non-fatal error saat mengeksekusi token-check pada /permintaan_darah/view', eAny);
+  // Hide draft records for tipe 1 and 2 (they should not see drafts)
+  if (userTipe === 1 || userTipe === 2) {
+    where += " AND r.status <> 'draft' ";
   }
-  // =========================
 
-  const whereClause = filters.length ? 'WHERE ' + filters.join(' AND ') : '';
+  // filter pencarian
+  if (cari) {
+    where += " AND (r.jenis_reaksi LIKE ? OR r.petugas_pelapor LIKE ? OR p.nama_pasien LIKE ?) ";
+    params.push(`%${cari}%`, `%${cari}%`, `%${cari}%`);
+  }
 
-  const countSql = `
-    SELECT COUNT(*) AS total
-    FROM permintaan_darah p
-    ${whereClause}
+  const sqlData = `
+    SELECT 
+      r.id,
+      r.permintaan_id,
+      r.jam_transfusi,
+      r.jenis_reaksi,
+      r.jam_terjadi,
+      r.jam_dilaporkan,
+      r.petugas_pelapor,
+      r.tindakan,
+      r.status,
+      p.nama_pasien,
+      p.tanggal_lahir,
+      t.nama_ruangan,
+      p.ruangan_id 
+    FROM reaksi_transfusi r
+    LEFT JOIN permintaan_darah p ON p.id = r.permintaan_id
+    LEFT JOIN tenaga_medis t ON p.ruangan_id = t.id
+    ${where}
+    ORDER BY r.id DESC
+    LIMIT ? OFFSET ?
   `;
 
-  db.query(countSql, params, (err, countRes) => {
+  const sqlCount = `
+    SELECT COUNT(*) AS total
+    FROM reaksi_transfusi r
+    LEFT JOIN permintaan_darah p ON p.id = r.permintaan_id
+    ${where}
+  `;
+
+  // params for data query need pagination appended
+  const paramsCount = params.slice();
+  const paramsData = params.slice();
+  paramsData.push(limit, offset);
+
+  db.query(sqlCount, paramsCount, (err, countRows) => {
     if (err) {
-      console.error('Error count permintaan_darah:', err);
-      return res.status(500).json({ success: false, message: 'Gagal menghitung data permintaan' });
+      console.error("DB error COUNT view:", err);
+      return res.status(500).json({ success: false, message: "Server error (count)" });
     }
-    const total = countRes[0].total || 0;
-    const totalPages = Math.ceil(total / limit);
 
-    const dataSql = `
-      SELECT p.*,
-             k.nama_komponen,
-             t.nama_ruangan
-      FROM permintaan_darah p
-      LEFT JOIN komponen_darah k ON p.komponen_id = k.id
-      LEFT JOIN tenaga_medis t ON p.ruangan_id = t.id
-      ${whereClause}
-      ORDER BY p.tanggal_permintaan DESC, p.created_at DESC
-      LIMIT ? OFFSET ?
-    `;
+    const total_data = countRows && countRows[0] ? Number(countRows[0].total) : 0;
+    const total_pages = Math.ceil(total_data / limit) || 1;
 
-    const dataParams = params.slice();
-    dataParams.push(limit, offset);
-
-    db.query(dataSql, dataParams, (err2, rows) => {
+    db.query(sqlData, paramsData, (err2, rows) => {
       if (err2) {
-        console.error('Error fetch permintaan_darah:', err2);
-        return res.status(500).json({ success: false, message: 'Gagal memuat data permintaan' });
+        console.error("DB error DATA view:", err2);
+        return res.status(500).json({ success: false, message: "Server error (data)" });
       }
+
       return res.json({
         success: true,
-        page,
-        limit,
-        total_data: total,
-        total_pages: totalPages,
-        data: rows || []
+        message: "Data berhasil diambil",
+        data: rows || [],
+        total_data,
+        total_pages
       });
     });
   });
 });
 
 
-router.get('/detail/:id', (req, res) => {
-  const { id } = req.params;
-  if (!id) return res.status(400).json({ success: false, message: 'ID permintaan dibutuhkan' });
+// POST /api/v1/reaksi_transfusi/:id/send
+router.post('/:id/send', (req, res) => {
+  const id = req.params.id;
 
-  const sql = `
-    SELECT p.*,
-           k.nama_komponen,
-           t.nama_ruangan
-    FROM permintaan_darah p
-    LEFT JOIN komponen_darah k ON p.komponen_id = k.id
-    LEFT JOIN tenaga_medis t ON p.ruangan_id = t.id
-    WHERE p.id = ?
-    LIMIT 1
-  `;
-  db.query(sql, [id], (err, rows) => {
+  // optional: batasi hanya admin ruangan (role 3) boleh panggil
+  // asumsi req.user.profile.role tersedia dan bernilai number/string '3'
+  const userRole = req.user && req.user.profile && req.user.profile.stokdarah_konut;
+  if (Number(userRole) !== 3) {
+    return res.status(403).json({ success: false, message: 'Akses ditolak' });
+  }
+
+  const sql = `UPDATE reaksi_transfusi SET status = 'terkirim', updated_at = NOW() WHERE id = ? LIMIT 1`;
+  db.query(sql, [id], (err, result) => {
     if (err) {
-      console.error('Error detail permintaan:', err);
-      return res.status(500).json({ success: false, message: 'Gagal ambil detail permintaan' });
+      console.error('DB error send reaksi_transfusi:', err);
+      return res.status(500).json({ success: false, message: 'Server error' });
     }
-    if (!rows || rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Permintaan tidak ditemukan' });
+    if (!result || result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Data tidak ditemukan' });
     }
-    return res.json({ success: true, data: rows[0] });
+
+    // sukses
+    return res.json({ success: true, message: 'Laporan berhasil dikirim ke UPD' });
   });
 });
 
-// ===================================================
-// POST: addData (admin ruangan mengajukan permintaan)
-// ===================================================
-router.post('/addData', (req, res) => {
-  const body = req.body || {};
-
-  // fallback default sementara: rumah_sakit_id = 1 (RSUD KONAWE UTARA)
-  if (
-    body.rumah_sakit_id === undefined ||
-    body.rumah_sakit_id === null ||
-    String(body.rumah_sakit_id).trim() === ''
-  ) {
-    body.rumah_sakit_id = 1;
-  }
-
-  // validasi field wajib minimal
-  const required = [
-    'rumah_sakit_id',
-    'ruangan_id',
-    'nama_dokter',
-    'tanggal_permintaan',
-    'nama_pasien',
-    'jenis_kelamin',
-    'golongan_darah',
-    'rhesus',
-    'komponen_id',
-    'jumlah_kantong',
-    'jumlah_cc',
-    'diagnosis_klinis',
-    'alasan_transfusi'
-  ];
-
-  for (let f of required) {
-    if (
-      body[f] === undefined ||
-      body[f] === null ||
-      String(body[f]).toString().trim() === ''
-    ) {
-      return res
-        .status(400)
-        .json({ success: false, message: `Field ${f} wajib diisi` });
+// POST /api/v1/reaksi_transfusi/pemeriksaan/add
+// POST /api/v1/reaksi_transfusi/pemeriksaan/add
+router.post('/pemeriksaan/add', (req, res) => {
+  try {
+    // cek autentikasi + role (izinkan role 1 atau 2 = UPD)
+    const profile = req.user && req.user.profile ? req.user.profile : null;
+    if (!profile) {
+      return res.status(401).json({ success: false, message: 'User tidak terautentikasi' });
     }
-  }
-
-  // ===== tambahan backend: sanitasi & validasi untuk Riwayat Transfusi & Coomb's =====
-  const allowedYesNo = (v) => (v === 'Ya' || v === 'Tidak') ? v : 'Tidak';
-
-  const transfusi_sebelumnya = allowedYesNo(String(body.transfusi_sebelumnya || 'Tidak'));
-  const transfusi_kapan = body.transfusi_kapan ? String(body.transfusi_kapan).trim() : null;
-
-  const reaksi_transfusi = allowedYesNo(String(body.reaksi_transfusi || 'Tidak'));
-  const gejala_transfusi = body.gejala_transfusi ? String(body.gejala_transfusi).trim() : null;
-
-  const coomb_test = allowedYesNo(String(body.coomb_test || 'Tidak'));
-  const coomb_tempat = body.coomb_tempat ? String(body.coomb_tempat).trim() : null;
-  // gunakan helper formatDate untuk tanggal coomb (menghasilkan 'YYYY-MM-DD' atau null)
-  const coomb_kapan = formatDate(body.coomb_kapan) || null;
-  const coomb_hasil = body.coomb_hasil ? String(body.coomb_hasil).trim() : null;
-
-  // Validasi server-side minimal (mirip validasi frontend)
-  if (transfusi_sebelumnya === 'Ya' && (!transfusi_kapan || transfusi_kapan === '')) {
-    return res.status(400).json({ success: false, message: 'Field transfusi_kapan wajib diisi ketika Transfusi Sebelumnya = Ya' });
-  }
-  if (reaksi_transfusi === 'Ya' && (!gejala_transfusi || gejala_transfusi === '')) {
-    return res.status(400).json({ success: false, message: 'Field gejala_transfusi wajib diisi ketika Reaksi Transfusi = Ya' });
-  }
-  if (coomb_test === 'Ya' && (!coomb_tempat || !coomb_kapan || !coomb_hasil)) {
-    return res.status(400).json({ success: false, message: 'Lengkapi data Coomb\'s test: dimana, kapan (tanggal) dan hasil.' });
-  }
-
-  // validasi tambahan khusus pasien wanita
-  if (body.jenis_kelamin === 'P') {
-    if (body.jumlah_kehamilan === undefined || body.jumlah_kehamilan === null) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Jumlah kehamilan wajib diisi untuk pasien perempuan' });
-    }
-    if (
-      !['Ya', 'Tidak'].includes(body.pernah_abortus || '') ||
-      !['Ya', 'Tidak'].includes(body.pernah_hdn || '')
-    ) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Pernah abortus dan pernah HDN wajib diisi untuk pasien perempuan' });
-    }
-  }
-
-  // nilai default status awal
-  const status = 1; // Diajukan
-  const status_keterangan = 'Menunggu Diperiksa oleh Admin UPD';
-
-  // Query lengkap sesuai tabel permintaan_darah
-  const sql = `
-  INSERT INTO permintaan_darah
-  (
-    rumah_sakit_id, ruangan_id, nama_dokter, tanggal_permintaan, tanggal_diperlukan,
-    nama_pasien, nomor_rm, tanggal_lahir, alamat, nama_wali, jenis_kelamin,
-    golongan_darah, rhesus, komponen_id, jumlah_kantong, jumlah_cc, diagnosis_klinis,
-    alasan_transfusi,
-    transfusi_sebelumnya, transfusi_kapan, reaksi_transfusi, gejala_transfusi,
-    coomb_test, coomb_tempat, coomb_kapan, coomb_hasil,
-    kadar_hb,
-    jumlah_kehamilan, pernah_abortus, pernah_hdn,
-    status, status_keterangan, created_at, updated_at
-  )
-  VALUES (
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-    ?, ?, NOW(), NOW()
-  );
-  
-  `;
-
-  const params = [
-    body.rumah_sakit_id,
-    body.ruangan_id,
-    body.nama_dokter,
-    body.tanggal_permintaan,
-    body.tanggal_diperlukan || null,
-    body.nama_pasien,
-    body.nomor_rm || null,
-    body.tanggal_lahir || null,
-    body.alamat || null,
-    body.nama_wali || null,
-    body.jenis_kelamin,
-    body.golongan_darah,
-    body.rhesus,
-    body.komponen_id,
-    Number(body.jumlah_kantong || 0),
-    Number(body.jumlah_cc || 0),
-    body.diagnosis_klinis,
-    body.alasan_transfusi,
-    transfusi_sebelumnya,
-    transfusi_kapan,
-    reaksi_transfusi,
-    gejala_transfusi,
-    coomb_test,
-    coomb_tempat,
-    coomb_kapan,
-    coomb_hasil,
-    body.kadar_hb || null,
-    body.jumlah_kehamilan || null,
-    body.pernah_abortus || null,
-    body.pernah_hdn || null,
-    status,
-    status_keterangan
-  ];
-
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      console.error('Error insert permintaan_darah:', err);
-      return res
-        .status(500)
-        .json({ success: false, message: 'Gagal menambah permintaan darah' });
-    }
-    return res.json({
-      success: true,
-      message: 'Permintaan darah berhasil diajukan',
-      id: result.insertId
-    });
-  });
-});
-
-// ===================================================
-// POST: updateStatus (untuk verifikasi oleh Admin UPD)
-// ===================================================
-// router.post('/updateStatus', (req, res) => {
-//   const b = req.body || {};
-//   const id = b.id;
-//   const status = Number(b.status);
-
-//   if (!id) return res.status(400).json({ success: false, message: 'ID permintaan dibutuhkan' });
-//   if (![1, 2, 3, 4].includes(status)) return res.status(400).json({ success: false, message: 'Status tidak valid' });
-
-//   if (status === 4 && (!b.status_keterangan || String(b.status_keterangan).trim() === '')) {
-//     return res.status(400).json({ success: false, message: 'Keterangan penolakan wajib diisi saat status = 4' });
-//   }
-
-//   // prepare update fields (only allowed fields)
-//   const allowed = [
-//     'status_keterangan', 'petugas_pemeriksa', 'tanggal_pemeriksaan',
-//     'golongan_darah_hasil', 'rhesus_hasil', 'catatan_tambahan',
-//     'crossmatch_1', 'crossmatch_2', 'crossmatch_3',
-//     'jumlah_darah_diberikan', 'nomor_kantong', 'petugas_pengeluar', 'penerima_darah'
-//   ];
-
-//   const sets = ['status = ?'];
-//   const params = [status];
-
-//   allowed.forEach(key => {
-//     if (b[key] !== undefined) {
-//       sets.push(`${key} = ?`);
-//       params.push(b[key]);
-//     }
-//   });
-
-//   // Jika status 2 (Diperiksa) dan tidak ada status_keterangan, set default teks
-//   if (status === 2 && (b.status_keterangan === undefined || b.status_keterangan === null)) {
-//     sets.push(`status_keterangan = ?`);
-//     params.push('Permintaan Sedang diperiksa');
-//   }
-
-//   // Jika status 3 (Disetujui) and no status_keterangan, set default teks
-//   if (status === 3 && (b.status_keterangan === undefined || b.status_keterangan === null)) {
-//     sets.push(`status_keterangan = ?`);
-//     params.push('Permintaan Darah sudah berhasil');
-//   }
-
-//   // updated_at
-//   sets.push('updated_at = NOW()');
-
-//   const sql = `UPDATE permintaan_darah SET ${sets.join(', ')} WHERE id = ?`;
-//   params.push(id);
-
-//   db.query(sql, params, (err, result) => {
-//     if (err) {
-//       console.error('Error updateStatus permintaan_darah:', err);
-//       return res.status(500).json({ success: false, message: 'Gagal memperbarui status permintaan' });
-//     }
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ success: false, message: 'Permintaan tidak ditemukan' });
-//     }
-//     return res.json({ success: true, message: 'Status permintaan berhasil diperbarui' });
-//   });
-// });
-
-
-// router.post('/updateStatus', (req, res) => {
-//   const b = req.body || {};
-//   const id = b.id;
-//   const status = Number(b.status);
-
-//   if (!id) return res.status(400).json({ success: false, message: 'ID permintaan dibutuhkan' });
-//   if (![1, 2, 3, 4].includes(status)) return res.status(400).json({ success: false, message: 'Status tidak valid' });
-
-//   if (status === 4 && (!b.status_keterangan || String(b.status_keterangan).trim() === '')) {
-//     return res.status(400).json({ success: false, message: 'Keterangan penolakan wajib diisi saat status = 4' });
-//   }
-
-//   // allowed fields update
-//   const allowed = [
-//     'status_keterangan', 'petugas_pemeriksa', 'tanggal_pemeriksaan',
-//     'golongan_darah_hasil', 'rhesus_hasil', 'catatan_tambahan',
-//     'crossmatch_1', 'crossmatch_2', 'crossmatch_3',
-//     'jumlah_darah_diberikan', 'jumlah_darah_diberikan_cc', 'nomor_kantong', 'petugas_pengeluar', 'penerima_darah'
-//   ];
-
-//   const sets = ['status = ?'];
-//   const params = [status];
-
-//   allowed.forEach(key => {
-//     if (b[key] !== undefined) {
-//       sets.push(`${key} = ?`);
-//       params.push(b[key]);
-//     }
-//   });
-
-//   if (status === 2 && (b.status_keterangan === undefined || b.status_keterangan === null)) {
-//     sets.push(`status_keterangan = ?`);
-//     params.push('Permintaan Sedang diperiksa');
-//   }
-
-//   if (status === 3 && (b.status_keterangan === undefined || b.status_keterangan === null)) {
-//     sets.push(`status_keterangan = ?`);
-//     params.push('Permintaan Darah sudah berhasil dan Siap diambil');
-//   }
-
-//   // always update updated_at
-//   sets.push('updated_at = NOW()');
-//   params.push(id);
-
-//   // mulai proses dengan koneksi DB (transaction)
-//   db.getConnection((connErr, connection) => {
-//     if (connErr) {
-//       console.error('DB getConnection error:', connErr);
-//       return res.status(500).json({ success: false, message: 'Koneksi database gagal' });
-//     }
-
-//     connection.beginTransaction(txErr => {
-//       if (txErr) {
-//         connection.release();
-//         console.error('beginTransaction error:', txErr);
-//         return res.status(500).json({ success: false, message: 'Gagal memulai transaksi DB' });
-//       }
-
-//       const sqlUpdate = `UPDATE permintaan_darah SET ${sets.join(', ')} WHERE id = ?`;
-//       connection.query(sqlUpdate, params, (updErr, updRes) => {
-//         if (updErr) {
-//           return connection.rollback(() => {
-//             connection.release();
-//             console.error('Error updateStatus permintaan_darah:', updErr);
-//             return res.status(500).json({ success: false, message: 'Gagal memperbarui status permintaan' });
-//           });
-//         }
-
-//         if (updRes.affectedRows === 0) {
-//           return connection.rollback(() => {
-//             connection.release();
-//             return res.status(404).json({ success: false, message: 'Permintaan tidak ditemukan' });
-//           });
-//         }
-
-//         // jika status bukan 3 -> commit dan selesai
-//         if (status !== 3) {
-//           return connection.commit(commitErr => {
-//             if (commitErr) {
-//               return connection.rollback(() => {
-//                 connection.release();
-//                 console.error('commit error:', commitErr);
-//                 return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-//               });
-//             }
-//             connection.release();
-//             return res.json({ success: true, message: 'Status permintaan berhasil diperbarui' });
-//           });
-//         }
-
-//         // --- status === 3 : buat transaksi_darah 'keluar' + update stok ---
-//         // ambil data permintaan beserta nama_ruangan dari tenaga_medis
-//         const selSql = `
-//           SELECT p.id, p.jumlah_darah_diberikan, p.jumlah_darah_diberikan_cc, p.golongan_darah_hasil, p.rhesus_hasil, p.komponen_id,
-//                  tm.nama_ruangan
-//           FROM permintaan_darah p
-//           LEFT JOIN tenaga_medis tm ON p.ruangan_id = tm.id
-//           WHERE p.id = ? LIMIT 1
-//         `;
-//         connection.query(selSql, [id], (selErr, selRows) => {
-//           if (selErr) {
-//             return connection.rollback(() => {
-//               connection.release();
-//               console.error('Error select permintaan:', selErr);
-//               return res.status(500).json({ success: false, message: 'Gagal membaca data permintaan setelah update' });
-//             });
-//           }
-//           if (!selRows || !selRows.length) {
-//             // tidak ketemu -> commit update dan beri info
-//             return connection.commit(commitErr => {
-//               if (commitErr) {
-//                 return connection.rollback(() => {
-//                   connection.release();
-//                   console.error('commit error:', commitErr);
-//                   return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-//                 });
-//               }
-//               connection.release();
-//               return res.json({ success: true, message: 'Status diperbarui, tapi data permintaan tidak ditemukan untuk pembuatan transaksi.' });
-//             });
-//           }
-
-//           const perm = selRows[0];
-//           const jumlah = Number(perm.jumlah_darah_diberikan || 0);
-//           const jumlah_cc = Number(perm.jumlah_darah_diberikan_cc || 0);
-//           const gol = perm.golongan_darah_hasil || null;
-//           const rh = perm.rhesus_hasil || null;
-//           const komponen = perm.komponen_id || null;
-//           const nama_ruangan = perm.nama_ruangan || '-';
-
-//           // jika informasi penting tidak ada => commit update, dan jawab dengan info
-//           if (!gol || !rh || !komponen || !jumlah || jumlah <= 0) {
-//             return connection.commit(commitErr => {
-//               if (commitErr) {
-//                 return connection.rollback(() => {
-//                   connection.release();
-//                   console.error('commit error:', commitErr);
-//                   return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-//                 });
-//               }
-//               connection.release();
-//               return res.json({
-//                 success: true,
-//                 message: 'Status permintaan diperbarui. Namun transaksi darah otomatis TIDAK dibuat karena data transaksi (golongan/rhesus/komponen/jumlah) tidak lengkap.'
-//               });
-//             });
-//           }
-
-//           // buat keterangan polos sesuai permintaan
-//           const keterangan = `Permintaan Darah dari Ruangan ${nama_ruangan}`;
-
-//           // lock stok_darah (FOR UPDATE)
-//           const lockSql = `SELECT jumlah_stok FROM stok_darah WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ? FOR UPDATE`;
-//           connection.query(lockSql, [gol, rh, komponen], (lockErr, lockRows) => {
-//             if (lockErr) {
-//               return connection.rollback(() => {
-//                 connection.release();
-//                 console.error('Error lock stok:', lockErr);
-//                 return res.status(500).json({ success: false, message: 'Gagal mengunci stok' });
-//               });
-//             }
-//             if (!lockRows || !lockRows.length) {
-//               return connection.rollback(() => {
-//                 connection.release();
-//                 return res.status(404).json({ success: false, message: 'Data stok tidak ditemukan (untuk golongan/rhesus/komponen tersebut)' });
-//               });
-//             }
-
-//             const stokNow = Number(lockRows[0].jumlah_stok || 0);
-//             if (stokNow < jumlah) {
-//               return connection.rollback(() => {
-//                 connection.release();
-//                 return res.status(400).json({ success: false, message: `Stok tidak cukup untuk membuat transaksi keluar. Stok: ${stokNow}, diminta: ${jumlah}` });
-//               });
-//             }
-
-//             // insert transaksi_darah
-//             const tipe = 'keluar';
-//             const insSql = `INSERT INTO transaksi_darah
-//               (golongan_darah, rhesus, komponen_id, jumlah, tipe_transaksi, keterangan)
-//               VALUES (?, ?, ?, ?, ?, ?)`;
-//             connection.query(insSql, [gol, rh, komponen, jumlah, tipe, keterangan], (insErr) => {
-//               if (insErr) {
-//                 return connection.rollback(() => {
-//                   connection.release();
-//                   console.error('Error inserting transaksi_darah:', insErr);
-//                   return res.status(500).json({ success: false, message: 'Gagal mencatat transaksi darah' });
-//                 });
-//               }
-
-//               // update stok_darah (kurangi)
-//               const updSql = `UPDATE stok_darah SET jumlah_stok = jumlah_stok - ?, tanggal_update = NOW()
-//                               WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?`;
-//               connection.query(updSql, [jumlah, gol, rh, komponen], (updErr2) => {
-//                 if (updErr2) {
-//                   return connection.rollback(() => {
-//                     connection.release();
-//                     console.error('Error update stok_darah:', updErr2);
-//                     return res.status(500).json({ success: false, message: 'Gagal memperbarui stok darah' });
-//                   });
-//                 }
-
-//                 // commit semua
-//                 connection.commit(commitErr2 => {
-//                   if (commitErr2) {
-//                     return connection.rollback(() => {
-//                       connection.release();
-//                       console.error('commit error:', commitErr2);
-//                       return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-//                     });
-//                   }
-//                   connection.release();
-//                   return res.json({ success: true, message: 'Status permintaan diperbarui dan transaksi darah keluar tercatat.' });
-//                 });
-//               });
-//             });
-//           }); // end lock stok
-//         }); // end select permintaan
-//       }); // end update query
-//     }); // end beginTransaction
-//   }); // end getConnection
-// });
-
-// POST: updateStatus (untuk verifikasi oleh Admin UPD)
-// NOTE: versi disederhanakan — TIDAK lagi membuat transaksi_darah / mengubah stok.
-// Hanya melakukan update pada tabel permintaan_darah.
-// router.post('/updateStatus', (req, res) => {
-//   const b = req.body || {};
-//   const id = b.id;
-//   const status = Number(b.status);
-
-//   if (!id) return res.status(400).json({ success: false, message: 'ID permintaan dibutuhkan' });
-//   if (![1, 2, 3, 4].includes(status)) return res.status(400).json({ success: false, message: 'Status tidak valid' });
-
-//   if (status === 4 && (!b.status_keterangan || String(b.status_keterangan).trim() === '')) {
-//     return res.status(400).json({ success: false, message: 'Keterangan penolakan wajib diisi saat status = 4' });
-//   }
-
-//   // allowed fields update (tetap sama seperti sebelumnya)
-//   const allowed = [
-//     'status_keterangan', 'petugas_pemeriksa', 'tanggal_pemeriksaan',
-//     'golongan_darah_hasil', 'rhesus_hasil', 'catatan_tambahan',
-//     'crossmatch_1', 'crossmatch_2', 'crossmatch_3',
-//     'jumlah_darah_diberikan', 'jumlah_darah_diberikan_cc', 'nomor_kantong', 'petugas_pengeluar', 'penerima_darah'
-//   ];
-
-//   const sets = ['status = ?'];
-//   const params = [status];
-
-//   allowed.forEach(key => {
-//     if (b[key] !== undefined) {
-//       sets.push(`${key} = ?`);
-//       params.push(b[key]);
-//     }
-//   });
-
-//   // default status_keterangan jika tidak dikirim untuk beberapa status (opsional)
-//   if ((b.status_keterangan === undefined || b.status_keterangan === null) && status === 2) {
-//     sets.push(`status_keterangan = ?`);
-//     params.push('Permintaan Sedang diperiksa');
-//   }
-//   if ((b.status_keterangan === undefined || b.status_keterangan === null) && status === 3) {
-//     sets.push(`status_keterangan = ?`);
-//     params.push('Permintaan Darah sudah berhasil');
-//   }
-
-//   // always update updated_at
-//   sets.push('updated_at = NOW()');
-
-//   // jika tidak ada field selain status (rare), tetap lakukan update untuk status
-//   const sql = `UPDATE permintaan_darah SET ${sets.join(', ')} WHERE id = ?`;
-//   params.push(id);
-
-//   db.query(sql, params, (err, result) => {
-//     if (err) {
-//       console.error('Error updateStatus permintaan_darah (simple):', err);
-//       return res.status(500).json({ success: false, message: 'Gagal memperbarui status permintaan' });
-//     }
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ success: false, message: 'Permintaan tidak ditemukan' });
-//     }
-
-//     return res.json({ success: true, message: 'Status permintaan berhasil diperbarui dan Darah Siap diambil' });
-//   });
-// });
-
-
-// POST: updateStatus (simple) — support status 1..6, auto-set tanggal_pengambilan = NOW() when status=6
-// gunakan sesuai dengan cara Anda import db (saya anggap db adalah pool mysql)
-router.post('/updateStatus', (req, res) => {
-  const b = req.body || {};
-  const id = b.id;
-  const status = Number(b.status);
-
-  if (!id) return res.status(400).json({ success: false, message: 'ID permintaan dibutuhkan' });
-
-  const allowedStatuses = [1, 2, 3, 4, 5, 6];
-  if (!allowedStatuses.includes(status)) {
-    return res.status(400).json({ success: false, message: 'Status tidak valid' });
-  }
-
-  if (status === 5 && (!b.status_keterangan || String(b.status_keterangan).trim() === '')) {
-    return res.status(400).json({ success: false, message: 'Keterangan penolakan wajib diisi saat status = 5' });
-  }
-
-  function toMySQLDateTime(val) {
-    if (val === undefined || val === null) return null;
-    if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
-      return val;
-    }
-    if (typeof val === 'number' || (typeof val === 'string' && /^\d+$/.test(val))) {
-      const num = Number(val);
-      const asMs = (String(num).length <= 10) ? num * 1000 : num;
-      const d = new Date(asMs);
-      if (isNaN(d.getTime())) return null;
-      const pad = (n) => String(n).padStart(2, '0');
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    }
-    if (val instanceof Date) {
-      const d = val; const pad = (n) => String(n).padStart(2, '0');
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    }
-    try {
-      const d = new Date(val);
-      if (isNaN(d.getTime())) return null;
-      const pad = (n) => String(n).padStart(2, '0');
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  if (b.tanggal_pemeriksaan !== undefined) {
-    const converted = toMySQLDateTime(b.tanggal_pemeriksaan);
-    b.tanggal_pemeriksaan = converted;
-  }
-
-  const allowed = [
-    'status_keterangan', 'petugas_pemeriksa', 'tanggal_pemeriksaan',
-    'golongan_darah_hasil', 'exp', 'rhesus_hasil', 'catatan_tambahan',
-    'crossmatch_1', 'crossmatch_2', 'crossmatch_3',
-    'jumlah_darah_diberikan', 'jumlah_darah_diberikan_cc', 'nomor_kantong',
-    'petugas_pengeluar', 'penerima_darah',
-    'jam_pengambilan', 'catatan_pengambilan'
-  ];
-
-  const sets = ['status = ?'];
-  const params = [status];
-
-  allowed.forEach(key => {
-    if (b[key] !== undefined) {
-      let val = b[key];
-      if (typeof val === 'string' && val.trim() === '') val = null;
-      sets.push(`${key} = ?`);
-      params.push(val);
-    }
-  });
-
-  let tanggalPengambilanHandled = false;
-  if (b.tanggal_pengambilan !== undefined) {
-    const v = (typeof b.tanggal_pengambilan === 'string' && b.tanggal_pengambilan.trim() === '') ? null : b.tanggal_pengambilan;
-    sets.push('tanggal_pengambilan = ?');
-    params.push(v);
-    tanggalPengambilanHandled = true;
-  }
-
-  if ((b.status_keterangan === undefined || b.status_keterangan === null) && status === 2) {
-    sets.push('status_keterangan = ?');
-    params.push('Permintaan Sedang diperiksa');
-  }
-  if ((b.status_keterangan === undefined || b.status_keterangan === null) && status === 3) {
-    sets.push('status_keterangan = ?');
-    params.push('Siap Diambil - Menunggu pengambilan oleh keluarga/ruangan');
-  }
-  if ((b.status_keterangan === undefined || b.status_keterangan === null) && status === 6) {
-    sets.push('status_keterangan = ?');
-    params.push('Sudah diambil');
-  }
-
-  if (status === 6 && !tanggalPengambilanHandled) {
-    sets.push('tanggal_pengambilan = NOW()');
-  }
-
-  sets.push('updated_at = NOW()');
-  const sqlUpdate = `UPDATE permintaan_darah SET ${sets.join(', ')} WHERE id = ?`;
-  params.push(id);
-
-  // gunakan connection dan transaction karena kita mungkin akan melakukan banyak query (insert transaksi + update stok)
-  db.getConnection((connErr, connection) => {
-    if (connErr) {
-      console.error('DB getConnection error:', connErr);
-      return res.status(500).json({ success: false, message: 'Koneksi database gagal' });
+    const role = Number(profile.role || profile.stokdarah_konut || 0);
+    if (role !== 1 && role !== 2) {
+      return res.status(403).json({ success: false, message: 'Akses ditolak: hanya UPD yang boleh mengisi pemeriksaan' });
     }
 
-    connection.beginTransaction(txErr => {
-      if (txErr) {
-        connection.release();
-        console.error('beginTransaction error:', txErr);
-        return res.status(500).json({ success: false, message: 'Gagal memulai transaksi DB' });
+    const body = req.body || {};
+
+    // required fields minimal
+    const reaksi_id = body.reaksi_id;
+    const no_kantong = (body.no_kantong || '').toString().trim();
+    const komponen_darah = (body.komponen_darah || '').toString().trim();
+
+    if (!reaksi_id) {
+      return res.status(400).json({ success: false, message: 'reaksi_id wajib diisi' });
+    }
+    if (!no_kantong) {
+      return res.status(400).json({ success: false, message: 'no_kantong wajib diisi' });
+    }
+    if (!komponen_darah) {
+      return res.status(400).json({ success: false, message: 'komponen_darah wajib diisi' });
+    }
+
+    // ambil field lain (boleh null)
+    const asal_darah = body.asal_darah || null;
+    const golongan_darah = body.golongan_darah || null;
+    const uji_silang_serasi = body.uji_silang_serasi || null;
+    const konfirm_gol_pasien = body.konfirm_gol_pasien || null;
+    const konfirm_rhesus_pasien = body.konfirm_rhesus_pasien || null;
+    const konfirm_gol_donor = body.konfirm_gol_donor || null;
+    const konfirm_rhesus_donor = body.konfirm_rhesus_donor || null;
+    const uji_silang_konfirmasi = body.uji_silang_konfirmasi || null;
+
+    // pemeriksaan_at: terima format "YYYY-MM-DDTHH:MM" atau datetime string
+    let pemeriksaan_at = body.pemeriksaan_at || null;
+    if (pemeriksaan_at) {
+      // ubah T -> space jika datang dari input datetime-local
+      pemeriksaan_at = String(pemeriksaan_at).replace('T', ' ');
+    }
+
+    // Insert ke tabel pemeriksaan_pretransfusi
+    const insertSql = `
+      INSERT INTO pemeriksaan_pretransfusi
+        (reaksi_id, asal_darah, no_kantong, komponen_darah, golongan_darah,
+         uji_silang_serasi, konfirm_gol_pasien, konfirm_rhesus_pasien,
+         konfirm_gol_donor, konfirm_rhesus_donor, uji_silang_konfirmasi, pemeriksaan_at, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+    `;
+    const params = [
+      reaksi_id,
+      asal_darah,
+      no_kantong,
+      komponen_darah,
+      golongan_darah,
+      uji_silang_serasi,
+      konfirm_gol_pasien,
+      konfirm_rhesus_pasien,
+      konfirm_gol_donor,
+      konfirm_rhesus_donor,
+      uji_silang_konfirmasi,
+      pemeriksaan_at
+    ];
+
+    db.query(insertSql, params, (err, result) => {
+      if (err) {
+        console.error('DB error insert pemeriksaan_pretransfusi:', err);
+        return res.status(500).json({ success: false, message: 'Server error saat menyimpan pemeriksaan' });
       }
 
-      connection.query(sqlUpdate, params, (updErr, updRes) => {
-        if (updErr) {
-          return connection.rollback(() => {
-            connection.release();
-            console.error('Error updateStatus permintaan_darah:', updErr);
-            return res.status(500).json({ success: false, message: 'Gagal memperbarui status permintaan' });
-          });
-        }
+      const newId = result.insertId || null;
 
-        if (updRes.affectedRows === 0) {
-          return connection.rollback(() => {
-            connection.release();
-            return res.status(404).json({ success: false, message: 'Permintaan tidak ditemukan' });
-          });
-        }
-
-        // jika bukan status yang memicu pembuatan transaksi ('6'), commit dan selesai
-        if (status !== 6) {
-          return connection.commit(commitErr => {
-            if (commitErr) {
-              return connection.rollback(() => {
-                connection.release();
-                console.error('commit error:', commitErr);
-                return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-              });
-            }
-            connection.release();
-            return res.json({ success: true, message: 'Status permintaan berhasil diperbarui' });
-          });
-        }
-
-        // --- status === 6 : buat transaksi_darah 'keluar' + update stok ---
-        const selSql = `
-          SELECT p.id, p.jumlah_darah_diberikan, p.jumlah_darah_diberikan_cc, p.golongan_darah_hasil, p.rhesus_hasil, p.komponen_id,
-                 tm.nama_ruangan
-          FROM permintaan_darah p
-          LEFT JOIN tenaga_medis tm ON p.ruangan_id = tm.id
-          WHERE p.id = ? LIMIT 1
-        `;
-        connection.query(selSql, [id], (selErr, selRows) => {
-          if (selErr) {
-            return connection.rollback(() => {
-              connection.release();
-              console.error('Error select permintaan:', selErr);
-              return res.status(500).json({ success: false, message: 'Gagal membaca data permintaan setelah update' });
-            });
-          }
-
-          if (!selRows || !selRows.length) {
-            // commit update saja, beri info bahwa transaksi tidak dibuat karena data tidak ditemukan
-            return connection.commit(commitErr => {
-              if (commitErr) {
-                return connection.rollback(() => {
-                  connection.release();
-                  console.error('commit error:', commitErr);
-                  return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-                });
-              }
-              connection.release();
-              return res.json({ success: true, message: 'Status diperbarui, tapi data permintaan tidak ditemukan untuk pembuatan transaksi.' });
-            });
-          }
-
-          const perm = selRows[0];
-          const jumlah = Number(perm.jumlah_darah_diberikan || 0);
-          const jumlah_cc = Number(perm.jumlah_darah_diberikan_cc || 0);
-          const gol = perm.golongan_darah_hasil || null;
-          const rh = perm.rhesus_hasil || null;
-          const komponen = perm.komponen_id || null;
-          const nama_ruangan = perm.nama_ruangan || '-';
-
-          if (!gol || !rh || !komponen || !jumlah || jumlah <= 0) {
-            return connection.commit(commitErr => {
-              if (commitErr) {
-                return connection.rollback(() => {
-                  connection.release();
-                  console.error('commit error:', commitErr);
-                  return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-                });
-              }
-              connection.release();
+      // Setelah insert sukses -> update status reaksi_transfusi menjadi 'unduh'
+      const updateSql = `UPDATE reaksi_transfusi SET status = 'unduh', updated_at = NOW() WHERE id = ? LIMIT 1`;
+      db.query(updateSql, [reaksi_id], (errUp, upRes) => {
+        if (errUp) {
+          console.error('DB error update reaksi_transfusi status:', errUp);
+          // walaupun update gagal, kita tetap kembalikan success untuk insert, tapi informasikan masalah update
+          // lalu ambil row pemeriksaan yang baru untuk dikembalikan
+          const sel = `
+            SELECT p.*, r.jenis_reaksi, r.petugas_pelapor
+            FROM pemeriksaan_pretransfusi p
+            LEFT JOIN reaksi_transfusi r ON r.id = p.reaksi_id
+            WHERE p.id = ? LIMIT 1
+          `;
+          return db.query(sel, [newId], (err2, rows) => {
+            if (err2) {
+              console.error('DB error fetch inserted pemeriksaan after failed update:', err2);
               return res.json({
                 success: true,
-                message: 'Status permintaan diperbarui. Namun transaksi darah otomatis TIDAK dibuat karena data transaksi (golongan/rhesus/komponen/jumlah) tidak lengkap.'
+                status: true,
+                message: 'Pemeriksaan disimpan, namun gagal update status reaksi_transfusi',
+                data: { id: newId }
               });
+            }
+            return res.json({
+              success: true,
+              status: true,
+              message: 'Pemeriksaan disimpan, namun gagal update status reaksi_transfusi',
+              data: rows[0] || { id: newId }
+            });
+          });
+        }
+
+        // kalau update berhasil, ambil row pemeriksaan dan juga status reaksi terkini untuk dikembalikan
+        const sel2 = `
+          SELECT p.*, r.jenis_reaksi, r.petugas_pelapor, r.status AS reaksi_status
+          FROM pemeriksaan_pretransfusi p
+          LEFT JOIN reaksi_transfusi r ON r.id = p.reaksi_id
+          WHERE p.id = ? LIMIT 1
+        `;
+        db.query(sel2, [newId], (err3, rows3) => {
+          if (err3) {
+            console.error('DB error fetch inserted pemeriksaan after update:', err3);
+            return res.json({
+              success: true,
+              status: true,
+              message: 'Pemeriksaan disimpan dan status reaksi_transfusi diperbarui, namun gagal mengambil data hasil',
+              data: { id: newId }
             });
           }
 
-          const keterangan = `Permintaan Darah dari Ruangan ${nama_ruangan}`;
+          return res.json({
+            success: true,
+            status: true,
+            message: 'Pemeriksaan berhasil disimpan dan status reaksi_transfusi diperbarui menjadi "unduh"',
+            data: rows3[0] || { id: newId }
+          });
+        });
+      });
+    });
 
-          // lock stok
-          const lockSql = `SELECT jumlah_stok FROM stok_darah WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ? FOR UPDATE`;
-          connection.query(lockSql, [gol, rh, komponen], (lockErr, lockRows) => {
-            if (lockErr) {
-              return connection.rollback(() => {
-                connection.release();
-                console.error('Error lock stok:', lockErr);
-                return res.status(500).json({ success: false, message: 'Gagal mengunci stok' });
-              });
-            }
-            if (!lockRows || !lockRows.length) {
-              return connection.rollback(() => {
-                connection.release();
-                return res.status(404).json({ success: false, message: 'Data stok tidak ditemukan (untuk golongan/rhesus/komponen tersebut)' });
-              });
-            }
+  } catch (ex) {
+    console.error('Unhandled error POST /pemeriksaan/add:', ex);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
 
-            const stokNow = Number(lockRows[0].jumlah_stok || 0);
-            if (stokNow < jumlah) {
-              return connection.rollback(() => {
-                connection.release();
-                return res.status(400).json({ success: false, message: `Stok tidak cukup untuk membuat transaksi keluar. Stok: ${stokNow}, diminta: ${jumlah}` });
-              });
-            }
 
-            // insert transaksi_darah (tipe = 'keluar')
-            const tipe = 'keluar';
-            const insSql = `INSERT INTO transaksi_darah
-              (golongan_darah, rhesus, komponen_id, jumlah, tipe_transaksi, keterangan)
-              VALUES (?, ?, ?, ?, ?, ?)`;
-            connection.query(insSql, [gol, rh, komponen, jumlah, tipe, keterangan], (insErr) => {
-              if (insErr) {
-                return connection.rollback(() => {
-                  connection.release();
-                  console.error('Error inserting transaksi_darah:', insErr);
-                  return res.status(500).json({ success: false, message: 'Gagal mencatat transaksi darah' });
-                });
-              }
+// GET /api/v1/reaksi_transfusi/pemeriksaan/view?reaksi_id=...
+router.get('/pemeriksaan/view', (req, res) => {
+  try {
+    const reaksi_id = req.query.reaksi_id;
+    if (!reaksi_id) {
+      return res.status(400).json({ success: false, message: 'reaksi_id diperlukan' });
+    }
 
-              // update stok_darah (kurangi)
-              const updSql = `UPDATE stok_darah SET jumlah_stok = jumlah_stok - ?, tanggal_update = NOW()
-                              WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?`;
-              connection.query(updSql, [jumlah, gol, rh, komponen], (updErr2) => {
-                if (updErr2) {
-                  return connection.rollback(() => {
-                    connection.release();
-                    console.error('Error update stok_darah:', updErr2);
-                    return res.status(500).json({ success: false, message: 'Gagal memperbarui stok darah' });
-                  });
-                }
+    // ambil pemeriksaan terbaru untuk reaksi_id
+    const sql = `
+      SELECT p.*, r.jenis_reaksi, r.petugas_pelapor, r.status AS reaksi_status, p.created_at AS pemeriksaan_created
+      FROM pemeriksaan_pretransfusi p
+      LEFT JOIN reaksi_transfusi r ON r.id = p.reaksi_id
+      WHERE p.reaksi_id = ?
+      ORDER BY p.id DESC
+      LIMIT 1
+    `;
 
-                // commit semua
-                connection.commit(commitErr2 => {
-                  if (commitErr2) {
-                    return connection.rollback(() => {
-                      connection.release();
-                      console.error('commit error:', commitErr2);
-                      return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-                    });
-                  }
-                  connection.release();
-                  return res.json({ success: true, message: 'Status permintaan diperbarui dan transaksi darah keluar tercatat.' });
-                });
-              });
-            });
-          }); // end lock stok
-        }); // end select permintaan
-      }); // end update query
-    }); // end beginTransaction
-  }); // end getConnection
+    db.query(sql, [reaksi_id], (err, rows) => {
+      if (err) {
+        console.error('DB error pemeriksaan/view:', err);
+        return res.status(500).json({ success: false, message: 'Server error' });
+      }
+      if (!rows || rows.length === 0) {
+        return res.json({ success: true, status: true, message: 'Tidak ada pemeriksaan', data: null });
+      }
+      return res.json({ success: true, status: true, message: 'Data pemeriksaan ditemukan', data: rows[0] });
+    });
+  } catch (ex) {
+    console.error('Unhandled error GET /pemeriksaan/view:', ex);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 
 
+router.get('/pemeriksaan/pdf', checkTokenSeetUser, isLoggedIn, (req, res) => {
+  console.log('=== START PDF GENERATION ===');
+  console.log('Query params:', req.query);
+  console.log('User:', req.user ? req.user.profile : 'No user');
 
-// POST /permintaan_darah/edit
-router.post('/edit', (req, res) => {
-  const b = req.body || {};
-  const id = b.id;
-  if (!id) return res.status(400).json({ success: false, message: 'ID dibutuhkan' });
+  const profile = req.user && req.user.profile ? req.user.profile : null;
+  const role = Number(profile?.stokdarah_konut || 0);
+  console.log('User role:', role);
+  if (role !== 1 && role !== 2 && role !== 3) {
+    console.log('Access denied for role:', role);
+    return res.status(403).json({ success: false, message: 'Akses ditolak' });
+  }
 
-  const allowed = [
-    'nama_dokter', 'tanggal_permintaan', 'tanggal_diperlukan', 'nama_pasien', 'nomor_rm', 'tanggal_lahir', 'alamat', 'nama_wali',
-    'jenis_kelamin', 'jumlah_kehamilan', 'pernah_abortus', 'pernah_hdn',
-    'golongan_darah', 'rhesus', 'komponen_id', 'jumlah_kantong', 'diagnosis_klinis', 'alasan_transfusi', 'kadar_hb'
-  ];
+  const reaksiId = req.query.reaksi_id;
+  if (!reaksiId) {
+    console.log('Missing reaksi_id');
+    return res.status(400).json({ success: false, message: 'reaksi_id wajib' });
+  }
 
-  // fields yang berformat tanggal -> gunakan formatDate
-  const dateFields = ['tanggal_permintaan', 'tanggal_diperlukan', 'tanggal_lahir'];
+  console.log('Fetching data for reaksi_id:', reaksiId);
 
-  // fields khusus pasien wanita
-  const femaleOnly = ['jumlah_kehamilan', 'pernah_abortus', 'pernah_hdn'];
+  const sql = `
+    SELECT 
+      r.*,
+      p.nama_pasien, p.nomor_rm, p.tanggal_lahir, p.alamat, p.nama_dokter,
+      p.diagnosis_klinis,
+      t.nama_ruangan,
+      pr.id AS pemeriksaan_id,
+      pr.no_kantong, pr.asal_darah, pr.komponen_darah, pr.golongan_darah,
+      pr.uji_silang_serasi, pr.konfirm_gol_pasien, pr.konfirm_rhesus_pasien,
+      pr.konfirm_gol_donor, pr.konfirm_rhesus_donor, pr.uji_silang_konfirmasi,
+      pr.pemeriksaan_at, pr.created_at AS pemeriksaan_created,
+      r.created_at AS reaksi_created,
+      kd.nama_komponen
+    FROM reaksi_transfusi r
+    LEFT JOIN permintaan_darah p ON p.id = r.permintaan_id
+    LEFT JOIN pemeriksaan_pretransfusi pr ON pr.reaksi_id = r.id
+    LEFT JOIN tenaga_medis t ON p.ruangan_id = t.id
+    LEFT JOIN komponen_darah kd ON pr.komponen_darah = kd.id
+    WHERE r.id = ? LIMIT 1
+  `;
 
-  db.query('SELECT status, jenis_kelamin FROM permintaan_darah WHERE id = ? LIMIT 1', [id], (err, rows) => {
+  db.query(sql, [reaksiId], async (err, rows) => {
     if (err) {
-      console.error('Error cek status saat edit:', err);
-      return res.status(500).json({ success: false, message: 'Gagal cek data' });
+      console.error('DB error:', err);
+      return res.status(500).json({ success: false, message: 'Server error' });
     }
-    if (!rows || rows.length === 0) return res.status(404).json({ success: false, message: 'Permintaan tidak ditemukan' });
-
-    const curStatus = Number(rows[0].status || 1);
-    const curJenisKelamin = rows[0].jenis_kelamin || null;
-
-    if (curStatus === 3) {
-      return res.status(409).json({ success: false, message: 'Tidak dapat mengubah: permintaan sudah Disetujui' });
+    if (!rows || rows.length === 0) {
+      console.log('No data found for reaksi_id:', reaksiId);
+      return res.status(404).json({ success: false, message: 'Data tidak ditemukan' });
     }
 
-    const sets = [];
-    const params = [];
+    const data = rows[0];
+    console.log('Data fetched:', data ? 'OK' : 'Empty');
 
-    // jika payload mengandung jenis_kelamin, gunakan itu untuk keputusan femaleOnly; 
-    // fallback pakai current db value
-    const targetJenisKelamin = (b.jenis_kelamin !== undefined && b.jenis_kelamin !== null) ? String(b.jenis_kelamin) : curJenisKelamin;
+    // Generate QR Code
+    let qrcodeUrl = '';
+    try {
+      const qrData = `http://localhost:5088/api/v1/reaksi_transfusi/validate/${reaksiId}`;
+      qrcodeUrl = await qrcode.toDataURL(qrData, {
+        width: 80,
+        margin: 1,
+        color: { dark: '#000000', light: '#FFFFFF' }
+      });
+      console.log('QR Code generated');
+    } catch (qrErr) {
+      console.error('Error generating QR code:', qrErr);
+      qrcodeUrl = '';
+    }
+    data.qrcode_url = qrcodeUrl;
 
-    allowed.forEach(k => {
-      if (b[k] === undefined) return; // tidak dikirim -> lewati
+    try {
+      const templatePath = path.join(__dirname, '../../../services/reaksiTransfusiTemplate.ejs');
+      console.log('Template path:', templatePath);
 
-      // jika field khusus wanita tapi target jenis kelamin bukan 'P', skip update agar tidak kirim '' ke enum
-      if (femaleOnly.includes(k) && String(targetJenisKelamin) !== 'P') {
-        return;
+      if (!fs.existsSync(templatePath)) {
+        console.error('Template file not found at:', templatePath);
+        return res.status(500).json({ success: false, message: 'Template file tidak ditemukan' });
       }
 
-      // gunakan formatDate untuk date fields (menghasilkan 'YYYY-MM-DD' atau null)
-      let val = dateFields.includes(k) ? formatDate(b[k]) : b[k];
-
-      // ubah empty-string menjadi NULL untuk menghindari truncation pada enum / numeric
-      if (typeof val === 'string' && val.trim() === '') val = null;
-
-      // pastikan jumlah_kehamilan numeric atau null
-      if (k === 'jumlah_kehamilan') {
-        if (val === null) {
-          val = null;
+      let kopImageUrl = '';
+      const imagePath = path.join(__dirname, '../../../uploads/kop.png');
+      console.log('Image path:', imagePath);
+      if (fs.existsSync(imagePath)) {
+        const imageBuffer = fs.readFileSync(imagePath);
+        const base64Image = imageBuffer.toString('base64');
+        if (base64Image && base64Image.length > 100) {
+          kopImageUrl = `data:image/png;base64,${base64Image}`;
+          console.log('Image loaded as base64, length:', base64Image.length);
         } else {
-          const n = Number(val);
-          val = Number.isFinite(n) ? n : null;
+          console.warn('Base64 image invalid');
         }
+      } else {
+        console.warn('Kop image not found');
       }
 
-      sets.push(`${k} = ?`);
-      params.push(val);
-    });
+      console.log('Rendering EJS...');
+      const html = await ejs.renderFile(templatePath, {
+        data,
+        kopImageUrl,
+        checkerName: (req.user && req.user.profile ? req.user.profile.name : '-')
+      });
+      console.log('EJS rendered, HTML length:', html.length);
 
-    sets.push('status = 1');
-    sets.push("status_keterangan = 'Menunggu Diperiksa oleh Admin UPD'");
-    sets.push('updated_at = NOW()');
+      // Save HTML untuk debug
+      const tempHtmlPath = path.join(__dirname, '../../../temp_reaksi_' + reaksiId + '.html');
+      fs.writeFileSync(tempHtmlPath, html);
+      console.log('HTML saved to temp file:', tempHtmlPath);
 
-    if (sets.length === 0) {
-      return res.status(400).json({ success: false, message: 'Tidak ada field untuk diupdate' });
+      if (!html || html.trim().length === 0) {
+        console.error('Rendered HTML is empty');
+        return res.status(500).json({ success: false, message: 'HTML kosong, gagal generate PDF' });
+      }
+
+      const options = {
+        format: 'A4',
+        border: { 
+            top: '10mm',     
+            bottom: '10mm',  
+            left: '10mm',    
+            right: '10mm'    
+        },
+        type: 'pdf'
+    };
+
+      pdf.create(html, options).toBuffer((err, pdfBuffer) => {
+        if (err) {
+          console.error('html-pdf error:', err);
+          return res.status(500).json({ success: false, message: 'Gagal generate PDF' });
+        }
+
+        console.log('PDF generated with html-pdf, buffer size:', pdfBuffer.length);
+
+        if (!pdfBuffer || pdfBuffer.length === 0) {
+          console.error('PDF buffer is empty');
+          return res.status(500).json({ success: false, message: 'PDF kosong' });
+        }
+
+        // Save PDF ke temp
+        const tempPdfPath = path.join(__dirname, '../../../temp_reaksi_' + reaksiId + '.pdf');
+        fs.writeFileSync(tempPdfPath, pdfBuffer);
+        console.log('PDF saved to temp file:', tempPdfPath);
+
+        // Kirim PDF
+        res.setHeader('Content-Type', 'application/pdf');
+        // res.setHeader('Content-Disposition', `attachment; filename=reaksi_transfusi_${reaksiId}.pdf`);
+        res.setHeader('Content-Disposition', `inline; filename=reaksi_transfusi_${reaksiId}.pdf`);
+
+        return res.send(pdfBuffer);
+      });
+
+    } catch (ex) {
+      console.error('Error generate PDF:', ex);
+      return res.status(500).json({ success: false, message: 'Gagal generate PDF: ' + ex.message });
     }
-
-    // sets.push('updated_at = NOW()');
-    const sql = `UPDATE permintaan_darah SET ${sets.join(', ')} WHERE id = ?`;
-    params.push(id);
-
-    db.query(sql, params, (err2) => {
-      if (err2) {
-        console.error('Error update permintaan:', err2);
-        return res.status(500).json({ success: false, message: 'Gagal menyimpan perubahan' });
-      }
-      return res.json({ success: true, message: 'Permintaan berhasil diperbarui' });
-    });
   });
 });
 
-// POST /permintaan_darah/delete
-router.post('/delete', (req, res) => {
-  const b = req.body || {};
-  const id = b.id;
-  if (!id) return res.status(400).json({ success: false, message: 'ID dibutuhkan' });
-
-  // 1) ambil status sekarang
-  db.query('SELECT status FROM permintaan_darah WHERE id = ? LIMIT 1', [id], (err, rows) => {
-    if (err) {
-      console.error('Error ambil permintaan untuk hapus:', err);
-      return res.status(500).json({ success: false, message: 'Gagal cek data' });
-    }
-    if (!rows || rows.length === 0) return res.status(404).json({ success: false, message: 'Permintaan tidak ditemukan' });
-
-    const statusNow = Number(rows[0].status || 1);
-    // hanya izinkan hapus bila Diajukan(1) atau Ditolak(4)
-    if (![1, 4].includes(statusNow)) {
-      return res.status(409).json({ success: false, message: 'Tidak bisa menghapus permintaan yang sedang diproses atau sudah disetujui' });
-    }
-
-    // 2) hapus
-    db.query('DELETE FROM permintaan_darah WHERE id = ?', [id], (err2, result) => {
-      if (err2) {
-        console.error('Error hapus permintaan:', err2);
-        return res.status(500).json({ success: false, message: 'Gagal menghapus permintaan' });
-      }
-      return res.json({ success: true, message: 'Permintaan berhasil dihapus' });
-    });
-  });
-});
+// ... route lainnya ...
 
 module.exports = router;
