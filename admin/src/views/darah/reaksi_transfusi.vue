@@ -28,34 +28,6 @@
 
         <hr class="hrpagin2">
 
-        <!-- ================= FILTER ================= -->
-        <div class="row q-col-gutter-md">
-
-            <!-- Filter Komponen -->
-            <div class="col-12 col-md-4">
-                <span class="h_lable">Komponen</span>
-                <q-select v-model="filter.komponen_id" :options="list_komponen" option-label="nama_komponen"
-                    option-value="id" emit-value map-options outlined dense class="bg-white" @input="applyFilter" />
-            </div>
-
-            <!-- Filter Golongan Darah -->
-            <div class="col-12 col-md-4">
-                <span class="h_lable">Golongan Darah</span>
-
-            </div>
-
-            <!-- Filter Tipe Transaksi -->
-            <div class="col-12 col-md-4">
-                <span class="h_lable">Tipe Transaksi</span>
-                <q-select v-model="filter.tipe_transaksi" :options="['masuk', 'keluar']" outlined dense class="bg-white"
-                    @input="applyFilter" />
-            </div>
-
-        </div>
-
-        <hr class="hrpagin2" />
-
-        <!-- <q-separator dark inset /> -->
 
         <!-- ================= TABLE ================= -->
 
@@ -65,14 +37,14 @@
                     <tr>
                         <th width="5%" class="text-center">No</th>
                         <th width="5%" class="text-center">Reaksi Transfusi</th>
-                        <th width="15%" class="text-center">Nama Pasien </th>
+                        <th width="10%" class="text-center">Nama Pasien </th>
                         <th width="10%" class="text-center">Waktu Transfusi</th>
                         <th width="10%">Jenis Reaksi</th>
                         <th width="10%" class="text-center">Waktu Terjadi Reaksi</th>
                         <th width="10%" class="text-center">Waktu dilaporkan</th>
                         <th width="10%">Petugas Pelapor</th>
                         <th width="15%" class="text-center">Tindakan</th>
-                        <th width="10%" class="text-center">Aksi</th>
+                        <th width="15%" class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -123,17 +95,13 @@
 
                         </td>
 
-
-
-
-
                         <td class="text-center">
                             <div>
                                 {{ data.nama_pasien }}
                             </div>
                             <div class="text-blue text-bold" style="font-size: 12px;">
 
-                                Ruangan: {{ data.nama_ruangan }}
+                           {{ data.nama_ruangan }}
 
                             </div>
 
@@ -590,14 +558,14 @@ export default {
             mdl_edit: false,
             btn_edit: false,
 
-            mdl_hapus: false,      // modal konfirmasi hapus
-            btn_hapus: false,      // loading untuk tombol hapus
+            mdl_hapus: false,
+            btn_hapus: false,
             hapus_target: null,
             filter: {
                 komponen_id: '',
                 tipe_transaksi: ''
             },
-            // tambahan untuk modal pemeriksaan UPD
+
             modalPemeriksaanOpen: false,
             mdl_pemeriksaan: false,
             pemeriksaanForm: {
@@ -616,18 +584,17 @@ export default {
             },
             loadingPemeriksaan: false,
 
-            // konstanta status (string)
             STATUS_DRAFT: 'draft',
             STATUS_TERKIRIM: 'terkirim',
             loadingKirim: false,
             mdl_view: false,
             loadingView: false,
             viewPemeriksaan: null,
-            // tambahkan ini di object data()
-            mdl_pdf_view: false,      // kontrol modal preview PDF
-            loadingPdf: false,        // loading spinner saat fetch pdf
-            pdfUrl: null,             // object URL (blob:) atau direct URL
-            pdfName: null,            // nama file untuk download
+
+            mdl_pdf_view: false,
+            loadingPdf: false,
+            pdfUrl: null,
+            pdfName: null,
 
         }
     },
@@ -638,40 +605,7 @@ export default {
             this.mdl_kirim = false;
         },
 
-        // async confirmKirim() {
-        //     if (!this.kirim_target || !this.kirim_target.id) {
-        //         this.mdl_kirim = false;
-        //         return;
-        //     }
-        //     const id = this.kirim_target.id;
-        //     const base = this.$store.state.url.REAKSI_TRANSFUSI;
 
-        //     try {
-        //         await fetch(base + id + "/send", {
-        //             method: "POST",
-        //             headers: {
-        //                 "content-type": "application/json",
-        //                 authorization: "kikensbatara " + (localStorage.token || '')
-        //             },
-        //             body: JSON.stringify({ status: "terkirim" })
-        //         });
-        //     } catch (e) {
-        //         // silent fail agar minimal; Anda bisa tambah notif jika mau
-        //         console.error('confirmKirim error', e);
-        //     }
-
-        //     // update UI lokal & tutup modal
-        //     try { this.kirim_target.status = "terkirim"; } catch (e) { }
-        //     this.kirim_target = null;
-        //     this.mdl_kirim = false;
-        //     this.getView();
-        // },
-
-        // openPemeriksaan baru: hanya routing keputusan
-        /**
- * buka modal pemeriksaan (dipanggil dari tombol openPemeriksaan)
- * pastikan data.id dikirim sebagai reaksi_id
- */
         openPemeriksaanModal(item) {
             this.pemeriksaanForm = {
                 reaksi_id: item.id,
@@ -685,15 +619,13 @@ export default {
                 konfirm_gol_donor: '',
                 konfirm_rhesus_donor: '',
                 uji_silang_konfirmasi: '',
-                pemeriksaan_at: '' // optional prefill: new Date().toISOString().slice(0,16)
+                pemeriksaan_at: ''
             };
             this.mdl_pemeriksaan = true;
         },
 
         cancelPemeriksaan() {
             this.mdl_pemeriksaan = false;
-            // optionally reset form
-            // this.pemeriksaanForm = {...}
         },
 
         async addPemeriksaan() {
@@ -701,7 +633,6 @@ export default {
                 this.$q.notify({ type: 'negative', message: 'Target reaksi tidak ditemukan.' });
                 return;
             }
-            // minimal validation: nomor kantong dan komponen wajib (ubah sesuai kebutuhan)
             if (!this.pemeriksaanForm.no_kantong || !this.pemeriksaanForm.komponen_darah) {
                 this.$q.notify({ type: 'negative', message: 'Mohon isi No. Kantong dan Komponen Darah.' });
                 return;
@@ -710,7 +641,6 @@ export default {
             this.loadingPemeriksaan = true;
             const baseURL = this.$store?.state?.url?.REAKSI_TRANSFUSI
                 || ((this.$store?.state?.url?.BASE || '') + 'api/v1/reaksi_transfusi/');
-            // default endpoint (sesuaikan bila perlu)
             const url = baseURL + 'pemeriksaan/add';
 
             try {
@@ -727,14 +657,9 @@ export default {
 
                 if (res.ok && (json.success || json.status)) {
                     this.$q.notify({ type: 'positive', message: json.message || 'Pemeriksaan berhasil disimpan.' });
-
-                    // tutup modal & reset
                     this.mdl_pemeriksaan = false;
 
-                    // opsional: update status reaksi (jika backend mengatur status)
                     this.getView()
-
-                    // jika respon mengembalikan data, Anda bisa gunakan untuk update UI langsung
                 } else {
                     this.$q.notify({ type: 'negative', message: json.message || `Gagal menyimpan pemeriksaan (${res.status})` });
                 }
@@ -749,12 +674,9 @@ export default {
             const isAdminRuangan = (Number(this.tipe) === 3);
 
             if (isAdminRuangan && data.status === this.STATUS_DRAFT) {
-                // jangan fetch di sini — panggil openKirimConfirmation yang hanya buka modal
                 this.openKirimConfirmation(data);
                 return;
             }
-
-            // UPD (role 1/2) jika status 'terkirim' -> langsung buka modal pemeriksaan
             const isUPD = Number(this.tipe) === 1 || Number(this.tipe) === 2;
             if (isUPD && data.status === this.STATUS_TERKIRIM) {
                 this.pemeriksaanForm = { reaksi_id: data.id };
@@ -767,55 +689,7 @@ export default {
             this.modalPemeriksaanOpen = true;
         },
 
-        // async addPemeriksaan() {
-        //     if (!this.pemeriksaanForm.reaksi_id) {
-        //         this.$q.notify({ type: 'negative', message: 'Target reaksi tidak ditemukan.' });
-        //         return;
-        //     }
-        //     // minimal validation: nomor kantong dan komponen wajib (ubah sesuai kebutuhan)
-        //     if (!this.pemeriksaanForm.no_kantong || !this.pemeriksaanForm.komponen_darah) {
-        //         this.$q.notify({ type: 'negative', message: 'Mohon isi No. Kantong dan Komponen Darah.' });
-        //         return;
-        //     }
 
-        //     this.loadingPemeriksaan = true;
-        //     const baseURL = this.$store?.state?.url?.REAKSI_TRANSFUSI
-        //         || ((this.$store?.state?.url?.BASE || '') + 'api/v1/reaksi_transfusi/');
-        //     // default endpoint (sesuaikan bila perlu)
-        //     const url = baseURL + 'pemeriksaan/add';
-
-        //     try {
-        //         const res = await fetch(url, {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json',
-        //                 authorization: 'kikensbatara ' + (localStorage.token || '')
-        //             },
-        //             body: JSON.stringify(this.pemeriksaanForm)
-        //         });
-
-        //         const json = await res.json().catch(() => ({ success: false, message: 'Response parse error' }));
-
-        //         if (res.ok && (json.success || json.status)) {
-        //             this.$q.notify({ type: 'positive', message: json.message || 'Pemeriksaan berhasil disimpan.' });
-
-        //             // tutup modal & reset
-        //             this.mdl_pemeriksaan = false;
-
-        //             // opsional: update status reaksi (jika backend mengatur status)
-        //             this.getView()
-
-        //             // jika respon mengembalikan data, Anda bisa gunakan untuk update UI langsung
-        //         } else {
-        //             this.$q.notify({ type: 'negative', message: json.message || `Gagal menyimpan pemeriksaan (${res.status})` });
-        //         }
-        //     } catch (err) {
-        //         console.error('addPemeriksaan error', err);
-        //         this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat menyimpan pemeriksaan.' });
-        //     } finally {
-        //         this.loadingPemeriksaan = false;
-        //     }
-        // },
 
         openKirimConfirmation(item) {
             this.kirim_target = item;
@@ -933,7 +807,6 @@ export default {
                 petugas_pelapor: "",
                 tindakan: "",
 
-                // jika Anda menambahkan ruangan_id saat mounted
                 ruangan_id: this.form?.ruangan_id || null,
                 rumah_sakit_id: this.form?.rumah_sakit_id || null
             };
@@ -1039,93 +912,100 @@ export default {
         },
 
         openLihatDokumen(item) {
-        if (!item || !item.id) {
-            this.$q.notify({ type: 'negative', message: 'Data tidak valid' });
-            return;
-        }
-        // Ambil token dari localStorage
-        const token = localStorage.token || '';
-        if (!token) {
-            this.$q.notify({ type: 'negative', message: 'Token autentikasi tidak ditemukan. Silakan login ulang.' });
-            return;
-        }
-        // Build base URL (sesuaikan dengan store Anda)
-        const base = this.$store?.state?.url?.REAKSI_TRANSFUSI
-            || ((this.$store?.state?.url?.BASE || '') + 'api/v1/reaksi_transfusi/');
-        // Tambahkan token sebagai query param agar dikirim ke backend
-        const url = base + 'pemeriksaan/pdf?reaksi_id=' + encodeURIComponent(item.id) + '&token=' + encodeURIComponent(token);
-        // Opsi 1: Buka di tab baru (default, seperti asli, tapi dengan token)
-        try {
-            window.open(url, '_blank');
-        } catch (e) {
-            console.error('Error opening PDF in new tab:', e);
-            this.$q.notify({ type: 'negative', message: 'Gagal membuka dokumen. Periksa koneksi atau coba lagi.' });
-        }
-        // Opsi 2 (Alternatif): Gunakan modal preview PDF (jika ingin preview inline)
-        // Uncomment baris di bawah jika ingin ganti ke modal alih-alih tab baru
-        // this.loadPdfInModal(url);
-    },
+            if (!item || !item.id) {
+                this.$q.notify({ type: 'negative', message: 'Data tidak valid' });
+                return;
+            }
 
-    async loadPdfInModal(pdfUrl) {
-        this.loadingPdf = true;
-        this.pdfUrl = null;
-        this.pdfName = 'reaksi_transfusi.pdf';
-        this.mdl_pdf_view = true;
-        try {
-            // Fetch PDF sebagai blob dengan header Authorization
-            const response = await fetch(pdfUrl, {
+            const token = localStorage.token || '';
+            if (!token) {
+                this.$q.notify({ type: 'negative', message: 'Token autentikasi tidak ditemukan. Silakan login ulang.' });
+                return;
+            }
+
+            const base = this.$store?.state?.url?.REAKSI_TRANSFUSI
+                || ((this.$store?.state?.url?.BASE || '') + 'api/v1/reaksi_transfusi/');
+            const url = base + 'pemeriksaan/pdf?reaksi_id=' + encodeURIComponent(item.id); // Tanpa token di URL
+
+            // Fetch PDF dengan header Authorization
+            fetch(url, {
                 method: 'GET',
                 headers: {
-                    'Authorization': 'kikensbatara ' + (localStorage.token || ''),
-                    'Content-Type': 'application/pdf' // Opsional, untuk memastikan
+                    'Authorization': 'kikensbatara ' + token,
+                    'Content-Type': 'application/pdf'
                 }
-            });
-            if (!response.ok) {
-                throw new Error(`Gagal memuat PDF: ${response.status} - ${response.statusText}`);
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Gagal memuat PDF: ' + response.status);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Buat URL blob dan buka di tab baru (tanpa token di URL)
+                    const blobUrl = URL.createObjectURL(blob);
+                    window.open(blobUrl, '_blank');
+                })
+                .catch(error => {
+                    console.error('Error opening PDF:', error);
+                    this.$q.notify({ type: 'negative', message: 'Gagal membuka dokumen. Periksa koneksi atau coba lagi.' });
+                });
+        },
+
+        async loadPdfInModal(pdfUrl) {
+            this.loadingPdf = true;
+            this.pdfUrl = null;
+            this.pdfName = 'reaksi_transfusi.pdf';
+            this.mdl_pdf_view = true;
+            try {
+                // Fetch PDF sebagai blob dengan header Authorization
+                const response = await fetch(pdfUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'kikensbatara ' + (localStorage.token || ''),
+                        'Content-Type': 'application/pdf' // Opsional, untuk memastikan
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`Gagal memuat PDF: ${response.status} - ${response.statusText}`);
+                }
+                const blob = await response.blob();
+                this.pdfUrl = URL.createObjectURL(blob);
+            } catch (error) {
+                console.error('Error loading PDF in modal:', error);
+                this.$q.notify({ type: 'negative', message: 'Gagal memuat PDF. Periksa koneksi atau data.' });
+                this.closePdfModal(); // Tutup modal jika error
+            } finally {
+                this.loadingPdf = false;
             }
-            const blob = await response.blob();
-            this.pdfUrl = URL.createObjectURL(blob);
-        } catch (error) {
-            console.error('Error loading PDF in modal:', error);
-            this.$q.notify({ type: 'negative', message: 'Gagal memuat PDF. Periksa koneksi atau data.' });
-            this.closePdfModal(); // Tutup modal jika error
-        } finally {
-            this.loadingPdf = false;
-        }
-    },
+        },
 
-// Fungsi untuk download PDF (jika ingin tombol download di modal)
-downloadPdf() {
-        if (!this.pdfUrl) {
-            this.$q.notify({ type: 'negative', message: 'Tidak ada PDF untuk didownload.' });
-            return;
-        }
-        const a = document.createElement('a');
-        a.href = this.pdfUrl;
-        a.download = this.pdfName || 'reaksi_transfusi.pdf';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-    },
-    // Fungsi untuk tutup modal PDF
-    closePdfModal() {
-        if (this.pdfUrl && this.pdfUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(this.pdfUrl); // Bersihkan memory
-        }
-        this.pdfUrl = null;
-        this.pdfName = null;
-        this.mdl_pdf_view = false;
-    },
+        downloadPdf() {
+            if (!this.pdfUrl) {
+                this.$q.notify({ type: 'negative', message: 'Tidak ada PDF untuk didownload.' });
+                return;
+            }
+            const a = document.createElement('a');
+            a.href = this.pdfUrl;
+            a.download = this.pdfName || 'reaksi_transfusi.pdf';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        },
+        closePdfModal() {
+            if (this.pdfUrl && this.pdfUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(this.pdfUrl);
+            }
+            this.pdfUrl = null;
+            this.pdfName = null;
+            this.mdl_pdf_view = false;
+        },
 
-
-
-        // buka modal hapus
         openDelete(data) {
             this.hapus_target = data;
             this.mdl_hapus = true;
         },
 
-        // konfirmasi hapus (panggil backend)
         confirmDelete() {
             if (!this.hapus_target || !this.hapus_target.id_transaksi) {
                 this.$q.notify({ type: 'negative', message: 'Tidak ada transaksi yang dipilih' });
