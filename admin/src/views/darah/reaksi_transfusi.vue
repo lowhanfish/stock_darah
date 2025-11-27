@@ -12,7 +12,7 @@
                         <div class="row">
                             <q-input v-model="cari_value" @keyup="cari_data()" outlined square :dense="true"
                                 class="bg-white" style="width:90%" />
-                            <q-btn glossy class="main1x" @click="mdl_add = true" dense flat icon="add"
+                            <q-btn v-if="tipe == 3" glossy class="main1x" @click="mdl_add = true" dense flat icon="add"
                                 style="width:10%">
                                 <q-tooltip content-class="bg-blue-9" content-style="font-size: 13px">
                                     Tambah Reaksi
@@ -250,7 +250,7 @@
 
         <q-dialog v-model="mdl_kirim" persistent>
             <q-card class="mdl-sm">
-                <q-card-section class="q-pt-none text-center orageGrad">
+                <q-card-section class="q-pt-none text-center birumudaGrad">
                     <form @submit.prevent="confirmKirim">
                         <br>
                         <img src="img/alert.png" alt="" width="75" /> <br>
@@ -579,6 +579,49 @@
         </q-dialog>
 
 
+        <!-- HAPUS DATA -->
+        <!-- <q-dialog v-model="mdl_delete" persistent>
+            <q-card class="q-pa-md">
+                <q-card-section class="text-center">
+                    <q-icon name="warning" color="negative" size="48px" />
+                    <div class="text-h6 q-mt-md">Konfirmasi Penghapusan</div>
+                    <p class="q-mt-sm">Anda yakin ingin menghapus data laporan reaksi transfusi ini secara permanen?</p>
+                </q-card-section>
+                <q-card-actions align="right">
+                    <q-btn flat label="Batal" color="grey" v-close-popup />
+                    <q-btn :loading="btn_delete" label="Hapus" color="negative" @click="deleteData" />
+                </q-card-actions>
+            </q-card>
+        </q-dialog> -->
+
+        <q-dialog v-model="mdl_delete" persistent>
+            <q-card class="mdl-sm">
+                <q-card-section class="q-pt-none text-center orageGrad">
+                    <form @submit.prevent="deleteData">
+                        <br>
+                        <img src="img/alert.png" alt="" width="75" /> <br>
+                        <span class="h_notifikasi">
+                            APAKAH ANDA YAKIN INGIN MENGHAPUS LAPORAN REAKSI TRANSFUSI INI SECARA PERMANEN? <br>
+                        </span>
+
+                        <input type="submit" style="position: absolute; left: -9999px" />
+                        <br><br>
+
+                        <q-btn label="Batal" size="sm" color="primary" v-close-popup />
+                        &nbsp;
+                        <q-btn 
+                            :label="btn_delete ? 'Menghapus...' : 'Ya, Hapus'" 
+                            size="sm" 
+                            color="negative"
+                            :loading="btn_delete" 
+                            type="submit" 
+                        />
+                    </form>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
+
+
 
 
 
@@ -630,8 +673,9 @@ export default {
                 tindakan: ''
             },
 
-            mdl_hapus: false,
-            btn_hapus: false,
+            mdl_delete: false,
+            btn_delete: false,
+            delete_id: null,
             hapus_target: null,
             filter: {
                 komponen_id: '',
@@ -1074,124 +1118,133 @@ export default {
         },
 
         formatDatetimeLocal(dateStr) {
-        if (!dateStr) return '';
-        
-        // 1. Ubah string dari database menjadi Objek Date
-        // Browser otomatis akan mengonversi UTC ke Waktu Lokal (WIB/WITA/WIT) di sini
-        const d = new Date(dateStr);
+            if (!dateStr) return '';
 
-        // Validasi jika tanggal error/invalid
-        if (isNaN(d.getTime())) return '';
+            // 1. Ubah string dari database menjadi Objek Date
+            // Browser otomatis akan mengonversi UTC ke Waktu Lokal (WIB/WITA/WIT) di sini
+            const d = new Date(dateStr);
 
-        // 2. Ambil komponen waktu berdasarkan LOKAL komputer user
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0'); // Ingat: getMonth() mulai dari 0
-        const day = String(d.getDate()).padStart(2, '0');
-        const hours = String(d.getHours()).padStart(2, '0');     // Ini akan mengambil jam lokal, bukan UTC
-        const minutes = String(d.getMinutes()).padStart(2, '0');
+            // Validasi jika tanggal error/invalid
+            if (isNaN(d.getTime())) return '';
 
-        // 3. Gabungkan menjadi format string yang diterima input datetime-local (YYYY-MM-DDTHH:mm)
-        return `${year}-${month}-${day}T${hours}:${minutes}`;
+            // 2. Ambil komponen waktu berdasarkan LOKAL komputer user
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0'); // Ingat: getMonth() mulai dari 0
+            const day = String(d.getDate()).padStart(2, '0');
+            const hours = String(d.getHours()).padStart(2, '0');     // Ini akan mengambil jam lokal, bukan UTC
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+
+            // 3. Gabungkan menjadi format string yang diterima input datetime-local (YYYY-MM-DDTHH:mm)
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        },
+
+        openEdit(data) {
+            // Copy data dari baris tabel ke form_edit
+            this.form_edit = {
+                id: data.id,
+                permintaan_id: data.permintaan_id,
+                // Format tanggal agar terbaca di input type="datetime-local"
+                jam_transfusi: this.formatDatetimeLocal(data.jam_transfusi),
+                jenis_reaksi: data.jenis_reaksi,
+                jam_terjadi: this.formatDatetimeLocal(data.jam_terjadi),
+                jam_dilaporkan: this.formatDatetimeLocal(data.jam_dilaporkan),
+                petugas_pelapor: data.petugas_pelapor,
+                tindakan: data.tindakan
+            };
+
+            this.mdl_edit = true;
+        },
+
+        updateData() {
+            this.btn_edit = true;
+            const baseURL = this.$store.state.url.REAKSI_TRANSFUSI
+                || (this.$store.state.url.BASE || '') + "api/v1/reaksi_transfusi/";
+
+            fetch(baseURL + "editData", {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json",
+                    authorization: "kikensbatara " + localStorage.token
+                },
+                body: JSON.stringify(this.form_edit)
+            })
+                .then(res => res.json())
+                .then(res_data => {
+                    if (res_data.success || res_data.status) {
+                        this.$q.notify({
+                            type: "positive",
+                            message: res_data.message || "Data berhasil diperbarui"
+                        });
+                        this.mdl_edit = false;
+                        this.getView(); // Refresh tabel
+                    } else {
+                        this.$q.notify({
+                            type: "negative",
+                            message: res_data.message || "Gagal memperbarui data"
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error("Error updateData:", err);
+                    this.$q.notify({
+                        type: "negative",
+                        message: "Terjadi kesalahan saat menyimpan perubahan"
+                    });
+                })
+                .finally(() => {
+                    this.btn_edit = false;
+                });
+        },
+
+        openDelete(data) {
+        // Simpan ID yang akan dihapus
+        this.delete_id = data.id;
+        // Buka modal konfirmasi
+        this.mdl_delete = true;
     },
 
-    openEdit(data) {
-        // Copy data dari baris tabel ke form_edit
-        this.form_edit = {
-            id: data.id,
-            permintaan_id: data.permintaan_id,
-            // Format tanggal agar terbaca di input type="datetime-local"
-            jam_transfusi: this.formatDatetimeLocal(data.jam_transfusi),
-            jenis_reaksi: data.jenis_reaksi,
-            jam_terjadi: this.formatDatetimeLocal(data.jam_terjadi),
-            jam_dilaporkan: this.formatDatetimeLocal(data.jam_dilaporkan),
-            petugas_pelapor: data.petugas_pelapor,
-            tindakan: data.tindakan
-        };
+    deleteData() {
+        this.btn_delete = true;
         
-        this.mdl_edit = true;
-    },
-
-    updateData() {
-        this.btn_edit = true;
         const baseURL = this.$store.state.url.REAKSI_TRANSFUSI 
                      || (this.$store.state.url.BASE || '') + "api/v1/reaksi_transfusi/";
 
-        fetch(baseURL + "editData", {
+        fetch(baseURL + "delete", {
             method: "POST",
             headers: {
                 "content-type": "application/json",
                 authorization: "kikensbatara " + localStorage.token
             },
-            body: JSON.stringify(this.form_edit)
+            body: JSON.stringify({ id: this.delete_id }) // Kirim hanya ID
         })
         .then(res => res.json())
         .then(res_data => {
             if (res_data.success || res_data.status) {
                 this.$q.notify({
                     type: "positive",
-                    message: res_data.message || "Data berhasil diperbarui"
+                    message: res_data.message || "Data berhasil dihapus"
                 });
-                this.mdl_edit = false;
+                this.mdl_delete = false;
                 this.getView(); // Refresh tabel
             } else {
                 this.$q.notify({
                     type: "negative",
-                    message: res_data.message || "Gagal memperbarui data"
+                    message: res_data.message || "Gagal menghapus data"
                 });
             }
         })
         .catch(err => {
-            console.error("Error updateData:", err);
+            console.error("Error deleteData:", err);
             this.$q.notify({
                 type: "negative",
-                message: "Terjadi kesalahan saat menyimpan perubahan"
+                message: "Terjadi kesalahan saat menghapus data"
             });
         })
         .finally(() => {
-            this.btn_edit = false;
+            this.btn_delete = false;
+            this.delete_id = null; // Reset ID
         });
     },
-
-        openDelete(data) {
-            this.hapus_target = data;
-            this.mdl_hapus = true;
-        },
-
-        confirmDelete() {
-            if (!this.hapus_target || !this.hapus_target.id_transaksi) {
-                this.$q.notify({ type: 'negative', message: 'Tidak ada transaksi yang dipilih' });
-                return;
-            }
-
-            this.btn_hapus = true;
-
-            fetch(this.$store.state.url.TRANSAKSI + "delete/" + this.hapus_target.id_transaksi, {
-                method: "DELETE",
-                headers: {
-                    "content-type": "application/json",
-                    authorization: "kikensbatara " + localStorage.token
-                }
-            })
-                .then(res => res.json())
-                .then(res_data => {
-                    if (res_data.success) {
-                        this.$q.notify({ type: 'positive', message: res_data.message || 'Transaksi berhasil dihapus' });
-                        this.mdl_hapus = false;
-                        this.hapus_target = null;
-                        // reload current page (tetap di halaman sama)
-                        this.getView();
-                    } else {
-                        this.$q.notify({ type: 'negative', message: res_data.message || 'Gagal menghapus transaksi' });
-                    }
-                })
-                .catch(err => {
-                    console.error('Error delete transaksi:', err);
-                    this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat menghapus transaksi' });
-                })
-                .finally(() => {
-                    this.btn_hapus = false;
-                });
-        },
 
 
 
