@@ -633,4 +633,42 @@ router.post('/editData', (req, res) => {
   }
 });
 
+// POST /api/v1/reaksi_transfusi/delete
+router.post('/delete', (req, res) => {
+  try {
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ success: false, status: false, message: 'ID data tidak ditemukan' });
+    }
+
+    // Gunakan query DELETE
+    const sql = `
+      DELETE FROM reaksi_transfusi 
+      WHERE id = ?
+    `;
+
+    db.query(sql, [id], (err, result) => {
+      if (err) {
+        console.error('DB error DELETE reaksi_transfusi:', err);
+        return res.status(500).json({ success: false, status: false, message: 'Server error saat menghapus data' });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, status: false, message: 'Data tidak ditemukan' });
+      }
+
+      return res.json({
+        success: true,
+        status: true,
+        message: 'Data berhasil dihapus secara permanen'
+      });
+    });
+
+  } catch (ex) {
+    console.error('Unhandled error POST /delete:', ex);
+    return res.status(500).json({ success: false, status: false, message: 'Server error' });
+  }
+});
+
 module.exports = router;
