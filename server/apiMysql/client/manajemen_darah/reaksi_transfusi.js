@@ -406,6 +406,7 @@ router.post('/pemeriksaan/add', (req, res) => {
     }
 
     // ambil field lain (boleh null)
+    const dpjp_lab = body.dpjp_lab || null;
     const asal_darah = body.asal_darah || null;
     const golongan_darah = body.golongan_darah || null;
     const uji_silang_serasi = body.uji_silang_serasi || null;
@@ -425,13 +426,14 @@ router.post('/pemeriksaan/add', (req, res) => {
     // Insert ke tabel pemeriksaan_pretransfusi
     const insertSql = `
       INSERT INTO pemeriksaan_pretransfusi
-        (reaksi_id, asal_darah, no_kantong, komponen_darah, golongan_darah,
+        (reaksi_id, dpjp_lab, asal_darah, no_kantong, komponen_darah, golongan_darah,
          uji_silang_serasi, konfirm_gol_pasien, konfirm_rhesus_pasien,
          konfirm_gol_donor, konfirm_rhesus_donor, uji_silang_konfirmasi, pemeriksaan_at, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     `;
     const params = [
       reaksi_id,
+      dpjp_lab,
       asal_darah,
       no_kantong,
       komponen_darah,
@@ -575,7 +577,7 @@ router.get('/pemeriksaan/pdf', checkTokenSeetUser, isLoggedIn, (req, res) => {
       p.diagnosis_klinis,
       t.nama_ruangan,
       pr.id AS pemeriksaan_id,
-      pr.no_kantong, pr.asal_darah, pr.komponen_darah, pr.golongan_darah,
+      pr.no_kantong, pr.asal_darah, pr.dpjp_lab, pr.komponen_darah, pr.golongan_darah,
       pr.uji_silang_serasi, pr.konfirm_gol_pasien, pr.konfirm_rhesus_pasien,
       pr.konfirm_gol_donor, pr.konfirm_rhesus_donor, pr.uji_silang_konfirmasi,
       r.created_at AS reaksi_created,
@@ -693,6 +695,7 @@ router.post('/pemeriksaan/edit', (req, res) => {
     if (!no_kantong) return res.status(400).json({ success: false, message: 'no_kantong wajib diisi' });
     if (!komponen_darah) return res.status(400).json({ success: false, message: 'komponen_darah wajib diisi' });
 
+    const dpjp_lab = body.dpjp_lab || null;
     const asal_darah = body.asal_darah || null;
     const golongan_darah = body.golongan_darah || null;
     const uji_silang_serasi = body.uji_silang_serasi || null;
@@ -707,12 +710,13 @@ router.post('/pemeriksaan/edit', (req, res) => {
 
     const updateSql = `
       UPDATE pemeriksaan_pretransfusi
-      SET asal_darah = ?, no_kantong = ?, komponen_darah = ?, golongan_darah = ?,
+      SET dpjp_lab = ?, asal_darah = ?, no_kantong = ?, komponen_darah = ?, golongan_darah = ?,
           uji_silang_serasi = ?, konfirm_gol_pasien = ?, konfirm_rhesus_pasien = ?,
           konfirm_gol_donor = ?, konfirm_rhesus_donor = ?, uji_silang_konfirmasi = ?, pemeriksaan_at = ?, updated_at = NOW()
       WHERE id = ? LIMIT 1
     `;
     const params = [
+      dpjp_lab,
       asal_darah,
       no_kantong,
       komponen_darah,
