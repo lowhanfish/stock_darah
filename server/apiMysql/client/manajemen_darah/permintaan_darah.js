@@ -27,9 +27,6 @@ function formatDate(dateString) {
   }
 }
 
-// ===================================================
-// GET: view (list) permintaan_darah dengan pagination + filter
-// ===================================================
 router.get('/view', (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -169,9 +166,7 @@ router.get('/detail/:id', (req, res) => {
   });
 });
 
-// ===================================================
-// POST: addData (admin ruangan mengajukan permintaan)
-// ===================================================
+
 router.post('/addData', (req, res) => {
   const body = req.body || {};
 
@@ -961,21 +956,48 @@ router.post('/updateStatus', (req, res) => {
 
 
 
-
 // POST /permintaan_darah/edit
 router.post('/edit', (req, res) => {
   const b = req.body || {};
   const id = b.id;
   if (!id) return res.status(400).json({ success: false, message: 'ID dibutuhkan' });
 
+  // ===== tambahan backend: sanitasi & validasi untuk Riwayat Transfusi & Coomb's =====
+  const allowedYesNo = (v) => (v === 'Ya' || v === 'Tidak') ? v : 'Tidak';
+
+  const transfusi_sebelumnya = b.transfusi_sebelumnya !== undefined ? allowedYesNo(String(b.transfusi_sebelumnya)) : undefined;
+  const transfusi_kapan = b.transfusi_kapan !== undefined ? (b.transfusi_kapan ? String(b.transfusi_kapan).trim() : null) : undefined;
+
+  const reaksi_transfusi = b.reaksi_transfusi !== undefined ? allowedYesNo(String(b.reaksi_transfusi)) : undefined;
+  const gejala_transfusi = b.gejala_transfusi !== undefined ? (b.gejala_transfusi ? String(b.gejala_transfusi).trim() : null) : undefined;
+
+  const coomb_test = b.coomb_test !== undefined ? allowedYesNo(String(b.coomb_test)) : undefined;
+  const coomb_tempat = b.coomb_tempat !== undefined ? (b.coomb_tempat ? String(b.coomb_tempat).trim() : null) : undefined;
+  const coomb_kapan = b.coomb_kapan !== undefined ? (formatDate(b.coomb_kapan) || null) : undefined;
+  const coomb_hasil = b.coomb_hasil !== undefined ? (b.coomb_hasil ? String(b.coomb_hasil).trim() : null) : undefined;
+
+  // Validasi server-side minimal (mirip validasi frontend)
+  if (transfusi_sebelumnya === 'Ya' && (!transfusi_kapan || transfusi_kapan === '')) {
+    return res.status(400).json({ success: false, message: 'Field transfusi_kapan wajib diisi ketika Transfusi Sebelumnya = Ya' });
+  }
+  if (reaksi_transfusi === 'Ya' && (!gejala_transfusi || gejala_transfusi === '')) {
+    return res.status(400).json({ success: false, message: 'Field gejala_transfusi wajib diisi ketika Reaksi Transfusi = Ya' });
+  }
+  if (coomb_test === 'Ya' && (!coomb_tempat || !coomb_kapan || !coomb_hasil)) {
+    return res.status(400).json({ success: false, message: 'Lengkapi data Coomb\'s test: dimana, kapan (tanggal) dan hasil.' });
+  }
+
   const allowed = [
     'nama_dokter', 'tanggal_permintaan', 'tanggal_diperlukan', 'nama_pasien', 'nomor_rm', 'tanggal_lahir', 'alamat', 'nama_wali',
     'jenis_kelamin', 'jumlah_kehamilan', 'pernah_abortus', 'pernah_hdn',
-    'golongan_darah', 'rhesus', 'komponen_id', 'jumlah_kantong', 'diagnosis_klinis', 'alasan_transfusi', 'kadar_hb'
+    'golongan_darah', 'rhesus', 'komponen_id', 'jumlah_kantong', 'jumlah_cc', 'diagnosis_klinis', 'alasan_transfusi', 'kadar_hb',
+    // tambahan field Riwayat Transfusi & Pemeriksaan Serologi
+    'transfusi_sebelumnya', 'transfusi_kapan', 'reaksi_transfusi', 'gejala_transfusi',
+    'coomb_test', 'coomb_tempat', 'coomb_kapan', 'coomb_hasil'
   ];
 
   // fields yang berformat tanggal -> gunakan formatDate
-  const dateFields = ['tanggal_permintaan', 'tanggal_diperlukan', 'tanggal_lahir'];
+  const dateFields = ['tanggal_permintaan', 'tanggal_diperlukan', 'tanggal_lahir', 'coomb_kapan'];
 
   // fields khusus pasien wanita
   const femaleOnly = ['jumlah_kehamilan', 'pernah_abortus', 'pernah_hdn'];
@@ -994,15 +1016,38 @@ router.post('/edit', (req, res) => {
       return res.status(409).json({ success: false, message: 'Tidak dapat mengubah: permintaan sudah Disetujui' });
     }
 
+    // validasi tambahan khusus pasien wanita
+    const targetJenisKelamin = (b.jenis_kelamin !== undefined && b.jenis_kelamin !== null) ? String(b.jenis_kelamin) : curJenisKelamin;
+    if (targetJenisKelamin === 'P') {
+      if (b.jumlah_kehamilan === undefined || b.jumlah_kehamilan === null) {
+        return res.status(400).json({ success: false, message: 'Jumlah kehamilan wajib diisi untuk pasien perempuan' });
+      }
+      if (
+        !['Ya', 'Tidak'].includes(b.pernah_abortus || '') ||
+        !['Ya', 'Tidak'].includes(b.pernah_hdn || '')
+      ) {
+        return res.status(400).json({ success: false, message: 'Pernah abortus dan pernah HDN wajib diisi untuk pasien perempuan' });
+      }
+    }
+
     const sets = [];
     const params = [];
 
-    // jika payload mengandung jenis_kelamin, gunakan itu untuk keputusan femaleOnly; 
-    // fallback pakai current db value
-    const targetJenisKelamin = (b.jenis_kelamin !== undefined && b.jenis_kelamin !== null) ? String(b.jenis_kelamin) : curJenisKelamin;
-
     allowed.forEach(k => {
-      if (b[k] === undefined) return; // tidak dikirim -> lewati
+      let val;
+
+      // untuk field baru, gunakan nilai yang sudah disanitasi
+      if (k === 'transfusi_sebelumnya') val = transfusi_sebelumnya;
+      else if (k === 'transfusi_kapan') val = transfusi_kapan;
+      else if (k === 'reaksi_transfusi') val = reaksi_transfusi;
+      else if (k === 'gejala_transfusi') val = gejala_transfusi;
+      else if (k === 'coomb_test') val = coomb_test;
+      else if (k === 'coomb_tempat') val = coomb_tempat;
+      else if (k === 'coomb_kapan') val = coomb_kapan;
+      else if (k === 'coomb_hasil') val = coomb_hasil;
+      else val = b[k];
+
+      if (val === undefined) return; // tidak dikirim -> lewati
 
       // jika field khusus wanita tapi target jenis kelamin bukan 'P', skip update agar tidak kirim '' ke enum
       if (femaleOnly.includes(k) && String(targetJenisKelamin) !== 'P') {
@@ -1010,7 +1055,9 @@ router.post('/edit', (req, res) => {
       }
 
       // gunakan formatDate untuk date fields (menghasilkan 'YYYY-MM-DD' atau null)
-      let val = dateFields.includes(k) ? formatDate(b[k]) : b[k];
+      if (dateFields.includes(k) && typeof val === 'string') {
+        val = formatDate(val);
+      }
 
       // ubah empty-string menjadi NULL untuk menghindari truncation pada enum / numeric
       if (typeof val === 'string' && val.trim() === '') val = null;
@@ -1037,7 +1084,6 @@ router.post('/edit', (req, res) => {
       return res.status(400).json({ success: false, message: 'Tidak ada field untuk diupdate' });
     }
 
-    // sets.push('updated_at = NOW()');
     const sql = `UPDATE permintaan_darah SET ${sets.join(', ')} WHERE id = ?`;
     params.push(id);
 
@@ -1050,6 +1096,7 @@ router.post('/edit', (req, res) => {
     });
   });
 });
+
 
 // POST /permintaan_darah/delete
 router.post('/delete', (req, res) => {
