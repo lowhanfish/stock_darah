@@ -154,9 +154,11 @@
                             <q-btn dense round color="primary" icon="visibility" @click="openLihat(data)">
                                 <q-tooltip content-class="bg-blue-7">Lihat Detail</q-tooltip>
                             </q-btn>
-                            <q-btn dense round color="warning" icon="edit" :disable="Number(data.status) === 3 || Number(data.status) === 4"
-                                @click="openEdit(data)">
-                                <q-tooltip v-if="Number(data.status) === 3 || Number(data.status) === 4" content-class="bg-amber-7">
+                            <q-btn dense round color="warning" icon="edit"
+                                :disable="Number(data.status) === 3 || Number(data.status) === 4"
+                                @click="openEdit(data)" v-if="tipe !== 1"> <q-tooltip
+                                    v-if="Number(data.status) === 3 || Number(data.status) === 4"
+                                    content-class="bg-amber-7">
                                     Tidak dapat edit — permintaan sudah Disetujui
                                 </q-tooltip>
                                 <q-tooltip v-else content-class="bg-amber-7">Edit Permintaan</q-tooltip>
@@ -164,8 +166,7 @@
 
                             <q-btn dense round color="negative" icon="delete"
                                 :disable="Number(data.status) === 2 || Number(data.status) === 3 || Number(data.status) === 4"
-                                @click="openDelete(data)">
-                                <q-tooltip content-class="bg-red-7">
+                                @click="openDelete(data)" v-if="tipe !== 1"> <q-tooltip content-class="bg-red-7">
                                     {{
                                 (Number(data.status) === 2 || Number(data.status) === 3)
                                     ? 'Tidak dapat dihapus (sedang diperiksa / disetujui)'
@@ -982,66 +983,67 @@
                             autogrow class="bg-white margin_btn" required />
 
 
-                            <hr class="hrpagin2" />
-                    <div class="text-subtitle1 q-mb-sm text-bold text-center">Riwayat Transfusi & Pemeriksaan Serologi</div>
+                        <hr class="hrpagin2" />
+                        <div class="text-subtitle1 q-mb-sm text-bold text-center">Riwayat Transfusi & Pemeriksaan
+                            Serologi</div>
 
-                    <div class="row q-col-gutter-md">
-                        <!-- Transfusi Sebelumnya -->
-                        <div class="col-12 col-md-6">
-                            <span class="h_lable">Transfusi Sebelumnya</span>
-                            <q-option-group v-model="form_edit.transfusi_sebelumnya"
-                                :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
-                                type="radio" inline />
-                        </div>
+                        <div class="row q-col-gutter-md">
+                            <!-- Transfusi Sebelumnya -->
+                            <div class="col-12 col-md-6">
+                                <span class="h_lable">Transfusi Sebelumnya</span>
+                                <q-option-group v-model="form_edit.transfusi_sebelumnya"
+                                    :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
+                                    type="radio" inline />
+                            </div>
 
-                        <div class="col-12 col-md-6" v-show="form_edit.transfusi_sebelumnya === 'Ya'">
-                            <span class="h_lable">Kapan (tanggal / keterangan)</span>
-                            <q-input v-model="form_edit.transfusi_kapan" outlined square :dense="true" class="bg-white"
-                                placeholder="YYYY-MM-DD atau keterangan" />
-                        </div>
+                            <div class="col-12 col-md-6" v-show="form_edit.transfusi_sebelumnya === 'Ya'">
+                                <span class="h_lable">Kapan (tanggal / keterangan)</span>
+                                <q-input v-model="form_edit.transfusi_kapan" outlined square :dense="true"
+                                    class="bg-white" placeholder="YYYY-MM-DD atau keterangan" />
+                            </div>
 
-                        <!-- Reaksi Transfusi -->
-                        <div class="col-12 col-md-6 q-mt-sm">
-                            <span class="h_lable">Reaksi Transfusi</span>
-                            <q-option-group v-model="form_edit.reaksi_transfusi"
-                                :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
-                                type="radio" inline />
-                        </div>
+                            <!-- Reaksi Transfusi -->
+                            <div class="col-12 col-md-6 q-mt-sm">
+                                <span class="h_lable">Reaksi Transfusi</span>
+                                <q-option-group v-model="form_edit.reaksi_transfusi"
+                                    :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
+                                    type="radio" inline />
+                            </div>
 
-                        <div class="col-12 col-md-6" v-show="form_edit.reaksi_transfusi === 'Ya'">
-                            <span class="h_lable">Gejala</span>
-                            <q-input v-model="form_edit.gejala_transfusi" outlined square :dense="true" class="bg-white"
-                                placeholder="Jelaskan gejala reaksi" />
-                        </div>
+                            <div class="col-12 col-md-6" v-show="form_edit.reaksi_transfusi === 'Ya'">
+                                <span class="h_lable">Gejala</span>
+                                <q-input v-model="form_edit.gejala_transfusi" outlined square :dense="true"
+                                    class="bg-white" placeholder="Jelaskan gejala reaksi" />
+                            </div>
 
-                        <!-- Coomb's test -->
-                        <div class="col-12 col-md-6 q-mt-sm">
-                            <span class="h_lable">Pernah diperiksa serologi (Coomb's test)?</span>
-                            <q-option-group v-model="form_edit.coomb_test"
-                                :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
-                                type="radio" inline />
-                        </div>
+                            <!-- Coomb's test -->
+                            <div class="col-12 col-md-6 q-mt-sm">
+                                <span class="h_lable">Pernah diperiksa serologi (Coomb's test)?</span>
+                                <q-option-group v-model="form_edit.coomb_test"
+                                    :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
+                                    type="radio" inline />
+                            </div>
 
-                        <div class="col-12 col-md-6" v-show="form_edit.coomb_test === 'Ya'">
-                            <div class="row q-col-gutter-md">
-                                <div class="col-12 col-md-12">
-                                    <span class="h_lable">Dimana (lab/rumah sakit)</span>
-                                    <q-input v-model="form_edit.coomb_tempat" outlined square :dense="true"
-                                        class="bg-white" />
-                                </div>
-                                <div class="col-12 col-md-6 q-mt-sm">
-                                    <span class="h_lable">Kapan</span>
-                                    <q-input v-model="form_edit.coomb_kapan" type="date" outlined square :dense="true"
-                                        class="bg-white" />
-                                </div>
-                                <div class="col-12 col-md-6 q-mt-sm">
-                                    <span class="h_lable">Hasil</span>
-                                    <q-input v-model="form_edit.coomb_hasil" outlined square :dense="true"
-                                        class="bg-white" placeholder="Negatif / Positif / Lainnya" />
+                            <div class="col-12 col-md-6" v-show="form_edit.coomb_test === 'Ya'">
+                                <div class="row q-col-gutter-md">
+                                    <div class="col-12 col-md-12">
+                                        <span class="h_lable">Dimana (lab/rumah sakit)</span>
+                                        <q-input v-model="form_edit.coomb_tempat" outlined square :dense="true"
+                                            class="bg-white" />
+                                    </div>
+                                    <div class="col-12 col-md-6 q-mt-sm">
+                                        <span class="h_lable">Kapan</span>
+                                        <q-input v-model="form_edit.coomb_kapan" type="date" outlined square
+                                            :dense="true" class="bg-white" />
+                                    </div>
+                                    <div class="col-12 col-md-6 q-mt-sm">
+                                        <span class="h_lable">Hasil</span>
+                                        <q-input v-model="form_edit.coomb_hasil" outlined square :dense="true"
+                                            class="bg-white" placeholder="Negatif / Positif / Lainnya" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
                     </q-card-section>
 
@@ -1624,7 +1626,8 @@ export default {
                 { label: 'Diperiksa', value: 2 },
                 { label: 'Siap Diambil', value: 3 },
                 { label: 'Selesai', value: 4 },
-                { label: 'Ditolak', value: 5 }
+                { label: 'Ditolak', value: 5 },
+                { label: 'Telah Diambil', value: 6 }
             ],
 
             mdl_periksa: false,
@@ -2032,8 +2035,8 @@ export default {
                 this.$q.notify({ type: 'warning', message: 'Tidak dapat menyimpan: status sudah Disetujui' });
                 return;
             }
-             // validation for additional fields
-             if (this.form_edit.jenis_kelamin === 'P') {
+            // validation for additional fields
+            if (this.form_edit.jenis_kelamin === 'P') {
                 if (this.form_edit.jumlah_kehamilan === null || this.form_edit.jumlah_kehamilan === '') {
                     this.$q.notify({ type: 'negative', message: 'Jumlah kehamilan harus diisi untuk pasien wanita' });
                     return;

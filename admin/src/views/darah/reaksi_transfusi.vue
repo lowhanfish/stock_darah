@@ -291,6 +291,12 @@
                 <form @submit.prevent="submitPemeriksaan">
                     <q-card-section class="q-pt-none">
 
+                        <div class="col-12 col-md-12">
+                                <span class="h_lable">DPJP Labpratorium</span>
+                                <q-input v-model="pemeriksaanForm.dpjp_lab" outlined square dense
+                                    class="bg-white margin_btn" />
+                            </div>
+
                         <div class="text-subtitle1 q-mt-sm text-bold">Pemeriksaan Pretransfusi</div>
 
                         <!-- <hr class="hrpagin2" /> -->
@@ -442,7 +448,7 @@
                             </div>
 
                             <!-- Bagian: Konfirmasi Pasca Transfusi -->
-                            <div>
+                            <div class="q-mb-md">
                                 <div class="text-subtitle1 text-bold">Konfirmasi Pasca Transfusi</div>
                                 <div class="detail-table q-mt-sm">
                                     <div class="row detail-row">
@@ -480,6 +486,10 @@
                                         <div class="col-8 detail-value">{{ viewPemeriksaan.reaksi_status || '-' }}</div>
                                     </div> -->
                                 </div>
+                            </div>
+                            <div>
+
+                                <div class="text-subtitle1 text-bold">DPJP Laboratorium : {{viewPemeriksaan.dpjp_lab}}</div>
                             </div>
                         </div>
                     </div>
@@ -703,6 +713,7 @@ export default {
             mdl_pemeriksaan: false,
             pemeriksaanForm: {
                 reaksi_id: null,
+                dpjp_lab: '',
                 asal_darah: '',
                 no_kantong: '',
                 komponen_darah: '',
@@ -745,6 +756,7 @@ export default {
         openPemeriksaanModal(item) {
             this.pemeriksaanForm = {
                 reaksi_id: item.id,
+                dpjp_lab: '',
                 asal_darah: '',
                 no_kantong: '',
                 komponen_darah: '',
@@ -1069,6 +1081,7 @@ export default {
             // Inisialisasi form dengan data pemeriksaan yang dikirim
             this.pemeriksaanForm = {
                 reaksi_id: dataPemeriksaan.reaksi_id || dataPemeriksaan.reaksi_id || null,
+                dpjp_lab: dataPemeriksaan.dpjp_lab || '',
                 asal_darah: dataPemeriksaan.asal_darah || '',
                 no_kantong: dataPemeriksaan.no_kantong || '',
                 // set komponen_darah ke ID dari list_komponen — agar q-select bisa menampilkan labelnya
