@@ -238,6 +238,116 @@ router.get('/view', (req, res) => {
 });
 
 
+// POST /api/v1/reaksi_transfusi/update
+router.post('/editData', (req, res) => {
+  try {
+    const {
+      id,
+      permintaan_id,
+      jam_transfusi,
+      jenis_reaksi,
+      jam_terjadi,
+      jam_dilaporkan,
+      petugas_pelapor,
+      tindakan
+    } = req.body || {};
+
+    if (!id) {
+      return res.status(400).json({ success: false, status: false, message: 'ID tidak ditemukan' });
+    }
+
+    // Helper untuk format datetime
+    const vJamTransfusi = toSqlDatetime(jam_transfusi);
+    const vJamTerjadi = toSqlDatetime(jam_terjadi);
+    const vJamDilaporkan = toSqlDatetime(jam_dilaporkan);
+    
+    const sql = `
+      UPDATE reaksi_transfusi 
+      SET 
+        permintaan_id = ?,
+        jam_transfusi = ?,
+        jenis_reaksi = ?,
+        jam_terjadi = ?,
+        jam_dilaporkan = ?,
+        petugas_pelapor = ?,
+        tindakan = ?,
+        updated_at = NOW()
+      WHERE id = ?
+    `;
+
+    const params = [
+      permintaan_id,
+      vJamTransfusi,
+      jenis_reaksi,
+      vJamTerjadi,
+      vJamDilaporkan,
+      petugas_pelapor,
+      tindakan,
+      id
+    ];
+
+    db.query(sql, params, (err, result) => {
+      if (err) {
+        console.error('DB error update reaksi_transfusi:', err);
+        return res.status(500).json({ success: false, status: false, message: 'Server error saat update data' });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, status: false, message: 'Data tidak ditemukan atau tidak ada perubahan' });
+      }
+
+      return res.json({
+        success: true,
+        status: true,
+        message: 'Data berhasil diperbarui'
+      });
+    });
+
+  } catch (ex) {
+    console.error('Unhandled error POST /update:', ex);
+    return res.status(500).json({ success: false, status: false, message: 'Server error' });
+  }
+});
+
+// POST /api/v1/reaksi_transfusi/delete
+router.post('/delete', (req, res) => {
+  try {
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ success: false, status: false, message: 'ID data tidak ditemukan' });
+    }
+
+    // Gunakan query DELETE
+    const sql = `
+      DELETE FROM reaksi_transfusi 
+      WHERE id = ?
+    `;
+
+    db.query(sql, [id], (err, result) => {
+      if (err) {
+        console.error('DB error DELETE reaksi_transfusi:', err);
+        return res.status(500).json({ success: false, status: false, message: 'Server error saat menghapus data' });
+      }
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ success: false, status: false, message: 'Data tidak ditemukan' });
+      }
+
+      return res.json({
+        success: true,
+        status: true,
+        message: 'Data berhasil dihapus secara permanen'
+      });
+    });
+
+  } catch (ex) {
+    console.error('Unhandled error POST /delete:', ex);
+    return res.status(500).json({ success: false, status: false, message: 'Server error' });
+  }
+});
+
+
 // POST /api/v1/reaksi_transfusi/:id/send
 router.post('/:id/send', (req, res) => {
   const id = req.params.id;
@@ -562,113 +672,100 @@ router.get('/pemeriksaan/pdf', checkTokenSeetUser, isLoggedIn, (req, res) => {
   });
 });
 
-// POST /api/v1/reaksi_transfusi/update
-router.post('/editData', (req, res) => {
+// POST /api/v1/reaksi_transfusi/pemeriksaan/edit
+router.post('/pemeriksaan/edit', (req, res) => {
   try {
-    const {
-      id,
-      permintaan_id,
-      jam_transfusi,
-      jenis_reaksi,
-      jam_terjadi,
-      jam_dilaporkan,
-      petugas_pelapor,
-      tindakan
-    } = req.body || {};
-
-    if (!id) {
-      return res.status(400).json({ success: false, status: false, message: 'ID tidak ditemukan' });
+    const profile = req.user && req.user.profile ? req.user.profile : null;
+    if (!profile) {
+      return res.status(401).json({ success: false, message: 'User tidak terautentikasi' });
+    }
+    const role = Number(profile.role || profile.stokdarah_konut || 0);
+    if (role !== 1 && role !== 2) {
+      return res.status(403).json({ success: false, message: 'Akses ditolak: hanya UPD yang boleh mengedit pemeriksaan' });
     }
 
-    // Helper untuk format datetime
-    const vJamTransfusi = toSqlDatetime(jam_transfusi);
-    const vJamTerjadi = toSqlDatetime(jam_terjadi);
-    const vJamDilaporkan = toSqlDatetime(jam_dilaporkan);
-    
-    const sql = `
-      UPDATE reaksi_transfusi 
-      SET 
-        permintaan_id = ?,
-        jam_transfusi = ?,
-        jenis_reaksi = ?,
-        jam_terjadi = ?,
-        jam_dilaporkan = ?,
-        petugas_pelapor = ?,
-        tindakan = ?,
-        updated_at = NOW()
-      WHERE id = ?
-    `;
+    const body = req.body || {};
+    const id = body.id || null; // id pemeriksaan_pretransfusi
+    const no_kantong = (body.no_kantong || '').toString().trim();
+    const komponen_darah = (body.komponen_darah || '').toString().trim();
 
+    if (!id) return res.status(400).json({ success: false, message: 'id pemeriksaan wajib diisi' });
+    if (!no_kantong) return res.status(400).json({ success: false, message: 'no_kantong wajib diisi' });
+    if (!komponen_darah) return res.status(400).json({ success: false, message: 'komponen_darah wajib diisi' });
+
+    const asal_darah = body.asal_darah || null;
+    const golongan_darah = body.golongan_darah || null;
+    const uji_silang_serasi = body.uji_silang_serasi || null;
+    const konfirm_gol_pasien = body.konfirm_gol_pasien || null;
+    const konfirm_rhesus_pasien = body.konfirm_rhesus_pasien || null;
+    const konfirm_gol_donor = body.konfirm_gol_donor || null;
+    const konfirm_rhesus_donor = body.konfirm_rhesus_donor || null;
+    const uji_silang_konfirmasi = body.uji_silang_konfirmasi || null;
+
+    let pemeriksaan_at = body.pemeriksaan_at || null;
+    if (pemeriksaan_at) pemeriksaan_at = String(pemeriksaan_at).replace('T', ' ');
+
+    const updateSql = `
+      UPDATE pemeriksaan_pretransfusi
+      SET asal_darah = ?, no_kantong = ?, komponen_darah = ?, golongan_darah = ?,
+          uji_silang_serasi = ?, konfirm_gol_pasien = ?, konfirm_rhesus_pasien = ?,
+          konfirm_gol_donor = ?, konfirm_rhesus_donor = ?, uji_silang_konfirmasi = ?, pemeriksaan_at = ?, updated_at = NOW()
+      WHERE id = ? LIMIT 1
+    `;
     const params = [
-      permintaan_id,
-      vJamTransfusi,
-      jenis_reaksi,
-      vJamTerjadi,
-      vJamDilaporkan,
-      petugas_pelapor,
-      tindakan,
+      asal_darah,
+      no_kantong,
+      komponen_darah,
+      golongan_darah,
+      uji_silang_serasi,
+      konfirm_gol_pasien,
+      konfirm_rhesus_pasien,
+      konfirm_gol_donor,
+      konfirm_rhesus_donor,
+      uji_silang_konfirmasi,
+      pemeriksaan_at,
       id
     ];
 
-    db.query(sql, params, (err, result) => {
+    db.query(updateSql, params, (err, result) => {
       if (err) {
-        console.error('DB error update reaksi_transfusi:', err);
-        return res.status(500).json({ success: false, status: false, message: 'Server error saat update data' });
+        console.error('DB error update pemeriksaan_pretransfusi:', err);
+        return res.status(500).json({ success: false, message: 'Server error saat mengupdate pemeriksaan' });
       }
 
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ success: false, status: false, message: 'Data tidak ditemukan atau tidak ada perubahan' });
-      }
+      const sel = `
+        SELECT p.*, r.jenis_reaksi, r.petugas_pelapor, r.status AS reaksi_status
+        FROM pemeriksaan_pretransfusi p
+        LEFT JOIN reaksi_transfusi r ON r.id = p.reaksi_id
+        WHERE p.id = ? LIMIT 1
+      `;
+      db.query(sel, [id], (err2, rows) => {
+        if (err2) {
+          console.error('DB error fetch updated pemeriksaan:', err2);
+          return res.json({
+            success: true,
+            status: true,
+            message: 'Pemeriksaan diperbarui, namun gagal mengambil data hasil',
+            data: { id }
+          });
+        }
 
-      return res.json({
-        success: true,
-        status: true,
-        message: 'Data berhasil diperbarui'
+        return res.json({
+          success: true,
+          status: true,
+          message: 'Pemeriksaan berhasil diperbarui',
+          data: rows[0] || { id }
+        });
       });
     });
 
   } catch (ex) {
-    console.error('Unhandled error POST /update:', ex);
-    return res.status(500).json({ success: false, status: false, message: 'Server error' });
+    console.error('Unhandled error POST /pemeriksaan/edit:', ex);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
-// POST /api/v1/reaksi_transfusi/delete
-router.post('/delete', (req, res) => {
-  try {
-    const { id } = req.body;
 
-    if (!id) {
-      return res.status(400).json({ success: false, status: false, message: 'ID data tidak ditemukan' });
-    }
 
-    // Gunakan query DELETE
-    const sql = `
-      DELETE FROM reaksi_transfusi 
-      WHERE id = ?
-    `;
-
-    db.query(sql, [id], (err, result) => {
-      if (err) {
-        console.error('DB error DELETE reaksi_transfusi:', err);
-        return res.status(500).json({ success: false, status: false, message: 'Server error saat menghapus data' });
-      }
-
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ success: false, status: false, message: 'Data tidak ditemukan' });
-      }
-
-      return res.json({
-        success: true,
-        status: true,
-        message: 'Data berhasil dihapus secara permanen'
-      });
-    });
-
-  } catch (ex) {
-    console.error('Unhandled error POST /delete:', ex);
-    return res.status(500).json({ success: false, status: false, message: 'Server error' });
-  }
-});
 
 module.exports = router;
