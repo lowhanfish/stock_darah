@@ -7,6 +7,7 @@ import berita from "../views/berita.vue";
 import beritaisi from "../views/beritaisi.vue";
 import stokdarah from "../views/stokdarah.vue";
 import foto from "../views/foto.vue";
+import kontak from "../views/kontak.vue";
 
 
 
@@ -54,6 +55,11 @@ const routes = [
     path: '/foto',
     name: 'foto',
     component: foto
+  },
+  {
+    path: '/kontak',
+    name: 'kontak',
+    component: kontak
   },
   
  

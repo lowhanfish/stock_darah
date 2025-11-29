@@ -71,9 +71,9 @@
                                     <li class="item-level-2">
                                         <router-link  class="link-level-2" to="/berita">Artikel/Edukasi</router-link>
                                     </li>
-                                    <li class="item-level-2">
+                                    <!-- <li class="item-level-2">
                                         <router-link  class="link-level-2" to="/berita">Jadwal Donor</router-link>
-                                    </li>
+                                    </li> -->
                                    
                                 </ul>
                             </li>
@@ -87,10 +87,10 @@
                             <li class="item-level-1">
                                 <router-link  class="link-level-1" to="/foto">Foto Kegiatan</router-link>
                             </li>
-                           
-                          
+                            
+                            
                             <li class="item-level-1">
-                                <a href="01_contact.html" class="link-level-1">Contact</a>
+                                <router-link  class="link-level-1" to="/kontak">Kontak</router-link>
                             </li>
                         </ul>
                     </div>
