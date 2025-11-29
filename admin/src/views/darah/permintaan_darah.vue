@@ -154,16 +154,16 @@
                             <q-btn dense round color="primary" icon="visibility" @click="openLihat(data)">
                                 <q-tooltip content-class="bg-blue-7">Lihat Detail</q-tooltip>
                             </q-btn>
-                            <q-btn dense round color="warning" icon="edit" :disable="Number(data.status) === 3"
+                            <q-btn dense round color="warning" icon="edit" :disable="Number(data.status) === 3 || Number(data.status) === 4"
                                 @click="openEdit(data)">
-                                <q-tooltip v-if="Number(data.status) === 3" content-class="bg-amber-7">
+                                <q-tooltip v-if="Number(data.status) === 3 || Number(data.status) === 4" content-class="bg-amber-7">
                                     Tidak dapat edit — permintaan sudah Disetujui
                                 </q-tooltip>
                                 <q-tooltip v-else content-class="bg-amber-7">Edit Permintaan</q-tooltip>
                             </q-btn>
 
                             <q-btn dense round color="negative" icon="delete"
-                                :disable="Number(data.status) === 2 || Number(data.status) === 3"
+                                :disable="Number(data.status) === 2 || Number(data.status) === 3 || Number(data.status) === 4"
                                 @click="openDelete(data)">
                                 <q-tooltip content-class="bg-red-7">
                                     {{
@@ -980,6 +980,69 @@
                         <span class="h_lable">Alasan Transfusi</span>
                         <q-input v-model="form_edit.alasan_transfusi" type="textarea" outlined square :dense="true"
                             autogrow class="bg-white margin_btn" required />
+
+
+                            <hr class="hrpagin2" />
+                    <div class="text-subtitle1 q-mb-sm text-bold text-center">Riwayat Transfusi & Pemeriksaan Serologi</div>
+
+                    <div class="row q-col-gutter-md">
+                        <!-- Transfusi Sebelumnya -->
+                        <div class="col-12 col-md-6">
+                            <span class="h_lable">Transfusi Sebelumnya</span>
+                            <q-option-group v-model="form_edit.transfusi_sebelumnya"
+                                :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
+                                type="radio" inline />
+                        </div>
+
+                        <div class="col-12 col-md-6" v-show="form_edit.transfusi_sebelumnya === 'Ya'">
+                            <span class="h_lable">Kapan (tanggal / keterangan)</span>
+                            <q-input v-model="form_edit.transfusi_kapan" outlined square :dense="true" class="bg-white"
+                                placeholder="YYYY-MM-DD atau keterangan" />
+                        </div>
+
+                        <!-- Reaksi Transfusi -->
+                        <div class="col-12 col-md-6 q-mt-sm">
+                            <span class="h_lable">Reaksi Transfusi</span>
+                            <q-option-group v-model="form_edit.reaksi_transfusi"
+                                :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
+                                type="radio" inline />
+                        </div>
+
+                        <div class="col-12 col-md-6" v-show="form_edit.reaksi_transfusi === 'Ya'">
+                            <span class="h_lable">Gejala</span>
+                            <q-input v-model="form_edit.gejala_transfusi" outlined square :dense="true" class="bg-white"
+                                placeholder="Jelaskan gejala reaksi" />
+                        </div>
+
+                        <!-- Coomb's test -->
+                        <div class="col-12 col-md-6 q-mt-sm">
+                            <span class="h_lable">Pernah diperiksa serologi (Coomb's test)?</span>
+                            <q-option-group v-model="form_edit.coomb_test"
+                                :options="[{ label: 'Ya', value: 'Ya' }, { label: 'Tidak', value: 'Tidak' }]"
+                                type="radio" inline />
+                        </div>
+
+                        <div class="col-12 col-md-6" v-show="form_edit.coomb_test === 'Ya'">
+                            <div class="row q-col-gutter-md">
+                                <div class="col-12 col-md-12">
+                                    <span class="h_lable">Dimana (lab/rumah sakit)</span>
+                                    <q-input v-model="form_edit.coomb_tempat" outlined square :dense="true"
+                                        class="bg-white" />
+                                </div>
+                                <div class="col-12 col-md-6 q-mt-sm">
+                                    <span class="h_lable">Kapan</span>
+                                    <q-input v-model="form_edit.coomb_kapan" type="date" outlined square :dense="true"
+                                        class="bg-white" />
+                                </div>
+                                <div class="col-12 col-md-6 q-mt-sm">
+                                    <span class="h_lable">Hasil</span>
+                                    <q-input v-model="form_edit.coomb_hasil" outlined square :dense="true"
+                                        class="bg-white" placeholder="Negatif / Positif / Lainnya" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     </q-card-section>
 
                     <q-card-actions class="bg-grey-4 mdl-footer" align="right">
@@ -1033,7 +1096,6 @@
                                     <!-- tampilkan tanggal yang di-format dari timestamp (read-only) -->
                                     <q-input outlined square :dense="true" class="bg-white" readonly
                                         :value="form1.tanggal_pemeriksaan ? formatDateFromTimestamp(form1.tanggal_pemeriksaan) : ''" />
-
 
                                 </div>
                             </div>
@@ -1495,7 +1557,15 @@ export default {
                 alasan_transfusi: '',
                 kadar_hb: null,
                 status: 1,
-                status_keterangan: ''
+                status_keterangan: '',
+                transfusi_sebelumnya: 'Tidak',
+                transfusi_kapan: '',
+                reaksi_transfusi: 'Tidak',
+                gejala_transfusi: '',
+                coomb_test: 'Tidak',
+                coomb_tempat: '',
+                coomb_kapan: '',
+                coomb_hasil: ''
             },
 
             // tambah di data()
@@ -1936,7 +2006,15 @@ export default {
                 alasan_transfusi: row.alasan_transfusi || '',
                 kadar_hb: row.kadar_hb || null,
                 status: row.status || 1,
-                status_keterangan: row.status_keterangan || ''
+                status_keterangan: row.status_keterangan || '',
+                transfusi_sebelumnya: row.transfusi_sebelumnya || 'Tidak',
+                transfusi_kapan: row.transfusi_kapan || '',
+                reaksi_transfusi: row.reaksi_transfusi || 'Tidak',
+                gejala_transfusi: row.gejala_transfusi || '',
+                coomb_test: row.coomb_test || 'Tidak',
+                coomb_tempat: row.coomb_tempat || '',
+                coomb_kapan: row.coomb_kapan || '',
+                coomb_hasil: row.coomb_hasil || ''
             });
 
             this.mdl_edit = true;
@@ -1953,6 +2031,36 @@ export default {
             if (Number(this.form_edit.status) === 3) {
                 this.$q.notify({ type: 'warning', message: 'Tidak dapat menyimpan: status sudah Disetujui' });
                 return;
+            }
+             // validation for additional fields
+             if (this.form_edit.jenis_kelamin === 'P') {
+                if (this.form_edit.jumlah_kehamilan === null || this.form_edit.jumlah_kehamilan === '') {
+                    this.$q.notify({ type: 'negative', message: 'Jumlah kehamilan harus diisi untuk pasien wanita' });
+                    return;
+                }
+            }
+
+            if (this.form_edit.transfusi_sebelumnya === 'Ya') {
+                if (!this.form_edit.transfusi_kapan || this.form_edit.transfusi_kapan.trim() === '') {
+                    this.$q.notify({ type: 'negative', message: 'Mohon isi tanggal/keterangan transfusi sebelumnya.' });
+                    return;
+                }
+            }
+
+            if (this.form_edit.reaksi_transfusi === 'Ya') {
+                if (!this.form_edit.gejala_transfusi || this.form_edit.gejala_transfusi.trim() === '') {
+                    this.$q.notify({ type: 'negative', message: 'Mohon jelaskan gejala reaksi transfusi.' });
+                    return;
+                }
+            }
+
+            if (this.form_edit.coomb_test === 'Ya') {
+                if (!this.form_edit.coomb_tempat || this.form_edit.coomb_tempat.trim() === '' ||
+                    !this.form_edit.coomb_kapan || this.form_edit.coomb_kapan.trim() === '' ||
+                    !this.form_edit.coomb_hasil || this.form_edit.coomb_hasil.trim() === '') {
+                    this.$q.notify({ type: 'negative', message: 'Mohon lengkapi data pemeriksaan serologi (Coomb\'s test): tempat, kapan, dan hasil.' });
+                    return;
+                }
             }
 
             this.btn_edit = true;
