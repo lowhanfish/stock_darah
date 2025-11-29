@@ -69,7 +69,6 @@
                                     @click="data.status === 'unduh' && openLihatDokumen(data)" />
                             </template>
 
-                            <!-- Role 1/2 (UPD) atau lainnya -->
                             <!-- Role 1 & 2 (Admin UPD) -->
                             <template v-else>
 
@@ -114,39 +113,50 @@
                         <td class="text-center">{{ data.tindakan }}</td>
                         <!-- KOLom Aksi (ganti yang lama) -->
                         <td class="text-center q-gutter-sm">
-                            <!-- Role 3: tombol muncul tapi edit/delete disabled jika status 'terkirim' -->
                             <template v-if="Number(tipe) === 3">
                                 <q-btn dense round color="warning" icon="edit" :disable="data.status === 'terkirim'"
                                     @click="openEdit(data)">
-                                    <q-tooltip v-if="data.status === 'terkirim'">Tidak bisa diedit setelah
+                                    <q-tooltip content-class="bg-yellow-9" v-if="data.status === 'terkirim'">Tidak bisa diedit setelah
                                         dikirim</q-tooltip>
-                                    <q-tooltip v-else>Edit</q-tooltip>
+                                    <q-tooltip v-else content-class="bg-yellow-9" >Edit</q-tooltip>
                                 </q-btn>
 
                                 <q-btn dense round color="negative" icon="delete" :disable="data.status === 'terkirim'"
                                     @click="openDelete(data)">
-                                    <q-tooltip v-if="data.status === 'terkirim'">Tidak bisa dihapus setelah
+                                    <q-tooltip content-class="bg-red-8" v-if="data.status === 'terkirim'">Tidak bisa dihapus setelah
                                         dikirim</q-tooltip>
-                                    <q-tooltip v-else>Hapus</q-tooltip>
+                                    <q-tooltip v-else content-class="bg-red-8" >Hapus</q-tooltip>
                                 </q-btn>
 
                                 <q-btn dense round color="primary" icon="visibility" @click="openLihat(data)">
-                                    <q-tooltip>Lihat</q-tooltip>
+                                    <q-tooltip content-class="bg-blue-6">Lihat</q-tooltip>
                                 </q-btn>
                             </template>
 
-                            <!-- Role 1 / 2: tombol sama, tetapi aktif walau status 'terkirim' -->
                             <template v-else>
-                                <q-btn dense round color="warning" icon="edit" @click="openEdit(data)">
-                                    <q-tooltip>Edit (UPD)</q-tooltip>
+                                <q-btn disable dense round color="warning" icon="edit" @click="openEdit(data)">
+                                    <q-tooltip content-class="bg-yellow-8" >Edit (UPD)</q-tooltip>
                                 </q-btn>
 
-                                <q-btn dense round color="negative" icon="delete" @click="openDelete(data)">
-                                    <q-tooltip>Hapus (UPD)</q-tooltip>
+                                <q-btn disable dense round color="negative" icon="delete" @click="openDelete(data)">
+                                    <q-tooltip content-class="bg-red-8">Hapus (UPD)</q-tooltip>
                                 </q-btn>
 
-                                <q-btn dense round color="primary" icon="visibility" @click="openLihat(data)">
-                                    <q-tooltip>Lihat</q-tooltip>
+                                <q-btn 
+                                    dense 
+                                    round 
+                                    color="primary" 
+                                    icon="visibility" 
+                                    @click="openLihat(data)"
+                                    :disable="data.status === 'terkirim' && !data.pemeriksaan_id"
+                                >
+                                    <q-tooltip 
+                                        v-if="data.status === 'terkirim' && !data.pemeriksaan_id" 
+                                        content-class="bg-red-8"
+                                    >
+                                        Menunggu data pemeriksaan diinput
+                                    </q-tooltip>
+                                    <q-tooltip v-else content-class="bg-blue-6">Lihat</q-tooltip>
                                 </q-btn>
                             </template>
                         </td>
@@ -278,7 +288,7 @@
                     <div class="text-h6 h_modalhead">Pemeriksaan Pretransfusi (UPD)</div>
                 </q-card-section>
 
-                <form @submit.prevent="addPemeriksaan">
+                <form @submit.prevent="submitPemeriksaan">
                     <q-card-section class="q-pt-none">
 
                         <div class="text-subtitle1 q-mt-sm text-bold">Pemeriksaan Pretransfusi</div>
@@ -478,6 +488,13 @@
 
                 <q-card-actions class="bg-grey-4 mdl-footer" align="right">
                     <q-btn label="Tutup" color="negative" v-close-popup @click="mdl_view = false" />
+                    <q-btn
+                      v-if="viewPemeriksaan && (Number(tipe) === 1 || Number(tipe) === 2)"
+                      label="Edit Pemeriksaan"
+                      color="primary"
+                      @click="openEditPemeriksaan(viewPemeriksaan)"
+                  />
+                    
                 </q-card-actions>
 
                 <!-- <q-card-actions class="bg-grey-4 mdl-footer" align="right">
@@ -699,6 +716,9 @@ export default {
                 pemeriksaan_at: ''
             },
             loadingPemeriksaan: false,
+            pemeriksaanEditMode: false,
+            pemeriksaanEditId: null,
+            
 
             STATUS_DRAFT: 'draft',
             STATUS_TERKIRIM: 'terkirim',
@@ -738,6 +758,9 @@ export default {
                 pemeriksaan_at: ''
             };
             this.mdl_pemeriksaan = true;
+            this.pemeriksaanEditMode = false;
+           this.pemeriksaanEditId = null;
+             this.mdl_pemeriksaan = true;
         },
 
         cancelPemeriksaan() {
@@ -804,6 +827,8 @@ export default {
             this.pemeriksaanForm = { reaksi_id: data.id };
             this.modalPemeriksaanOpen = true;
         },
+
+        
 
 
 
@@ -1009,6 +1034,135 @@ export default {
                 this.loadingView = false;
             }
         },
+
+        openEditPemeriksaan(dataPemeriksaan) {
+            // Tutup detail view
+            this.mdl_view = false;
+
+            // Debug: lihat payload
+            console.log('openEditPemeriksaan payload:', dataPemeriksaan, 'list_komponen:', this.list_komponen);
+
+            // Pastikan kita punya data pemeriksaan dan id pemeriksaan
+            // Kadang field id bisa bernama 'id' atau 'pemeriksaan_id' tergantung response
+            const pemeriksaanId = dataPemeriksaan?.id || dataPemeriksaan?.pemeriksaan_id || null;
+            if (!pemeriksaanId) {
+                this.$q.notify({ type: 'negative', message: 'ID pemeriksaan tidak ditemukan — tidak bisa edit.' });
+                return;
+            }
+
+            // Cari komponen di list_komponen. dataPemeriksaan.komponen_darah mungkin mengandung id atau nama.
+            let komponenValue = null;
+            if (this.list_komponen && this.list_komponen.length) {
+                // jika dataPemeriksaan.komponen_darah adalah angka/id:
+                const asNumber = Number(dataPemeriksaan.komponen_darah);
+                if (!isNaN(asNumber) && asNumber > 0) {
+                    const foundById = this.list_komponen.find(k => Number(k.id) === asNumber);
+                    if (foundById) komponenValue = foundById.id;
+                }
+                // jika belum ditemukan, cari berdasarkan nama_komponen
+                if (!komponenValue) {
+                    const foundByName = this.list_komponen.find(k => String(k.nama_komponen).trim() === String(dataPemeriksaan.komponen_darah).trim());
+                    if (foundByName) komponenValue = foundByName.id;
+                }
+            }
+
+            // Inisialisasi form dengan data pemeriksaan yang dikirim
+            this.pemeriksaanForm = {
+                reaksi_id: dataPemeriksaan.reaksi_id || dataPemeriksaan.reaksi_id || null,
+                asal_darah: dataPemeriksaan.asal_darah || '',
+                no_kantong: dataPemeriksaan.no_kantong || '',
+                // set komponen_darah ke ID dari list_komponen — agar q-select bisa menampilkan labelnya
+                komponen_darah: komponenValue !== null ? komponenValue : (dataPemeriksaan.komponen_darah || ''),
+                golongan_darah: dataPemeriksaan.golongan_darah || '',
+                uji_silang_serasi: dataPemeriksaan.uji_silang_serasi || '',
+                konfirm_gol_pasien: dataPemeriksaan.konfirm_gol_pasien || '',
+                konfirm_rhesus_pasien: dataPemeriksaan.konfirm_rhesus_pasien || '',
+                konfirm_gol_donor: dataPemeriksaan.konfirm_gol_donor || '',
+                konfirm_rhesus_donor: dataPemeriksaan.konfirm_rhesus_donor || '',
+                uji_silang_konfirmasi: dataPemeriksaan.uji_silang_konfirmasi || '',
+                // format untuk datetime-local
+                pemeriksaan_at: this.formatDatetimeLocal(dataPemeriksaan.pemeriksaan_at || dataPemeriksaan.pemeriksaan_created || '')
+            };
+
+            // set mode edit
+            this.pemeriksaanEditMode = true;
+            this.pemeriksaanEditId = pemeriksaanId;
+
+            // buka modal pemeriksaan (reuse modal add)
+            this.mdl_pemeriksaan = true;
+        },
+
+        async submitPemeriksaan() {
+            console.log('submitPemeriksaan: editMode=', this.pemeriksaanEditMode, 'editId=', this.pemeriksaanEditId);
+            if (this.pemeriksaanEditMode) {
+                await this.updatePemeriksaan();
+            } else {
+                await this.addPemeriksaan();
+            }
+        },
+
+
+        // update pemeriksaan yang sudah ada
+        async updatePemeriksaan() {
+            if (!this.pemeriksaanEditId) {
+                this.$q.notify({ type: 'negative', message: 'ID pemeriksaan tidak ditemukan.' });
+                return;
+            }
+
+            if (!this.pemeriksaanForm.no_kantong || !this.pemeriksaanForm.komponen_darah) {
+                this.$q.notify({ type: 'negative', message: 'Mohon isi No. Kantong dan Komponen Darah.' });
+                return;
+            }
+
+            this.loadingPemeriksaan = true;
+            try {
+                const baseURL = this.$store?.state?.url?.REAKSI_TRANSFUSI
+                    || ((this.$store?.state?.url?.BASE || '') + 'api/v1/reaksi_transfusi/');
+                const url = baseURL + 'pemeriksaan/edit';
+
+                // Include pemeriksaan id
+                const payload = Object.assign({}, this.pemeriksaanForm, { id: this.pemeriksaanEditId });
+
+                console.log('updatePemeriksaan payload:', payload);
+
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        authorization: 'kikensbatara ' + (localStorage.token || '')
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const json = await res.json().catch(() => ({ success: false, message: 'Response parse error' }));
+
+                if (res.ok && (json.success || json.status)) {
+                    this.$q.notify({ type: 'positive', message: json.message || 'Pemeriksaan berhasil diperbarui.' });
+                    this.mdl_pemeriksaan = false;
+
+                    // reset edit mode
+                    this.pemeriksaanEditMode = false;
+                    this.pemeriksaanEditId = null;
+
+                    // refresh daftar & view
+                    this.getView();
+
+                    // Jika server mengembalikan data pemeriksaan baru, perbarui viewPemeriksaan
+                    if (json.data) {
+                        this.viewPemeriksaan = json.data;
+                    }
+                } else {
+                    console.error('updatePemeriksaan failed:', res.status, json);
+                    this.$q.notify({ type: 'negative', message: json.message || `Gagal memperbarui pemeriksaan (${res.status})` });
+                }
+            } catch (err) {
+                console.error('updatePemeriksaan error', err);
+                this.$q.notify({ type: 'negative', message: 'Terjadi kesalahan saat memperbarui pemeriksaan.' });
+            } finally {
+                this.loadingPemeriksaan = false;
+            }
+        },
+
 
 
         getKomponen() {

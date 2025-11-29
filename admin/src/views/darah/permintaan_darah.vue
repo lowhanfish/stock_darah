@@ -88,10 +88,21 @@
                                 </q-badge>
 
                                 <!-- Siap Diambil (klik -> buka Stage2 untuk input pengambilan) -->
-                                <q-badge v-else-if="Number(data.status) === 3" color="secondary" text-color="white"
+                                <!-- <q-badge v-else-if="Number(data.status) === 3" color="secondary" text-color="white"
                                     class="q-pa-xs text-bold cursor-pointer" @click.stop="openStage2(data)">
                                     Darah Siap Diambil
-                                </q-badge>
+                                </q-badge> -->
+                                <template v-else-if="Number(data.status) === 3">
+                                    <q-badge v-if="tipe === 1 || tipe === 2" color="secondary" text-color="white"
+                                        class="q-pa-xs text-bold cursor-pointer" @click.stop="openStage2(data)">
+                                        Darah Siap Diambil
+                                    </q-badge>
+
+                                    <q-badge v-else-if="tipe === 3" color="secondary" text-color="white"
+                                        class="q-pa-xs text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                        Darah Siap Diambil
+                                    </q-badge>
+                                </template>
 
                                 <!-- Telah Diambil (klik -> buka modal view read-only) -->
                                 <q-badge v-else-if="Number(data.status) === 6" color="accent" text-color="white"
@@ -825,11 +836,11 @@
                     </div>
 
                     <!-- Tambahkan ini di q-card-actions modal detail (di sebelah tombol Tutup) -->
-                    <q-btn v-if="tipe === 2 || 1 && lihat_target && Number(lihat_target.status) === 3" dense glossy
-                        class="q-ml-sm" color="warning" icon="undo" @click="openRevertModal(lihat_target)">
-                        Kembalikan ke Diperiksa
-                        <q-tooltip content-class="bg-yellow">Kembalikan permintaan ke status Diperiksa (2) dan buka
-                            Pemeriksaan UPD</q-tooltip>
+
+                    <q-btn v-if="(tipe === 2 || tipe === 1) && lihat_target && Number(lihat_target.status) === 3" dense
+                        glossy class="q-ml-sm" color="warning" icon="undo" @click="openRevertModal(lihat_target)">
+                        Edit dan Periksa Kembali
+                        <q-tooltip content-class="bg-orange">Kembalikan permintaan ke status Diperiksa</q-tooltip>
                     </q-btn>
 
                 </q-card-actions>
