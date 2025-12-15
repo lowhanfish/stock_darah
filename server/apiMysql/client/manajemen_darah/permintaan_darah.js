@@ -187,13 +187,8 @@ router.post('/addData', (req, res) => {
     'tanggal_permintaan',
     'nama_pasien',
     'jenis_kelamin',
-    'golongan_darah',
-    'rhesus',
-    'komponen_id',
     'jumlah_kantong',
     'jumlah_cc',
-    'diagnosis_klinis',
-    'alasan_transfusi'
   ];
 
   for (let f of required) {
@@ -289,13 +284,13 @@ router.post('/addData', (req, res) => {
     body.alamat || null,
     body.nama_wali || null,
     body.jenis_kelamin,
-    body.golongan_darah,
-    body.rhesus,
-    body.komponen_id,
+    body.golongan_darah || null,
+    body.rhesus || null,
+    body.komponen_id || null,
     Number(body.jumlah_kantong || 0),
     Number(body.jumlah_cc || 0),
-    body.diagnosis_klinis,
-    body.alasan_transfusi,
+    body.diagnosis_klinis || null,
+    body.alasan_transfusi || null,
     transfusi_sebelumnya,
     transfusi_kapan,
     reaksi_transfusi,
@@ -327,359 +322,9 @@ router.post('/addData', (req, res) => {
   });
 });
 
-// ===================================================
-// POST: updateStatus (untuk verifikasi oleh Admin UPD)
-// ===================================================
-// router.post('/updateStatus', (req, res) => {
-//   const b = req.body || {};
-//   const id = b.id;
-//   const status = Number(b.status);
-
-//   if (!id) return res.status(400).json({ success: false, message: 'ID permintaan dibutuhkan' });
-//   if (![1, 2, 3, 4].includes(status)) return res.status(400).json({ success: false, message: 'Status tidak valid' });
-
-//   if (status === 4 && (!b.status_keterangan || String(b.status_keterangan).trim() === '')) {
-//     return res.status(400).json({ success: false, message: 'Keterangan penolakan wajib diisi saat status = 4' });
-//   }
-
-//   // prepare update fields (only allowed fields)
-//   const allowed = [
-//     'status_keterangan', 'petugas_pemeriksa', 'tanggal_pemeriksaan',
-//     'golongan_darah_hasil', 'rhesus_hasil', 'catatan_tambahan',
-//     'crossmatch_1', 'crossmatch_2', 'crossmatch_3',
-//     'jumlah_darah_diberikan', 'nomor_kantong', 'petugas_pengeluar', 'penerima_darah'
-//   ];
-
-//   const sets = ['status = ?'];
-//   const params = [status];
-
-//   allowed.forEach(key => {
-//     if (b[key] !== undefined) {
-//       sets.push(`${key} = ?`);
-//       params.push(b[key]);
-//     }
-//   });
-
-//   // Jika status 2 (Diperiksa) dan tidak ada status_keterangan, set default teks
-//   if (status === 2 && (b.status_keterangan === undefined || b.status_keterangan === null)) {
-//     sets.push(`status_keterangan = ?`);
-//     params.push('Permintaan Sedang diperiksa');
-//   }
-
-//   // Jika status 3 (Disetujui) and no status_keterangan, set default teks
-//   if (status === 3 && (b.status_keterangan === undefined || b.status_keterangan === null)) {
-//     sets.push(`status_keterangan = ?`);
-//     params.push('Permintaan Darah sudah berhasil');
-//   }
-
-//   // updated_at
-//   sets.push('updated_at = NOW()');
-
-//   const sql = `UPDATE permintaan_darah SET ${sets.join(', ')} WHERE id = ?`;
-//   params.push(id);
-
-//   db.query(sql, params, (err, result) => {
-//     if (err) {
-//       console.error('Error updateStatus permintaan_darah:', err);
-//       return res.status(500).json({ success: false, message: 'Gagal memperbarui status permintaan' });
-//     }
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ success: false, message: 'Permintaan tidak ditemukan' });
-//     }
-//     return res.json({ success: true, message: 'Status permintaan berhasil diperbarui' });
-//   });
-// });
 
 
-// router.post('/updateStatus', (req, res) => {
-//   const b = req.body || {};
-//   const id = b.id;
-//   const status = Number(b.status);
 
-//   if (!id) return res.status(400).json({ success: false, message: 'ID permintaan dibutuhkan' });
-//   if (![1, 2, 3, 4].includes(status)) return res.status(400).json({ success: false, message: 'Status tidak valid' });
-
-//   if (status === 4 && (!b.status_keterangan || String(b.status_keterangan).trim() === '')) {
-//     return res.status(400).json({ success: false, message: 'Keterangan penolakan wajib diisi saat status = 4' });
-//   }
-
-//   // allowed fields update
-//   const allowed = [
-//     'status_keterangan', 'petugas_pemeriksa', 'tanggal_pemeriksaan',
-//     'golongan_darah_hasil', 'rhesus_hasil', 'catatan_tambahan',
-//     'crossmatch_1', 'crossmatch_2', 'crossmatch_3',
-//     'jumlah_darah_diberikan', 'jumlah_darah_diberikan_cc', 'nomor_kantong', 'petugas_pengeluar', 'penerima_darah'
-//   ];
-
-//   const sets = ['status = ?'];
-//   const params = [status];
-
-//   allowed.forEach(key => {
-//     if (b[key] !== undefined) {
-//       sets.push(`${key} = ?`);
-//       params.push(b[key]);
-//     }
-//   });
-
-//   if (status === 2 && (b.status_keterangan === undefined || b.status_keterangan === null)) {
-//     sets.push(`status_keterangan = ?`);
-//     params.push('Permintaan Sedang diperiksa');
-//   }
-
-//   if (status === 3 && (b.status_keterangan === undefined || b.status_keterangan === null)) {
-//     sets.push(`status_keterangan = ?`);
-//     params.push('Permintaan Darah sudah berhasil dan Siap diambil');
-//   }
-
-//   // always update updated_at
-//   sets.push('updated_at = NOW()');
-//   params.push(id);
-
-//   // mulai proses dengan koneksi DB (transaction)
-//   db.getConnection((connErr, connection) => {
-//     if (connErr) {
-//       console.error('DB getConnection error:', connErr);
-//       return res.status(500).json({ success: false, message: 'Koneksi database gagal' });
-//     }
-
-//     connection.beginTransaction(txErr => {
-//       if (txErr) {
-//         connection.release();
-//         console.error('beginTransaction error:', txErr);
-//         return res.status(500).json({ success: false, message: 'Gagal memulai transaksi DB' });
-//       }
-
-//       const sqlUpdate = `UPDATE permintaan_darah SET ${sets.join(', ')} WHERE id = ?`;
-//       connection.query(sqlUpdate, params, (updErr, updRes) => {
-//         if (updErr) {
-//           return connection.rollback(() => {
-//             connection.release();
-//             console.error('Error updateStatus permintaan_darah:', updErr);
-//             return res.status(500).json({ success: false, message: 'Gagal memperbarui status permintaan' });
-//           });
-//         }
-
-//         if (updRes.affectedRows === 0) {
-//           return connection.rollback(() => {
-//             connection.release();
-//             return res.status(404).json({ success: false, message: 'Permintaan tidak ditemukan' });
-//           });
-//         }
-
-//         // jika status bukan 3 -> commit dan selesai
-//         if (status !== 3) {
-//           return connection.commit(commitErr => {
-//             if (commitErr) {
-//               return connection.rollback(() => {
-//                 connection.release();
-//                 console.error('commit error:', commitErr);
-//                 return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-//               });
-//             }
-//             connection.release();
-//             return res.json({ success: true, message: 'Status permintaan berhasil diperbarui' });
-//           });
-//         }
-
-//         // --- status === 3 : buat transaksi_darah 'keluar' + update stok ---
-//         // ambil data permintaan beserta nama_ruangan dari tenaga_medis
-//         const selSql = `
-//           SELECT p.id, p.jumlah_darah_diberikan, p.jumlah_darah_diberikan_cc, p.golongan_darah_hasil, p.rhesus_hasil, p.komponen_id,
-//                  tm.nama_ruangan
-//           FROM permintaan_darah p
-//           LEFT JOIN tenaga_medis tm ON p.ruangan_id = tm.id
-//           WHERE p.id = ? LIMIT 1
-//         `;
-//         connection.query(selSql, [id], (selErr, selRows) => {
-//           if (selErr) {
-//             return connection.rollback(() => {
-//               connection.release();
-//               console.error('Error select permintaan:', selErr);
-//               return res.status(500).json({ success: false, message: 'Gagal membaca data permintaan setelah update' });
-//             });
-//           }
-//           if (!selRows || !selRows.length) {
-//             // tidak ketemu -> commit update dan beri info
-//             return connection.commit(commitErr => {
-//               if (commitErr) {
-//                 return connection.rollback(() => {
-//                   connection.release();
-//                   console.error('commit error:', commitErr);
-//                   return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-//                 });
-//               }
-//               connection.release();
-//               return res.json({ success: true, message: 'Status diperbarui, tapi data permintaan tidak ditemukan untuk pembuatan transaksi.' });
-//             });
-//           }
-
-//           const perm = selRows[0];
-//           const jumlah = Number(perm.jumlah_darah_diberikan || 0);
-//           const jumlah_cc = Number(perm.jumlah_darah_diberikan_cc || 0);
-//           const gol = perm.golongan_darah_hasil || null;
-//           const rh = perm.rhesus_hasil || null;
-//           const komponen = perm.komponen_id || null;
-//           const nama_ruangan = perm.nama_ruangan || '-';
-
-//           // jika informasi penting tidak ada => commit update, dan jawab dengan info
-//           if (!gol || !rh || !komponen || !jumlah || jumlah <= 0) {
-//             return connection.commit(commitErr => {
-//               if (commitErr) {
-//                 return connection.rollback(() => {
-//                   connection.release();
-//                   console.error('commit error:', commitErr);
-//                   return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-//                 });
-//               }
-//               connection.release();
-//               return res.json({
-//                 success: true,
-//                 message: 'Status permintaan diperbarui. Namun transaksi darah otomatis TIDAK dibuat karena data transaksi (golongan/rhesus/komponen/jumlah) tidak lengkap.'
-//               });
-//             });
-//           }
-
-//           // buat keterangan polos sesuai permintaan
-//           const keterangan = `Permintaan Darah dari Ruangan ${nama_ruangan}`;
-
-//           // lock stok_darah (FOR UPDATE)
-//           const lockSql = `SELECT jumlah_stok FROM stok_darah WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ? FOR UPDATE`;
-//           connection.query(lockSql, [gol, rh, komponen], (lockErr, lockRows) => {
-//             if (lockErr) {
-//               return connection.rollback(() => {
-//                 connection.release();
-//                 console.error('Error lock stok:', lockErr);
-//                 return res.status(500).json({ success: false, message: 'Gagal mengunci stok' });
-//               });
-//             }
-//             if (!lockRows || !lockRows.length) {
-//               return connection.rollback(() => {
-//                 connection.release();
-//                 return res.status(404).json({ success: false, message: 'Data stok tidak ditemukan (untuk golongan/rhesus/komponen tersebut)' });
-//               });
-//             }
-
-//             const stokNow = Number(lockRows[0].jumlah_stok || 0);
-//             if (stokNow < jumlah) {
-//               return connection.rollback(() => {
-//                 connection.release();
-//                 return res.status(400).json({ success: false, message: `Stok tidak cukup untuk membuat transaksi keluar. Stok: ${stokNow}, diminta: ${jumlah}` });
-//               });
-//             }
-
-//             // insert transaksi_darah
-//             const tipe = 'keluar';
-//             const insSql = `INSERT INTO transaksi_darah
-//               (golongan_darah, rhesus, komponen_id, jumlah, tipe_transaksi, keterangan)
-//               VALUES (?, ?, ?, ?, ?, ?)`;
-//             connection.query(insSql, [gol, rh, komponen, jumlah, tipe, keterangan], (insErr) => {
-//               if (insErr) {
-//                 return connection.rollback(() => {
-//                   connection.release();
-//                   console.error('Error inserting transaksi_darah:', insErr);
-//                   return res.status(500).json({ success: false, message: 'Gagal mencatat transaksi darah' });
-//                 });
-//               }
-
-//               // update stok_darah (kurangi)
-//               const updSql = `UPDATE stok_darah SET jumlah_stok = jumlah_stok - ?, tanggal_update = NOW()
-//                               WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?`;
-//               connection.query(updSql, [jumlah, gol, rh, komponen], (updErr2) => {
-//                 if (updErr2) {
-//                   return connection.rollback(() => {
-//                     connection.release();
-//                     console.error('Error update stok_darah:', updErr2);
-//                     return res.status(500).json({ success: false, message: 'Gagal memperbarui stok darah' });
-//                   });
-//                 }
-
-//                 // commit semua
-//                 connection.commit(commitErr2 => {
-//                   if (commitErr2) {
-//                     return connection.rollback(() => {
-//                       connection.release();
-//                       console.error('commit error:', commitErr2);
-//                       return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-//                     });
-//                   }
-//                   connection.release();
-//                   return res.json({ success: true, message: 'Status permintaan diperbarui dan transaksi darah keluar tercatat.' });
-//                 });
-//               });
-//             });
-//           }); // end lock stok
-//         }); // end select permintaan
-//       }); // end update query
-//     }); // end beginTransaction
-//   }); // end getConnection
-// });
-
-// POST: updateStatus (untuk verifikasi oleh Admin UPD)
-// NOTE: versi disederhanakan — TIDAK lagi membuat transaksi_darah / mengubah stok.
-// Hanya melakukan update pada tabel permintaan_darah.
-// router.post('/updateStatus', (req, res) => {
-//   const b = req.body || {};
-//   const id = b.id;
-//   const status = Number(b.status);
-
-//   if (!id) return res.status(400).json({ success: false, message: 'ID permintaan dibutuhkan' });
-//   if (![1, 2, 3, 4].includes(status)) return res.status(400).json({ success: false, message: 'Status tidak valid' });
-
-//   if (status === 4 && (!b.status_keterangan || String(b.status_keterangan).trim() === '')) {
-//     return res.status(400).json({ success: false, message: 'Keterangan penolakan wajib diisi saat status = 4' });
-//   }
-
-//   // allowed fields update (tetap sama seperti sebelumnya)
-//   const allowed = [
-//     'status_keterangan', 'petugas_pemeriksa', 'tanggal_pemeriksaan',
-//     'golongan_darah_hasil', 'rhesus_hasil', 'catatan_tambahan',
-//     'crossmatch_1', 'crossmatch_2', 'crossmatch_3',
-//     'jumlah_darah_diberikan', 'jumlah_darah_diberikan_cc', 'nomor_kantong', 'petugas_pengeluar', 'penerima_darah'
-//   ];
-
-//   const sets = ['status = ?'];
-//   const params = [status];
-
-//   allowed.forEach(key => {
-//     if (b[key] !== undefined) {
-//       sets.push(`${key} = ?`);
-//       params.push(b[key]);
-//     }
-//   });
-
-//   // default status_keterangan jika tidak dikirim untuk beberapa status (opsional)
-//   if ((b.status_keterangan === undefined || b.status_keterangan === null) && status === 2) {
-//     sets.push(`status_keterangan = ?`);
-//     params.push('Permintaan Sedang diperiksa');
-//   }
-//   if ((b.status_keterangan === undefined || b.status_keterangan === null) && status === 3) {
-//     sets.push(`status_keterangan = ?`);
-//     params.push('Permintaan Darah sudah berhasil');
-//   }
-
-//   // always update updated_at
-//   sets.push('updated_at = NOW()');
-
-//   // jika tidak ada field selain status (rare), tetap lakukan update untuk status
-//   const sql = `UPDATE permintaan_darah SET ${sets.join(', ')} WHERE id = ?`;
-//   params.push(id);
-
-//   db.query(sql, params, (err, result) => {
-//     if (err) {
-//       console.error('Error updateStatus permintaan_darah (simple):', err);
-//       return res.status(500).json({ success: false, message: 'Gagal memperbarui status permintaan' });
-//     }
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ success: false, message: 'Permintaan tidak ditemukan' });
-//     }
-
-//     return res.json({ success: true, message: 'Status permintaan berhasil diperbarui dan Darah Siap diambil' });
-//   });
-// });
-
-
-// POST: updateStatus (simple) — support status 1..6, auto-set tanggal_pengambilan = NOW() when status=6
-// gunakan sesuai dengan cara Anda import db (saya anggap db adalah pool mysql)
 router.post('/updateStatus', (req, res) => {
   const b = req.body || {};
   const id = b.id;
@@ -729,8 +374,8 @@ router.post('/updateStatus', (req, res) => {
   }
 
   const allowed = [
-    'status_keterangan', 'petugas_pemeriksa', 'tanggal_pemeriksaan',
-    'golongan_darah_hasil', 'exp', 'rhesus_hasil', 'catatan_tambahan',
+    'status_keterangan', 'petugas_pemeriksa', 'tanggal_pemeriksaan', 'komponen_id',
+    'golongan_darah', 'exp', 'rhesus', 'catatan_tambahan',
     'crossmatch_1', 'crossmatch_2', 'crossmatch_3',
     'jumlah_darah_diberikan', 'jumlah_darah_diberikan_cc', 'nomor_kantong',
     'petugas_pengeluar', 'penerima_darah',
@@ -740,7 +385,26 @@ router.post('/updateStatus', (req, res) => {
   const sets = ['status = ?'];
   const params = [status];
 
-  allowed.forEach(key => {
+  const allowedStage1 = [
+    'status_keterangan', 'petugas_pemeriksa', 'tanggal_pemeriksaan',
+    'komponen_id', 'golongan_darah', 'rhesus', 'exp',
+    'catatan_tambahan',
+    'crossmatch_1', 'crossmatch_2', 'crossmatch_3',
+    'jumlah_darah_diberikan', 'jumlah_darah_diberikan_cc', 'nomor_kantong'
+  ];
+  
+  const allowedStage2 = [
+    'petugas_pengeluar', 'penerima_darah',
+    'jam_pengambilan', 'catatan_pengambilan'
+  ];
+  
+  let allowedFinal = allowed;
+  
+  if (status === 3) allowedFinal = allowedStage1;
+  if (status === 6) allowedFinal = allowedStage2;
+  
+
+  allowedFinal.forEach(key => {
     if (b[key] !== undefined) {
       let val = b[key];
       if (typeof val === 'string' && val.trim() === '') val = null;
@@ -778,70 +442,92 @@ router.post('/updateStatus', (req, res) => {
   const sqlUpdate = `UPDATE permintaan_darah SET ${sets.join(', ')} WHERE id = ?`;
   params.push(id);
 
-  // gunakan connection dan transaction karena kita mungkin akan melakukan banyak query (insert transaksi + update stok)
-  db.getConnection((connErr, connection) => {
-    if (connErr) {
-      console.error('DB getConnection error:', connErr);
-      return res.status(500).json({ success: false, message: 'Koneksi database gagal' });
+  // ================================
+// CEK STOK DI TAHAP 1 (status = 3)
+// ================================
+if (status === 3) {
+  const gol = b.golongan_darah;
+  const rh = b.rhesus;
+  const komponen = b.komponen_id;
+  const jumlah = Number(b.jumlah_darah_diberikan || 0);
+
+  if (!gol || !rh || !komponen || !jumlah || jumlah <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'Data pemeriksaan belum lengkap untuk pengecekan stok'
+    });
+  }
+
+  const cekSql = `
+    SELECT jumlah_stok
+    FROM stok_darah
+    WHERE golongan_darah = ?
+      AND rhesus = ?
+      AND komponen_id = ?
+    LIMIT 1
+  `;
+
+  db.query(cekSql, [gol, rh, komponen], (err, rows) => {
+    if (err) {
+      console.error('Error cek stok (Tahap 1):', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal mengecek stok darah'
+      });
     }
 
-    connection.beginTransaction(txErr => {
-      if (txErr) {
-        connection.release();
-        console.error('beginTransaction error:', txErr);
-        return res.status(500).json({ success: false, message: 'Gagal memulai transaksi DB' });
+    const stokNow = rows?.[0]?.jumlah_stok || 0;
+    if (stokNow < jumlah) {
+      return res.status(400).json({
+        success: false,
+        message: `Stok tidak cukup. Stok tersedia: ${stokNow}, diminta: ${jumlah}`
+      });
+    }
+
+    // ✔️ stok aman → lanjut ke proses update normal
+    lanjutProsesUpdate();
+  });
+
+  return; // HENTIKAN FLOW di sini
+}
+
+lanjutProsesUpdate();
+
+
+
+  // gunakan connection dan transaction karena kita mungkin akan melakukan banyak query (insert transaksi + update stok)
+  function lanjutProsesUpdate() {
+    db.getConnection((connErr, connection) => {
+      if (connErr) {
+        console.error('DB getConnection error:', connErr);
+        return res.status(500).json({ success: false, message: 'Koneksi database gagal' });
       }
-
-      connection.query(sqlUpdate, params, (updErr, updRes) => {
-        if (updErr) {
-          return connection.rollback(() => {
-            connection.release();
-            console.error('Error updateStatus permintaan_darah:', updErr);
-            return res.status(500).json({ success: false, message: 'Gagal memperbarui status permintaan' });
-          });
+  
+      connection.beginTransaction(txErr => {
+        if (txErr) {
+          connection.release();
+          console.error('beginTransaction error:', txErr);
+          return res.status(500).json({ success: false, message: 'Gagal memulai transaksi DB' });
         }
-
-        if (updRes.affectedRows === 0) {
-          return connection.rollback(() => {
-            connection.release();
-            return res.status(404).json({ success: false, message: 'Permintaan tidak ditemukan' });
-          });
-        }
-
-        // jika bukan status yang memicu pembuatan transaksi ('6'), commit dan selesai
-        if (status !== 6) {
-          return connection.commit(commitErr => {
-            if (commitErr) {
-              return connection.rollback(() => {
-                connection.release();
-                console.error('commit error:', commitErr);
-                return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-              });
-            }
-            connection.release();
-            return res.json({ success: true, message: 'Status permintaan berhasil diperbarui' });
-          });
-        }
-
-        // --- status === 6 : buat transaksi_darah 'keluar' + update stok ---
-        const selSql = `
-          SELECT p.id, p.jumlah_darah_diberikan, p.jumlah_darah_diberikan_cc, p.golongan_darah_hasil, p.rhesus_hasil, p.komponen_id,
-                 tm.nama_ruangan
-          FROM permintaan_darah p
-          LEFT JOIN tenaga_medis tm ON p.ruangan_id = tm.id
-          WHERE p.id = ? LIMIT 1
-        `;
-        connection.query(selSql, [id], (selErr, selRows) => {
-          if (selErr) {
+  
+        connection.query(sqlUpdate, params, (updErr, updRes) => {
+          if (updErr) {
             return connection.rollback(() => {
               connection.release();
-              console.error('Error select permintaan:', selErr);
-              return res.status(500).json({ success: false, message: 'Gagal membaca data permintaan setelah update' });
+              console.error('Error updateStatus permintaan_darah:', updErr);
+              return res.status(500).json({ success: false, message: 'Gagal memperbarui status permintaan' });
             });
           }
-
-          if (!selRows || !selRows.length) {
-            // commit update saja, beri info bahwa transaksi tidak dibuat karena data tidak ditemukan
+  
+          if (updRes.affectedRows === 0) {
+            return connection.rollback(() => {
+              connection.release();
+              return res.status(404).json({ success: false, message: 'Permintaan tidak ditemukan' });
+            });
+          }
+  
+          // jika bukan status yang memicu pembuatan transaksi ('6'), commit dan selesai
+          if (status !== 6) {
             return connection.commit(commitErr => {
               if (commitErr) {
                 return connection.rollback(() => {
@@ -851,107 +537,140 @@ router.post('/updateStatus', (req, res) => {
                 });
               }
               connection.release();
-              return res.json({ success: true, message: 'Status diperbarui, tapi data permintaan tidak ditemukan untuk pembuatan transaksi.' });
+              return res.json({ success: true, message: 'Status permintaan berhasil diperbarui' });
             });
           }
-
-          const perm = selRows[0];
-          const jumlah = Number(perm.jumlah_darah_diberikan || 0);
-          const jumlah_cc = Number(perm.jumlah_darah_diberikan_cc || 0);
-          const gol = perm.golongan_darah_hasil || null;
-          const rh = perm.rhesus_hasil || null;
-          const komponen = perm.komponen_id || null;
-          const nama_ruangan = perm.nama_ruangan || '-';
-
-          if (!gol || !rh || !komponen || !jumlah || jumlah <= 0) {
-            return connection.commit(commitErr => {
-              if (commitErr) {
-                return connection.rollback(() => {
-                  connection.release();
-                  console.error('commit error:', commitErr);
-                  return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-                });
-              }
-              connection.release();
-              return res.json({
-                success: true,
-                message: 'Status permintaan diperbarui. Namun transaksi darah otomatis TIDAK dibuat karena data transaksi (golongan/rhesus/komponen/jumlah) tidak lengkap.'
-              });
-            });
-          }
-
-          const keterangan = `Permintaan Darah dari Ruangan ${nama_ruangan}`;
-
-          // lock stok
-          const lockSql = `SELECT jumlah_stok FROM stok_darah WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ? FOR UPDATE`;
-          connection.query(lockSql, [gol, rh, komponen], (lockErr, lockRows) => {
-            if (lockErr) {
+  
+          // --- status === 6 : buat transaksi_darah 'keluar' + update stok ---
+          const selSql = `
+            SELECT p.id, p.jumlah_darah_diberikan, p.jumlah_darah_diberikan_cc, p.golongan_darah, p.rhesus, p.komponen_id,
+                   tm.nama_ruangan
+            FROM permintaan_darah p
+            LEFT JOIN tenaga_medis tm ON p.ruangan_id = tm.id
+            WHERE p.id = ? LIMIT 1
+          `;
+          connection.query(selSql, [id], (selErr, selRows) => {
+            if (selErr) {
               return connection.rollback(() => {
                 connection.release();
-                console.error('Error lock stok:', lockErr);
-                return res.status(500).json({ success: false, message: 'Gagal mengunci stok' });
+                console.error('Error select permintaan:', selErr);
+                return res.status(500).json({ success: false, message: 'Gagal membaca data permintaan setelah update' });
               });
             }
-            if (!lockRows || !lockRows.length) {
-              return connection.rollback(() => {
-                connection.release();
-                return res.status(404).json({ success: false, message: 'Data stok tidak ditemukan (untuk golongan/rhesus/komponen tersebut)' });
-              });
-            }
-
-            const stokNow = Number(lockRows[0].jumlah_stok || 0);
-            if (stokNow < jumlah) {
-              return connection.rollback(() => {
-                connection.release();
-                return res.status(400).json({ success: false, message: `Stok tidak cukup untuk membuat transaksi keluar. Stok: ${stokNow}, diminta: ${jumlah}` });
-              });
-            }
-
-            // insert transaksi_darah (tipe = 'keluar')
-            const tipe = 'keluar';
-            const insSql = `INSERT INTO transaksi_darah
-              (golongan_darah, rhesus, komponen_id, jumlah, tipe_transaksi, keterangan)
-              VALUES (?, ?, ?, ?, ?, ?)`;
-            connection.query(insSql, [gol, rh, komponen, jumlah, tipe, keterangan], (insErr) => {
-              if (insErr) {
-                return connection.rollback(() => {
-                  connection.release();
-                  console.error('Error inserting transaksi_darah:', insErr);
-                  return res.status(500).json({ success: false, message: 'Gagal mencatat transaksi darah' });
-                });
-              }
-
-              // update stok_darah (kurangi)
-              const updSql = `UPDATE stok_darah SET jumlah_stok = jumlah_stok - ?, tanggal_update = NOW()
-                              WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?`;
-              connection.query(updSql, [jumlah, gol, rh, komponen], (updErr2) => {
-                if (updErr2) {
+  
+            if (!selRows || !selRows.length) {
+              // commit update saja, beri info bahwa transaksi tidak dibuat karena data tidak ditemukan
+              return connection.commit(commitErr => {
+                if (commitErr) {
                   return connection.rollback(() => {
                     connection.release();
-                    console.error('Error update stok_darah:', updErr2);
-                    return res.status(500).json({ success: false, message: 'Gagal memperbarui stok darah' });
+                    console.error('commit error:', commitErr);
+                    return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
                   });
                 }
-
-                // commit semua
-                connection.commit(commitErr2 => {
-                  if (commitErr2) {
-                    return connection.rollback(() => {
-                      connection.release();
-                      console.error('commit error:', commitErr2);
-                      return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
-                    });
-                  }
-                  connection.release();
-                  return res.json({ success: true, message: 'Status permintaan diperbarui dan transaksi darah keluar tercatat.' });
+                connection.release();
+                return res.json({ success: true, message: 'Status diperbarui, tapi data permintaan tidak ditemukan untuk pembuatan transaksi.' });
+              });
+            }
+  
+            const perm = selRows[0];
+            const jumlah = Number(perm.jumlah_darah_diberikan || 0);
+            const jumlah_cc = Number(perm.jumlah_darah_diberikan_cc || 0);
+            const gol = perm.golongan_darah || null;
+            const rh = perm.rhesus || null;
+            const komponen = perm.komponen_id || null;
+            const nama_ruangan = perm.nama_ruangan || '-';
+  
+            if (!gol || !rh || !komponen || !jumlah || jumlah <= 0) {
+              return connection.commit(commitErr => {
+                if (commitErr) {
+                  return connection.rollback(() => {
+                    connection.release();
+                    console.error('commit error:', commitErr);
+                    return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
+                  });
+                }
+                connection.release();
+                return res.json({
+                  success: true,
+                  message: 'Status permintaan diperbarui. Namun transaksi darah otomatis TIDAK dibuat karena data transaksi (golongan/rhesus/komponen/jumlah) tidak lengkap.'
                 });
               });
-            });
-          }); // end lock stok
-        }); // end select permintaan
-      }); // end update query
-    }); // end beginTransaction
-  }); // end getConnection
+            }
+  
+            const keterangan = `Permintaan Darah dari Ruangan ${nama_ruangan}`;
+  
+            // lock stok
+            const lockSql = `SELECT jumlah_stok FROM stok_darah WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ? FOR UPDATE`;
+            connection.query(lockSql, [gol, rh, komponen], (lockErr, lockRows) => {
+              if (lockErr) {
+                return connection.rollback(() => {
+                  connection.release();
+                  console.error('Error lock stok:', lockErr);
+                  return res.status(500).json({ success: false, message: 'Gagal mengunci stok' });
+                });
+              }
+              if (!lockRows || !lockRows.length) {
+                return connection.rollback(() => {
+                  connection.release();
+                  return res.status(404).json({ success: false, message: 'Data stok tidak ditemukan (untuk golongan/rhesus/komponen tersebut)' });
+                });
+              }
+  
+              const stokNow = Number(lockRows[0].jumlah_stok || 0);
+              if (stokNow < jumlah) {
+                return connection.rollback(() => {
+                  connection.release();
+                  return res.status(400).json({ success: false, message: 'Stok berubah setelah pemeriksaan. Hubungi admin UPD.' });
+                });
+              }
+  
+              // insert transaksi_darah (tipe = 'keluar')
+              const tipe = 'keluar';
+              const insSql = `INSERT INTO transaksi_darah
+                (golongan_darah, rhesus, komponen_id, jumlah, tipe_transaksi, keterangan)
+                VALUES (?, ?, ?, ?, ?, ?)`;
+              connection.query(insSql, [gol, rh, komponen, jumlah, tipe, keterangan], (insErr) => {
+                if (insErr) {
+                  return connection.rollback(() => {
+                    connection.release();
+                    console.error('Error inserting transaksi_darah:', insErr);
+                    return res.status(500).json({ success: false, message: 'Gagal mencatat transaksi darah' });
+                  });
+                }
+  
+                // update stok_darah (kurangi)
+                const updSql = `UPDATE stok_darah SET jumlah_stok = jumlah_stok - ?, tanggal_update = NOW()
+                                WHERE golongan_darah = ? AND rhesus = ? AND komponen_id = ?`;
+                connection.query(updSql, [jumlah, gol, rh, komponen], (updErr2) => {
+                  if (updErr2) {
+                    return connection.rollback(() => {
+                      connection.release();
+                      console.error('Error update stok_darah:', updErr2);
+                      return res.status(500).json({ success: false, message: 'Gagal memperbarui stok darah' });
+                    });
+                  }
+  
+                  // commit semua
+                  connection.commit(commitErr2 => {
+                    if (commitErr2) {
+                      return connection.rollback(() => {
+                        connection.release();
+                        console.error('commit error:', commitErr2);
+                        return res.status(500).json({ success: false, message: 'Gagal menyelesaikan transaksi DB' });
+                      });
+                    }
+                    connection.release();
+                    return res.json({ success: true, message: 'Status permintaan diperbarui dan transaksi darah keluar tercatat.' });
+                  });
+                });
+              });
+            }); // end lock stok
+          }); // end select permintaan
+        }); // end update query
+      }); // end beginTransaction
+    }); // end getConnection
+  }
 });
 
 
