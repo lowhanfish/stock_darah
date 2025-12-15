@@ -44,11 +44,9 @@
 
         <div class="putihTrans formLogin shadow-5">
           <br>
-            <q-img src="img/bloodform.png" />
+            <q-img src="img/card.png" />
             <hr />
             <br>
-
-
 
             <div v-if="errorMessage">
               <div  class="alertku shadow-2">

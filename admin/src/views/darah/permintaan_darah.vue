@@ -286,7 +286,7 @@
                             <div class="col-12 col-md-6">
                                 <span class="h_lable">Kadar HB (g/dL)</span>
                                 <q-input v-model.number="form.kadar_hb" type="number" step="0.1" outlined square
-                                    :dense="true" class="bg-white margin_btn" />
+                                    :dense="true" class="bg-white margin_btn" hint="Opsional (diisi jika tersedia)" />
                             </div>
                         </div>
 
@@ -296,7 +296,7 @@
                             <div class="col-12 col-md-4">
                                 <span class="h_lable">Golongan Darah</span>
                                 <q-select v-model="form.golongan_darah" :options="['A', 'B', 'O', 'AB']" outlined square
-                                    :dense="true" class="bg-white margin_btn" required />
+                                    :dense="true" class="bg-white margin_btn" />
                             </div>
 
                             <div class="col-12 col-md-4">
@@ -341,11 +341,11 @@
 
                         <span class="h_lable">Diagnosis Klinis</span>
                         <q-input v-model="form.diagnosis_klinis" type="textarea" outlined square :dense="true" autogrow
-                            class="bg-white margin_btn" required />
+                            class="bg-white margin_btn" />
 
                         <span class="h_lable">Alasan Transfusi</span>
                         <q-input v-model="form.alasan_transfusi" type="textarea" outlined square :dense="true" autogrow
-                            class="bg-white margin_btn" required />
+                            class="bg-white margin_btn" />
 
                         <hr class="hrpagin2" />
                         <div class="text-subtitle1 q-mb-sm text-bold text-center">Riwayat Transfusi & Pemeriksaan
@@ -711,9 +711,9 @@
                                 ? UMUM.tglConvert(lihat_target.tanggal_pemeriksaan) : '-' }}</div>
                                     </div>
                                     <div class="col-12 col-md-4">
-                                        <div class="text-subtitle2">Golongan Darah Hasil</div>
-                                        <div class="text-body1 text-grey text-bold">{{ lihat_target.golongan_darah_hasil
-                                || '-' }} {{ lihat_target.rhesus_hasil ? lihat_target.rhesus_hasil : '' }}
+                                        <div class="text-subtitle2">Golongan Darah</div>
+                                        <div class="text-body1 text-grey text-bold">{{ lihat_target.golongan_darah
+                                || '-' }} {{ lihat_target.rhesus ? lihat_target.rhesus : '' }}
                                         </div>
                                     </div>
                                 </div>
@@ -1103,23 +1103,30 @@
                             </div>
 
                             <div class="row q-col-gutter-md">
-                                <div class="col-12 col-md-4">
-                                    <span class="h_lable">Golongan Darah Hasil</span>
-                                    <q-select v-model="form1.golongan_darah_hasil" :options="['A', 'B', 'O', 'AB']"
-                                        outlined square :dense="true" class="bg-white" required />
-                                </div>
-
-                                <div class="col-12 col-md-4">
-                                    <span class="h_lable">Rhesus Hasil</span>
-                                    <q-select v-model="form1.rhesus_hasil" :options="['+', '-']" outlined square
-                                        :dense="true" class="bg-white" required />
-                                </div>
-
-                                <div class="col-12 col-md-4">
+                                <div class="col-12 col-md-6">
                                     <span class="h_lable">Kadar Hb (g/dL)</span>
                                     <q-input v-model.number="form1.kadar_hb" type="number" outlined square :dense="true"
+                                        class="bg-white" hint="Opsional (diisi jika tersedia)" />
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <span class="h_lable">Komponen Darah</span>
+                                    <q-select v-model="form1.komponen_id" :options="list_komponen"
+                                        option-label="nama_komponen" option-value="id" emit-value map-options outlined
+                                        square :dense="true" class="bg-white" required />
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <span class="h_lable">Golongan Darah</span>
+                                    <q-select v-model="form1.golongan_darah" :options="['A', 'B', 'O', 'AB']" outlined
+                                        square dense class="bg-white" required />
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <span class="h_lable">Rhesus</span>
+                                    <q-select v-model="form1.rhesus" :options="['+', '-']" outlined square dense
                                         class="bg-white" required />
                                 </div>
+
+
                             </div>
 
 
@@ -1577,9 +1584,12 @@ export default {
                 id: null,
                 petugas_pemeriksa: '',
                 tanggal_pemeriksaan: null,
-                golongan_darah_hasil: '',
+                komponen_id: null,
+                // golongan_darah_hasil: '',
+                golongan_darah: '',
+                rhesus: '',
                 exp: '',
-                rhesus_hasil: '',
+                // rhesus_hasil: '',
                 kadar_hb: null,
                 catatan_tambahan: '',
                 crossmatch_1: '',
@@ -2137,12 +2147,13 @@ export default {
                 this.form1 = {
                     id: row.id,
                     petugas_pemeriksa: row.petugas_pemeriksa || '',
+                    komponen_id: row.komponen_id || null,
                     // set tanggal pemeriksaan sebagai TIMESTAMP (milidetik) lokal
                     tanggal_pemeriksaan: Date.now(),
 
                     exp: row.exp || new Date().toISOString().slice(0, 10),
-                    golongan_darah_hasil: row.golongan_darah_hasil || row.golongan_darah || '',
-                    rhesus_hasil: row.rhesus_hasil || row.rhesus || '',
+                    golongan_darah: row.golongan_darah || '',
+                    rhesus: row.rhesus || '',
                     kadar_hb: row.kadar_hb || null,
                     catatan_tambahan: row.catatan_tambahan || '',
                     crossmatch_1: row.crossmatch_1 || '',
@@ -2164,6 +2175,14 @@ export default {
         },
 
         async saveStage1() {
+
+            if (!this.form1.komponen_id) {
+                this.$q.notify({
+                    type: 'negative',
+                    message: 'Komponen darah wajib diisi pada tahap pemeriksaan'
+                });
+                return;
+            }
             // minimal validation
             if (!this.form1 || !this.form1.id) {
                 this.$q.notify({ type: 'negative', message: 'Form pemeriksaan belum terisi dengan benar' });
@@ -2181,10 +2200,11 @@ export default {
                     id: this.form1.id,
                     status: 3,
                     status_keterangan: 'Siap diambil - Menunggu pengambilan oleh keluarga/ruangan',
+                    komponen_id: this.form1.komponen_id,
                     petugas_pemeriksa: this.form1.petugas_pemeriksa,
-                    tanggal_pemeriksaan: this.form1.tanggal_pemeriksaan || null,
-                    golongan_darah_hasil: this.form1.golongan_darah_hasil || null,
-                    rhesus_hasil: this.form1.rhesus_hasil || null,
+                    golongan_darah: this.form1.golongan_darah,
+                    rhesus: this.form1.rhesus,
+                    rhesus: this.form1.rhesus || null,
                     exp: this.form1.exp || null,
                     catatan_tambahan: this.form1.catatan_tambahan || null,
                     crossmatch_1: this.form1.crossmatch_1 || null,
@@ -2210,8 +2230,8 @@ export default {
                     Object.assign(this.lihat_target, {
                         petugas_pemeriksa: payload.petugas_pemeriksa,
                         tanggal_pemeriksaan: payload.tanggal_pemeriksaan,
-                        golongan_darah_hasil: payload.golongan_darah_hasil,
-                        rhesus_hasil: payload.rhesus_hasil,
+                        golongan_darah: payload.golongan_darah,
+                        rhesus: payload.rhesus,
                         catatan_tambahan: payload.catatan_tambahan,
                         crossmatch_1: payload.crossmatch_1,
                         crossmatch_2: payload.crossmatch_2,
@@ -2392,8 +2412,8 @@ export default {
                 id: null,
                 petugas_pemeriksa: '',
                 tanggal_pemeriksaan: '',
-                golongan_darah_hasil: '',
-                rhesus_hasil: '',
+                golongan_darah: '',
+                rhesus: '',
                 kadar_hb: null,
                 catatan_tambahan: '',
                 crossmatch_1: '',
