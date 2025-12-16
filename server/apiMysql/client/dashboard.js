@@ -98,6 +98,119 @@ router.get('/permintaanDarahByGolongan', (req, res) => {
   });
 });
 
+router.get('/pendonorByGender', (req, res) => {
+  const sql = `
+    SELECT
+      CASE
+        WHEN jenis_kelamin = 'L' THEN 'Laki-laki'
+        WHEN jenis_kelamin = 'P' THEN 'Perempuan'
+        ELSE 'Tidak Diketahui'
+      END AS name,
+      COUNT(*) AS y
+    FROM pendonor_darah
+    WHERE jenis_kelamin IS NOT NULL
+    GROUP BY jenis_kelamin
+  `;
+
+  db.query(sql, (err, rows) => {
+    if (err) {
+      console.error('Error pendonorByGender:', err);
+      return res.status(500).json({
+        error: true,
+        message: 'Gagal mengambil data pendonor'
+      });
+    }
+
+    res.json({
+      data: rows
+    });
+  });
+});
+
+router.get('/pendonorByGenderTable', (req, res) => {
+  const sql = `
+    SELECT
+      CASE
+        WHEN jenis_kelamin = 'L' THEN 'Laki-laki'
+        WHEN jenis_kelamin = 'P' THEN 'Perempuan'
+        ELSE 'Tidak Diketahui'
+      END AS jk_pendonor,
+      COUNT(*) AS jumlah
+    FROM pendonor_darah
+    WHERE jenis_kelamin IS NOT NULL
+    GROUP BY jenis_kelamin
+    ORDER BY jumlah DESC
+  `;
+
+  db.query(sql, (err, rows) => {
+    if (err) {
+      console.error('Error pendonorByGenderTable:', err);
+      return res.status(500).json({
+        error: true,
+        message: 'Gagal mengambil data tabel pendonor'
+      });
+    }
+
+    res.json({
+      data: rows
+    });
+  });
+});
+
+router.get('/permintaanByRuanganPie', (req, res) => {
+  const sql = `
+    SELECT
+      tm.nama_ruangan AS name,
+      COUNT(pd.id) AS y
+    FROM tenaga_medis tm
+    LEFT JOIN permintaan_darah pd
+      ON pd.ruangan_id = tm.id
+    GROUP BY tm.nama_ruangan
+    ORDER BY y DESC
+  `;
+
+  db.query(sql, (err, rows) => {
+    if (err) {
+      console.error('Error permintaanByRuanganPie:', err);
+      return res.status(500).json({
+        error: true,
+        message: 'Gagal mengambil data permintaan per ruangan'
+      });
+    }
+
+    res.json({ data: rows });
+  });
+});
+
+
+router.get('/permintaanByRuanganTable', (req, res) => {
+  const sql = `
+    SELECT
+      tm.nama_ruangan AS nama_bidang,
+      COUNT(pd.id) AS jumlah
+    FROM tenaga_medis tm
+    LEFT JOIN permintaan_darah pd
+      ON pd.ruangan_id = tm.id
+    GROUP BY tm.nama_ruangan
+    ORDER BY jumlah DESC
+  `;
+
+  db.query(sql, (err, rows) => {
+    if (err) {
+      console.error('Error permintaanByRuanganTable:', err);
+      return res.status(500).json({
+        error: true,
+        message: 'Gagal mengambil data tabel permintaan per ruangan'
+      });
+    }
+
+    res.json({ data: rows });
+  });
+});
+
+
+
+
   
 
 module.exports = router;
