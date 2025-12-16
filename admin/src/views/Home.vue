@@ -93,26 +93,20 @@
             </div>
           </div>
           <div class="col-12 col-md-6">
-  <div class="frameChart shadow-5 q-pa-md">
+            <div class="frameChart shadow-5 q-pa-md">
 
-    <!-- Filter Tahun -->
-    <div class="row items-center q-mb-sm">
-      <div class="col-12 col-md-6">
-        <q-select
-          dense
-          outlined
-          label="Tahun"
-          v-model="selectedYear"
-          :options="yearOptions"
-        />
-      </div>
-    </div>
+              <!-- Filter Tahun -->
+              <div class="row items-center q-mb-sm">
+                <div class="col-12 col-md-6">
+                  <q-select dense outlined label="Tahun" v-model="selectedYear" :options="yearOptions" />
+                </div>
+              </div>
 
-    <!-- Chart Line -->
-    <div id="chartByPermintaanDarah" style="width:100%; height:350px;"></div>
+              <!-- Chart Line -->
+              <div id="chartByPermintaanDarah" style="width:100%; height:400px;"></div>
 
-  </div>
-</div>
+            </div>
+          </div>
 
           <div class="col-12 col-md-6">
             <div class="frameChart shadow-5 q-pa-md">
@@ -177,11 +171,15 @@
 export default {
   data() {
     return {
-      bidangCSRChart: [], 
-      bidangCSR: [],
-      mitra: null,
+      selectedYear: new Date().getFullYear(),
+      yearOptions: [
+        2025,
+        2026,
+        2027,
+        2028,
+      ],
+      chartGolonganData: [],
       tipe: null,
-      perusahaan: null,
       widgetStatus: {
         total_kegiatan: 0,
         permintaan_baru: 0,
@@ -189,7 +187,7 @@ export default {
         siap_ambil: 0,
         selesai: 0
       },
-     
+
       columnsPerusahaan: [
         { name: 'nama_perusahaan', label: 'Perusahaan', align: 'left', field: row => row.nama_perusahaan },
         { name: 'jumlah', label: 'Jumlah Partisipasi', align: 'right', field: row => row.jumlah }
@@ -197,7 +195,7 @@ export default {
 
     }
   },
-  
+
   methods: {
 
     async loadWidgetAdmin() {
@@ -210,7 +208,7 @@ export default {
         const data = await res.json();
         if (data.data) this.widgetStatus = data.data;
         this.$nextTick(() => {
-          this.chartPie(); 
+          this.chartPie();
           this.chartPermintaanDarahBulanan();
         });
         console.log(data);
@@ -246,69 +244,94 @@ export default {
     },
 
 
-    chartPermintaanDarahBulanan() {
-  Highcharts.chart('chartByPermintaanDarah', {
-    chart: {
-      type: 'line',
-      backgroundColor: 'transparent'
-    },
-
-    title: {
-      text: 'Permintaan Darah per Bulan'
-    },
-
-    subtitle: {
-      text: 'Berdasarkan Golongan Darah'
-    },
-
-    xAxis: {
-      categories: [
+    renderChartGolongan() {
+      const bulanLabel = [
         'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
         'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
-      ]
-    },
+      ];
 
-    yAxis: {
-      title: {
-        text: 'Jumlah Permintaan'
-      },
-      allowDecimals: false
-    },
+      // siapkan 12 bulan kosong
+      const template = () => Array(12).fill(0);
 
-    tooltip: {
-      shared: true,
-      valueSuffix: ' Kantong'
-    },
+      const seriesMap = {
+        A: template(),
+        B: template(),
+        AB: template(),
+        O: template()
+      };
 
-    plotOptions: {
-      line: {
-        dataLabels: {
-          enabled: true
+      // isi dari API
+      this.chartGolonganData.forEach(item => {
+        const idx = item.bulan - 1;
+        if (seriesMap[item.golongan_darah]) {
+          seriesMap[item.golongan_darah][idx] = item.jumlah;
+        }
+      });
+
+      Highcharts.chart('chartByPermintaanDarah', {
+        chart: {
+          type: 'line',
+          backgroundColor: 'transparent'
         },
-        enableMouseTracking: true
+        title: {
+          text: `Permintaan Darah Terpakai Tahun ${this.selectedYear}`
+        },
+        subtitle: {
+          text: 'Berdasarkan golongan darah (status selesai)'
+        },
+        xAxis: {
+          categories: bulanLabel
+        },
+        yAxis: {
+          title: {
+            text: 'Jumlah Permintaan'
+          },
+          allowDecimals: false
+        },
+        tooltip: {
+          shared: true,
+          valueSuffix: ' Kantong'
+        },
+        plotOptions: {
+          line: {
+            dataLabels: { enabled: true }
+          }
+        },
+        series: [
+          { name: 'Golongan A', data: seriesMap.A },
+          { name: 'Golongan B', data: seriesMap.B },
+          { name: 'Golongan AB', data: seriesMap.AB },
+          { name: 'Golongan O', data: seriesMap.O }
+        ]
+      });
+    },
+
+
+    async loadPermintaanDarahByGolongan() {
+      try {
+        const res = await fetch(
+          this.$store.state.url.DASHBOARD +
+          `permintaanDarahByGolongan?year=${this.selectedYear}`,
+          {
+            headers: {
+              authorization: 'kikensbatara ' + localStorage.token
+            }
+          }
+        );
+
+        const json = await res.json();
+        this.chartGolonganData = json.data || [];
+
+        this.$nextTick(() => {
+          this.renderChartGolongan();
+        });
+
+      } catch (err) {
+        console.error('Gagal load permintaan darah:', err);
       }
     },
 
-    series: [
-      {
-        name: 'Golongan A',
-        data: [12, 15, 18, 14, 20, 25, 22, 19, 17, 21, 23, 26]
-      },
-      {
-        name: 'Golongan B',
-        data: [10, 11, 14, 12, 16, 18, 20, 17, 15, 16, 18, 19]
-      },
-      {
-        name: 'Golongan AB',
-        data: [5, 6, 7, 6, 8, 9, 10, 9, 8, 9, 10, 11]
-      },
-      {
-        name: 'Golongan O',
-        data: [20, 22, 25, 24, 28, 30, 32, 31, 29, 30, 33, 35]
-      }
-    ]
-  });
-},
+
 
 
   },
@@ -332,11 +355,15 @@ export default {
     // this.getMitra(get_profile._id);
 
     this.loadWidgetAdmin();
-    this.loadPerusahaan(); // panggil load data perusahaan
-    this.loadBidangUsaha(); // panggil load data perusahaan
-    this.getBidangCSR(); // panggil load data perusahaan
+    this.loadPermintaanDarahByGolongan();
   },
 
-  
+  watch: {
+    selectedYear() {
+      this.loadPermintaanDarahByGolongan();
+    }
+  },
+
+
 }
 </script>
