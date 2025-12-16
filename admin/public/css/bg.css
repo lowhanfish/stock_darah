@@ -38,7 +38,7 @@
 }
 
 .biruSangatmudaGrad {
-    background-image: linear-gradient(to right top, #ffffff, #f3f5ff, #e1edff, #c9e6ff, #ace1ff);
+    background-image: linear-gradient(to right top, #ffffff, #f3f5ff, #F5F5F5, #F5F5F5, #F5F5F5);
 }
 
 .hijauMudaGrad{
@@ -57,7 +57,7 @@ background: linear-gradient(180deg, rgba(78,176,1,1) 14%, rgba(113,180,61,1) 36%
 
 
 .main1x{
-    background-color: #3636E9 !important;
+    background-color: #f87c7c !important;
 }
 
 .main1{

@@ -64,10 +64,6 @@
 
             </template>
 
-
-
-        
-
           </q-list>
         </q-expansion-item>
 

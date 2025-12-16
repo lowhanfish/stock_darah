@@ -16,12 +16,12 @@
               <!-- Total Kegiatan -->
               <div class="col-12 col-md-5th">
                 <div class="row shadow-3 frWidgetSub" style="min-height:80px">
-                  <div class="col-4 frWidgetSub1 text-center main1x row items-center justify-center">
+                  <div class="col-4 frWidgetSub1 text-center main1 row items-center justify-center">
                     <q-icon name="view_list" size="28px" color="white" />
                   </div>
-                  <div class="col-8 frWidgetSub2 main1">
-                    <span class="frWidgetText1">Total Kegiatan</span><br>
-                    <span class="frWidgetText2">{{ widgetStatus.total_kegiatan }}</span>
+                  <div class="col-8 frWidgetSub2 main1x">
+                    <span class="frWidgetText1">Permintaan Darah</span><br>
+                    <span class="frWidgetText2">{{ widgetStatus.total_permintaan || 0 }}</span>
                   </div>
                 </div>
               </div>
@@ -33,8 +33,8 @@
                     <q-icon name="fiber_new" size="28px" color="white" />
                   </div>
                   <div class="col-8 frWidgetSub2 widgetdashboardCSRNilai">
-                    <span class="frWidgetText1">CSR Baru</span><br>
-                    <span class="frWidgetText2">{{ widgetStatus.csr_baru }}</span>
+                    <span class="frWidgetText1">Permintaan Baru</span><br>
+                    <span class="frWidgetText2">{{ widgetStatus.permintaan_baru }}</span>
                   </div>
                 </div>
               </div>
@@ -43,11 +43,11 @@
               <div class="col-12 col-md-5th">
                 <div class="row shadow-3 frWidgetSub" style="min-height:80px">
                   <div class="col-4 frWidgetSub1 text-center widgetdashboardProsesIcon row items-center justify-center">
-                    <q-icon name="hourglass_top" size="28px" color="white" />
+                    <q-icon name="block_flipped" size="28px" color="white" />
                   </div>
                   <div class="col-8 frWidgetSub2 widgetdashboardProsesNilai">
-                    <span class="frWidgetText1">Pengerjaan</span><br>
-                    <span class="frWidgetText2">{{ widgetStatus.dalam_pengerjaan }}</span>
+                    <span class="frWidgetText1">Ditolak</span><br>
+                    <span class="frWidgetText2">{{ widgetStatus.ditolak }}</span>
                   </div>
                 </div>
               </div>
@@ -56,11 +56,11 @@
               <div class="col-12 col-md-5th">
                 <div class="row shadow-3 frWidgetSub" style="min-height:80px">
                   <div class="col-4 frWidgetSub1 text-center widgetdashboardSebagian row items-center justify-center">
-                    <q-icon name="construction" size="28px" color="white" />
+                    <q-icon name="volunteer_activism" size="28px" color="white" />
                   </div>
                   <div class="col-8 frWidgetSub2 widgetdashboardSebagianNilai">
-                    <span class="frWidgetText1">Sebagian</span><br>
-                    <span class="frWidgetText2">{{ widgetStatus.pengerjaan_sebagian }}</span>
+                    <span class="frWidgetText1">Darah Siap diambil</span><br>
+                    <span class="frWidgetText2">{{ widgetStatus.siap_ambil }}</span>
                   </div>
                 </div>
               </div>
@@ -89,22 +89,39 @@
         <div class="row q-col-gutter-md q-mt-md">
           <div class="col-12 col-md-6">
             <div class="frameChart shadow-5">
-              <div id="chartPieCSR" style="width:100%; height:400px;"></div>
+              <div id="chartPie" style="width:100%; height:400px;"></div>
             </div>
           </div>
           <div class="col-12 col-md-6">
-            <div class="frameChart shadow-5">
-              <div id="chartByBidangCSR" style="width:100%; height:400px;"></div>
-            </div>
-          </div>
+  <div class="frameChart shadow-5 q-pa-md">
+
+    <!-- Filter Tahun -->
+    <div class="row items-center q-mb-sm">
+      <div class="col-12 col-md-6">
+        <q-select
+          dense
+          outlined
+          label="Tahun"
+          v-model="selectedYear"
+          :options="yearOptions"
+        />
+      </div>
+    </div>
+
+    <!-- Chart Line -->
+    <div id="chartByPermintaanDarah" style="width:100%; height:350px;"></div>
+
+  </div>
+</div>
+
           <div class="col-12 col-md-6">
             <div class="frameChart shadow-5 q-pa-md">
-              <div class="text-h6 q-mb-md">Jumlah Partisipasi Perusahaan/Mitra</div>
+              <div class="text-h6 q-mb-md">Jumlah Partisipasi Pendonor Darah</div>
               <table style="width:100%; border-collapse: collapse;">
                 <thead>
                   <tr style="background-color: #e3f2fd;">
-                    <th style="text-align:left; padding: 8px;">Perusahaan/Mitra</th>
-                    <th style="text-align:right; padding: 8px;">Jumlah Partisipasi Program</th>
+                    <th width="80%" style="text-align:left; padding: 8px;">Jenis Kelamin</th>
+                    <th width="20%" style="text-align:right; padding: 8px;">Jumlah Pendonor</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -120,12 +137,12 @@
           </div>
           <div class="col-12 col-md-6">
             <div class="frameChart shadow-5 q-pa-md">
-              <div class="text-h6 q-mb-md">Jumlah Bidang Usaha Perusahaan/Mitra</div>
+              <div class="text-h6 q-mb-md">Jumlah Permintaan darah dari Ruangan BLUD RS</div>
               <table style="width:100%; border-collapse: collapse;">
                 <thead>
                   <tr style="background-color: #e3f2fd;">
-                    <th style="text-align:left; padding: 8px;">Bidang Usaha</th>
-                    <th style="text-align:right; padding: 8px;">Jumlah Perusahaan</th>
+                    <th style="text-align:left; padding: 8px;">Nama Ruangan</th>
+                    <th style="text-align:right; padding: 8px;">Jumlah Permintaan</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -160,27 +177,19 @@
 export default {
   data() {
     return {
-      bidangCSRChart: [],  // data dari backend
+      bidangCSRChart: [], 
       bidangCSR: [],
       mitra: null,
       tipe: null,
       perusahaan: null,
-      indikator: {
-        pengajuan: 12,
-        diterima: 7,
-        ditolak: 3,
-        proses: 2
-      },
-
       widgetStatus: {
         total_kegiatan: 0,
-        csr_baru: 0,
-        dalam_pengerjaan: 0,
-        pengerjaan_sebagian: 0,
+        permintaan_baru: 0,
+        ditolak: 0,
+        siap_ambil: 0,
         selesai: 0
       },
-      listPerusahaan: [], // data dari backend
-      listBidangUsaha: [], // data dari backend
+     
       columnsPerusahaan: [
         { name: 'nama_perusahaan', label: 'Perusahaan', align: 'left', field: row => row.nama_perusahaan },
         { name: 'jumlah', label: 'Jumlah Partisipasi', align: 'right', field: row => row.jumlah }
@@ -188,6 +197,122 @@ export default {
 
     }
   },
+  
+  methods: {
+
+    async loadWidgetAdmin() {
+      try {
+        const res = await fetch(this.$store.state.url.DASHBOARD + "statusAdmin", {
+          headers: {
+            "authorization": "kikensbatara " + localStorage.token
+          }
+        });
+        const data = await res.json();
+        if (data.data) this.widgetStatus = data.data;
+        this.$nextTick(() => {
+          this.chartPie(); 
+          this.chartPermintaanDarahBulanan();
+        });
+        console.log(data);
+      } catch (err) {
+        console.error('Gagal ambil widget admin:', err);
+      }
+    },
+
+    chartPie() {
+      Highcharts.chart('chartPie', {
+        chart: { type: 'pie', backgroundColor: 'transparent' },
+        title: { text: 'Status Permintaan Darah' },
+        tooltip: { pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' },
+        plotOptions: {
+          pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: { enabled: false },
+            showInLegend: true
+          }
+        },
+        series: [{
+          name: 'Jumlah',
+          colorByPoint: true,
+          data: [
+            { name: 'Permintaan Biru', y: this.widgetStatus.permintaan_baru, color: '#1e88e5' },
+            { name: 'Ditolak', y: this.widgetStatus.ditolak, color: '#ffb300' },
+            { name: 'Darah Siap Ambil', y: this.widgetStatus.siap_ambil, color: '#f57c00' },
+            { name: 'Selesai', y: this.widgetStatus.selesai, color: '#43a047' }
+          ]
+        }]
+      });
+    },
+
+
+    chartPermintaanDarahBulanan() {
+  Highcharts.chart('chartByPermintaanDarah', {
+    chart: {
+      type: 'line',
+      backgroundColor: 'transparent'
+    },
+
+    title: {
+      text: 'Permintaan Darah per Bulan'
+    },
+
+    subtitle: {
+      text: 'Berdasarkan Golongan Darah'
+    },
+
+    xAxis: {
+      categories: [
+        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+        'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+      ]
+    },
+
+    yAxis: {
+      title: {
+        text: 'Jumlah Permintaan'
+      },
+      allowDecimals: false
+    },
+
+    tooltip: {
+      shared: true,
+      valueSuffix: ' Kantong'
+    },
+
+    plotOptions: {
+      line: {
+        dataLabels: {
+          enabled: true
+        },
+        enableMouseTracking: true
+      }
+    },
+
+    series: [
+      {
+        name: 'Golongan A',
+        data: [12, 15, 18, 14, 20, 25, 22, 19, 17, 21, 23, 26]
+      },
+      {
+        name: 'Golongan B',
+        data: [10, 11, 14, 12, 16, 18, 20, 17, 15, 16, 18, 19]
+      },
+      {
+        name: 'Golongan AB',
+        data: [5, 6, 7, 6, 8, 9, 10, 9, 8, 9, 10, 11]
+      },
+      {
+        name: 'Golongan O',
+        data: [20, 22, 25, 24, 28, 30, 32, 31, 29, 30, 33, 35]
+      }
+    ]
+  });
+},
+
+
+  },
+
   mounted() {
     const get_profile = JSON.parse(localStorage.profile);
 
@@ -211,134 +336,7 @@ export default {
     this.loadBidangUsaha(); // panggil load data perusahaan
     this.getBidangCSR(); // panggil load data perusahaan
   },
-  methods: {
 
-    async loadPerusahaan() {
-      try {
-        const res = await fetch(this.$store.state.url.DASHBOARD + 'perusahaanPartisipasi', {
-          headers: { authorization: 'kikensbatara ' + localStorage.token }
-        });
-        const data = await res.json();
-        if (data.data) this.listPerusahaan = data.data;
-        console.log('Perusahaan Partisipasi:', data.data);
-      } catch (err) {
-        console.error('Gagal ambil data perusahaan:', err);
-      }
-    },
-
-    async loadBidangUsaha() {
-      try {
-        const res = await fetch(this.$store.state.url.DASHBOARD + 'bidangUsaha', {
-          headers: { authorization: 'kikensbatara ' + localStorage.token }
-        });
-
-
-        const data = await res.json();
-
-        if (data.data) {
-          this.listBidangUsaha = data.data;
-
-        } else {
-          console.warn('Backend tidak mengirim data bidang usaha');
-        }
-
-      } catch (err) {
-        console.error('Gagal ambil data bidang usaha:', err);
-      }
-    },
-
-    async loadWidgetAdmin() {
-      try {
-        const res = await fetch(this.$store.state.url.DASHBOARD + "statusAdmin", {
-          headers: {
-            "authorization": "kikensbatara " + localStorage.token
-          }
-        });
-        const data = await res.json();
-        if (data.data) this.widgetStatus = data.data;
-        this.$nextTick(() => {
-          this.chartPieCSR(); // render chart setelah widgetStatus terisi
-        });
-        console.log(data);
-      } catch (err) {
-        console.error('Gagal ambil widget admin:', err);
-      }
-    },
-
-
-
-    chartPieCSR() {
-      Highcharts.chart('chartPieCSR', {
-        chart: { type: 'pie', backgroundColor: 'transparent' },
-        title: { text: 'Status Program CSR' },
-        tooltip: { pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' },
-        plotOptions: {
-          pie: {
-            allowPointSelect: true,
-            cursor: 'pointer',
-            dataLabels: { enabled: false },
-            showInLegend: true
-          }
-        },
-        series: [{
-          name: 'Persentase',
-          colorByPoint: true,
-          data: [
-            { name: 'CSR Baru', y: this.widgetStatus.csr_baru, color: '#1e88e5' },
-            { name: 'Dalam Pengerjaan', y: this.widgetStatus.dalam_pengerjaan, color: '#ffb300' },
-            { name: 'Pengerjaan Sebagian', y: this.widgetStatus.pengerjaan_sebagian, color: '#f57c00' },
-            { name: 'Selesai', y: this.widgetStatus.selesai, color: '#43a047' }
-          ]
-        }]
-      });
-    },
-    getBidangCSR() {
-      fetch(this.$store.state.url.DASHBOARD + "bidangCSR", {
-        headers: {
-          authorization: "kikensbatara " + localStorage.token
-        }
-      })
-        .then(res => res.json())
-        .then(res => {
-          if (res.data) {
-            this.bidangCSR = res.data;
-            this.chartByBidangCSR();
-          }
-        })
-        .catch(err => console.error(err));
-    },
-
-
-    chartByBidangCSR() {
-      if (!this.bidangCSR || this.bidangCSR.length === 0) return;
-
-      Highcharts.chart('chartByBidangCSR', {
-        chart: { type: 'column', backgroundColor: 'transparent' },
-        title: { text: 'Pengajuan Berdasarkan Bidang CSR' },
-        xAxis: {
-          categories: this.bidangCSR.map(b => b.nama_bidang), // <-- ganti nama_bidang -> uraian
-          crosshair: true
-        },
-        yAxis: {
-          min: 0,
-          title: { text: 'Jumlah Pengajuan' }
-        },
-        tooltip: {
-          shared: true,
-          valueSuffix: ' pengajuan'
-        },
-        plotOptions: {
-          column: { colorByPoint: true }
-        },
-        series: [{
-          name: 'Jumlah Pengajuan',
-          data: this.bidangCSR.map(b => b.total_pengajuan), // <-- ganti total_pengajuan -> total
-          color: '#1e88e5'
-        }]
-      });
-    },
-
-
-  }
+  
 }
 </script>
