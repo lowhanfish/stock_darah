@@ -111,11 +111,16 @@
           <div class="col-12 col-md-6">
             <div class="col-12 col-md-6">
               <div class="frameChart shadow-5 q-pa-md">
-                <div class="text-h6 q-mb-md">
-                  Distribusi Pendonor Berdasarkan Jenis Kelamin
-                </div>
+
                 <div id="chartPendonorGender" style="width:100%; height:400px;"></div>
               </div>
+            </div>
+
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="frameChart shadow-5 q-pa-md">
+
+              <div id="chartPermintaanRuangan" style="width:100%; height:400px;"></div>
             </div>
 
           </div>
@@ -130,9 +135,9 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="item in listPerusahaan" :key="item.nama_perusahaan"
-                    :style="{ backgroundColor: listPerusahaan.indexOf(item) % 2 === 0 ? '#f9f9f9' : 'white' }">
-                    <td style="padding: 8px;">{{ item.nama_perusahaan }}</td>
+                  <tr v-for="item in listJk" :key="item.jk_pendonor"
+                    :style="{ backgroundColor: listJk.indexOf(item) % 2 === 0 ? '#f9f9f9' : 'white' }">
+                    <td style="padding: 8px;">{{ item.jk_pendonor }}</td>
                     <td style="padding: 8px; text-align:right;">{{ item.jumlah }}</td>
                   </tr>
                 </tbody>
@@ -142,23 +147,30 @@
           </div>
           <div class="col-12 col-md-6">
             <div class="frameChart shadow-5 q-pa-md">
-              <div class="text-h6 q-mb-md">Jumlah Permintaan darah dari Ruangan BLUD RS</div>
-              <table style="width:100%; border-collapse: collapse;">
-                <thead>
-                  <tr style="background-color: #e3f2fd;">
-                    <th style="text-align:left; padding: 8px;">Nama Ruangan</th>
-                    <th style="text-align:right; padding: 8px;">Jumlah Permintaan</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in listBidangUsaha" :key="item.bidang_id"
-                    :style="{ backgroundColor: listBidangUsaha.indexOf(item) % 2 === 0 ? '#f9f9f9' : 'white' }">
-                    <td style="padding: 8px;">{{ item.nama_bidang }}</td>
-                    <td style="padding: 8px; text-align:right;">{{ item.jumlah }}</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="text-h6 q-mb-md">
+                Jumlah Permintaan Darah dari Ruangan BLUD RS
+              </div>
+
+              <!-- WRAPPER SCROLL -->
+              <div style="max-height: 150px; overflow-y: auto;">
+                <table style="width:100%; border-collapse: collapse;">
+                  <thead>
+                    <tr style="background-color: #e3f2fd;">
+                      <th style="text-align:left; padding: 8px;">Nama Ruangan</th>
+                      <th style="text-align:right; padding: 8px;">Jumlah Permintaan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in listBidangUsaha" :key="item.bidang_id"
+                      :style="{ backgroundColor: listBidangUsaha.indexOf(item) % 2 === 0 ? '#f9f9f9' : 'white' }">
+                      <td style="padding: 8px;">{{ item.nama_bidang }}</td>
+                      <td style="padding: 8px; text-align:right;">{{ item.jumlah }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
+
 
           </div>
 
@@ -199,7 +211,8 @@ export default {
         selesai: 0
       },
 
-      listPerusahaan: []
+      listJk: [],
+      listBidangUsaha: [],
 
 
     }
@@ -367,10 +380,10 @@ export default {
           backgroundColor: 'transparent'
         },
         title: {
-          text: null
+          text: "Pendonor Berdasarkan Jenis Kelamin"
         },
         subtitle: {
-          text: 'Laki-laki vs Perempuan'
+          text: 'Perempuan & Laki-laki'
         },
         tooltip: {
           pointFormat: '<b>{point.y}</b> pendonor ({point.percentage:.1f}%)'
@@ -406,12 +419,89 @@ export default {
         );
 
         const json = await res.json();
-        this.listPerusahaan = json.data || [];
+        this.listJk = json.data || [];
 
       } catch (err) {
         console.error('Gagal load tabel pendonor:', err);
       }
-    }
+    },
+
+    async loadPermintaanByRuanganPie() {
+      try {
+        const res = await fetch(
+          this.$store.state.url.DASHBOARD + 'permintaanByRuanganPie',
+          {
+            headers: {
+              authorization: 'kikensbatara ' + localStorage.token
+            }
+          }
+        );
+
+        const json = await res.json();
+        this.renderPermintaanRuanganPie(json.data || []);
+
+      } catch (err) {
+        console.error('Gagal load pie ruangan:', err);
+      }
+    },
+
+    renderPermintaanRuanganPie(seriesData) {
+      Highcharts.chart('chartPermintaanRuangan', {
+        chart: {
+          type: 'pie',
+          backgroundColor: 'transparent'
+        },
+        title: {
+          text: null
+        },
+        subtitle: {
+          text: 'Permintaan Darah per Ruangan'
+        },
+        tooltip: {
+          pointFormat: '<b>{point.y}</b> permintaan ({point.percentage:.1f}%)'
+        },
+        plotOptions: {
+          pie: {
+            innerSize: '60%', // DONUT
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {
+              enabled: true,
+              format: '<b>{point.name}</b><br>{point.percentage:.1f}%'
+            }
+          }
+        },
+        series: [
+          {
+            name: 'Jumlah Permintaan',
+            colorByPoint: true,
+            data: seriesData
+          }
+        ]
+      });
+    },
+
+
+    async loadPermintaanByRuanganTable() {
+      try {
+        const res = await fetch(
+          this.$store.state.url.DASHBOARD + 'permintaanByRuanganTable',
+          {
+            headers: {
+              authorization: 'kikensbatara ' + localStorage.token
+            }
+          }
+        );
+
+        const json = await res.json();
+        this.listBidangUsaha = json.data || [];
+
+      } catch (err) {
+        console.error('Gagal load tabel ruangan:', err);
+      }
+    },
+
+
 
 
 
@@ -441,6 +531,9 @@ export default {
     this.loadWidgetAdmin();
     this.loadPermintaanDarahByGolongan();
     this.loadPendonorByGender();
+    this.loadPendonorGenderTable();
+    this.loadPermintaanByRuanganPie();
+    this.loadPermintaanByRuanganTable();
   },
 
   watch: {
