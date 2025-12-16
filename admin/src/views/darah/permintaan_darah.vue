@@ -77,49 +77,49 @@
                             <div class="removeTextDecoration">
                                 <!-- Pengajuan (bisa buka keterangan) -->
                                 <q-badge v-if="Number(data.status) === 1" color="orange" text-color="white"
-                                    class="q-pa-xs text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                    class="q-pa-xs status-badge text-bold cursor-pointer" @click="lihatKeterangan(data)">
                                     Pengajuan
                                 </q-badge>
 
                                 <!-- Diperiksa (bisa buka keterangan) -->
                                 <q-badge v-else-if="Number(data.status) === 2" color="info" text-color="white"
-                                    class="q-pa-xs text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                    class="q-pa-xs status-badge text-bold cursor-pointer" @click="lihatKeterangan(data)">
                                     Diperiksa
                                 </q-badge>
 
                                 <!-- Siap Diambil (klik -> buka Stage2 untuk input pengambilan) -->
                                 <!-- <q-badge v-else-if="Number(data.status) === 3" color="secondary" text-color="white"
-                                    class="q-pa-xs text-bold cursor-pointer" @click.stop="openStage2(data)">
+                                    class="q-pa-xs status-badge text-bold cursor-pointer" @click.stop="openStage2(data)">
                                     Darah Siap Diambil
                                 </q-badge> -->
                                 <template v-else-if="Number(data.status) === 3">
                                     <q-badge v-if="tipe === 1 || tipe === 2" color="secondary" text-color="white"
-                                        class="q-pa-xs text-bold cursor-pointer" @click.stop="openStage2(data)">
+                                        class="q-pa-xs status-badge text-bold cursor-pointer" @click.stop="openStage2(data)">
                                         Darah Siap Diambil
                                     </q-badge>
 
                                     <q-badge v-else-if="tipe === 3" color="secondary" text-color="white"
-                                        class="q-pa-xs text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                        class="q-pa-xs status-badge text-bold cursor-pointer" @click="lihatKeterangan(data)">
                                         Darah Siap Diambil
                                     </q-badge>
                                 </template>
 
                                 <!-- Telah Diambil (klik -> buka modal view read-only) -->
                                 <q-badge v-else-if="Number(data.status) === 6" color="accent" text-color="white"
-                                    class="q-pa-xs text-bold cursor-pointer" @click.stop="openStage2(data)">
+                                    class="q-pa-xs status-badge text-bold cursor-pointer" @click.stop="openStage2(data)">
                                     Darah Telah Diambil
                                 </q-badge>
 
                                 <!-- Selesai (bisa buka keterangan) -->
                                 <q-badge v-else-if="Number(data.status) === 4" color="green" text-color="white"
-                                    class="q-pa-xs text-bold cursor-pointer" @click="openStage2(data)">
-                                    Selesai
+                                    class="q-pa-xs status-badge text-bold cursor-pointer" @click="openStage2(data)">
+                                    Permintaan Selesai
                                 </q-badge>
 
                                 <!-- Ditolak (bisa buka keterangan) -->
                                 <q-badge v-else-if="Number(data.status) === 5" color="negative" text-color="white"
-                                    class="q-pa-xs text-bold cursor-pointer" @click="lihatKeterangan(data)">
-                                    Ditolak
+                                    class="q-pa-xs status-badge text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                    Permintaan Ditolak
                                 </q-badge>
                             </div>
 

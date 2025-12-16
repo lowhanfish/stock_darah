@@ -109,6 +109,17 @@
           </div>
 
           <div class="col-12 col-md-6">
+            <div class="col-12 col-md-6">
+              <div class="frameChart shadow-5 q-pa-md">
+                <div class="text-h6 q-mb-md">
+                  Distribusi Pendonor Berdasarkan Jenis Kelamin
+                </div>
+                <div id="chartPendonorGender" style="width:100%; height:400px;"></div>
+              </div>
+            </div>
+
+          </div>
+          <div class="col-12 col-md-6">
             <div class="frameChart shadow-5 q-pa-md">
               <div class="text-h6 q-mb-md">Jumlah Partisipasi Pendonor Darah</div>
               <table style="width:100%; border-collapse: collapse;">
@@ -188,10 +199,8 @@ export default {
         selesai: 0
       },
 
-      columnsPerusahaan: [
-        { name: 'nama_perusahaan', label: 'Perusahaan', align: 'left', field: row => row.nama_perusahaan },
-        { name: 'jumlah', label: 'Jumlah Partisipasi', align: 'right', field: row => row.jumlah }
-      ],
+      listPerusahaan: []
+
 
     }
   },
@@ -331,6 +340,81 @@ export default {
       }
     },
 
+    async loadPendonorByGender() {
+      try {
+        const res = await fetch(
+          this.$store.state.url.DASHBOARD + 'pendonorByGender',
+          {
+            headers: {
+              authorization: 'kikensbatara ' + localStorage.token
+            }
+          }
+        );
+
+        const json = await res.json();
+
+        this.renderPendonorGenderChart(json.data || []);
+
+      } catch (err) {
+        console.error('Gagal load pendonor by gender:', err);
+      }
+    },
+
+    renderPendonorGenderChart(seriesData) {
+      Highcharts.chart('chartPendonorGender', {
+        chart: {
+          type: 'pie',
+          backgroundColor: 'transparent'
+        },
+        title: {
+          text: null
+        },
+        subtitle: {
+          text: 'Laki-laki vs Perempuan'
+        },
+        tooltip: {
+          pointFormat: '<b>{point.y}</b> pendonor ({point.percentage:.1f}%)'
+        },
+        plotOptions: {
+          pie: {
+            innerSize: '60%', // 👉 DONUT
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {
+              enabled: true,
+              format: '<b>{point.name}</b><br>{point.percentage:.1f} %'
+            }
+          }
+        },
+        series: [{
+          name: 'Jumlah Pendonor',
+          colorByPoint: true,
+          data: seriesData
+        }]
+      });
+    },
+
+    async loadPendonorGenderTable() {
+      try {
+        const res = await fetch(
+          this.$store.state.url.DASHBOARD + 'pendonorByGenderTable',
+          {
+            headers: {
+              authorization: 'kikensbatara ' + localStorage.token
+            }
+          }
+        );
+
+        const json = await res.json();
+        this.listPerusahaan = json.data || [];
+
+      } catch (err) {
+        console.error('Gagal load tabel pendonor:', err);
+      }
+    }
+
+
+
 
 
 
@@ -356,6 +440,7 @@ export default {
 
     this.loadWidgetAdmin();
     this.loadPermintaanDarahByGolongan();
+    this.loadPendonorByGender();
   },
 
   watch: {

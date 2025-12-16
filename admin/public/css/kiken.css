@@ -247,5 +247,14 @@ input.mdCheckbox1 {
   transition: background-color 0.2s ease;
 }
 .detail-field:hover {
-  background-color: rgba(76, 175, 80, 0.04); /* Subtle hover untuk interaktivitas */
+  background-color: rgba(76, 175, 80, 0.04);
+}
+
+.status-badge {
+  min-width: 120px;      
+  text-align: center;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  white-space: nowrap;
 }
