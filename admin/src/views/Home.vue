@@ -126,12 +126,12 @@
           </div>
           <div class="col-12 col-md-6">
             <div class="frameChart shadow-5 q-pa-md">
-              <div class="text-h6 q-mb-md">Jumlah Partisipasi Pendonor Darah</div>
+              <div class="text-h6 q-mb-md text-center">Jumlah Partisipasi Pendonor Darah</div>
               <table style="width:100%; border-collapse: collapse;">
                 <thead>
-                  <tr style="background-color: #e3f2fd;">
-                    <th width="80%" style="text-align:left; padding: 8px;">Jenis Kelamin</th>
-                    <th width="20%" style="text-align:right; padding: 8px;">Jumlah Pendonor</th>
+                  <tr style="background-color: #F87C7C;">
+                    <th width="80%" style="text-align:left; padding: 8px; color: aliceblue;">Jenis Kelamin</th>
+                    <th width="20%" style="text-align:right; padding: 8px; color: aliceblue;">Jumlah Pendonor</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -146,7 +146,7 @@
 
           </div>
           <div class="col-12 col-md-6">
-            <div class="frameChart shadow-5 q-pa-md">
+            <div class="frameChart shadow-5 q-pa-md text-center">
               <div class="text-h6 q-mb-md">
                 Jumlah Permintaan Darah dari Ruangan BLUD RS
               </div>
@@ -155,9 +155,9 @@
               <div style="max-height: 150px; overflow-y: auto;">
                 <table style="width:100%; border-collapse: collapse;">
                   <thead>
-                    <tr style="background-color: #e3f2fd;">
-                      <th style="text-align:left; padding: 8px;">Nama Ruangan</th>
-                      <th style="text-align:right; padding: 8px;">Jumlah Permintaan</th>
+                    <tr style="background-color: #F87C7C;">
+                      <th style="text-align:left; padding: 8px; color: aliceblue;">Nama Ruangan</th>
+                      <th style="text-align:right; padding: 8px; color: aliceblue;">Jumlah Permintaan</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -452,10 +452,10 @@ export default {
           backgroundColor: 'transparent'
         },
         title: {
-          text: null
+          text: "Permintaan Darah per Ruangan"
         },
         subtitle: {
-          text: 'Permintaan Darah per Ruangan'
+          text: null
         },
         tooltip: {
           pointFormat: '<b>{point.y}</b> permintaan ({point.percentage:.1f}%)'
