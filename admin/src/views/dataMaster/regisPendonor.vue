@@ -12,8 +12,8 @@
                   <div class="row">
                      <q-input v-model="cari_value" @keyup="cari_data()" outlined square :dense="true" class="bg-white"
                         style="width:90%" />
-                     <q-btn glossy class="main1x" @click="mdl_add = true" dense flat icon="add" style="width:10%">
-                        <q-tooltip content-class="bg-blue-9" content-style="font-size: 13px">
+                     <q-btn glossy class="main4" @click="mdl_add = true" dense flat icon="add" style="width:10%">
+                        <q-tooltip content-class="green-6" content-style="font-size: 13px">
                            Click untuk menambah data
                         </q-tooltip>
                      </q-btn>
@@ -57,7 +57,7 @@
                         <td class="text-center">
                            <q-item-section>
                               <div class="text-white q-gutter-xs text-center">
-                                 <q-btn size="12px" dense glossy round icon="settings" class="main1x">
+                                 <q-btn size="12px" dense glossy round icon="settings" class="main4">
                                     <q-menu>
                                        <q-list dense style="min-width: 100px">
                                           <q-item clickable v-close-popup @click="openRiwayat(data)">

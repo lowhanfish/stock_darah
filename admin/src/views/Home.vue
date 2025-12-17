@@ -3,7 +3,8 @@
     <q-card bordered class="my-card">
       <!-- Header -->
       <q-card-section class="main2 text-white">
-        <div class="text-h6 h_titleHead">DASHBOARD</div>
+        <div class="text-h6 h_titleHead">HOME</div>
+        <div class="text-h8">DASHBOARD PINDARA</div>
       </q-card-section>
 
       <q-separator dark inset />
@@ -82,9 +83,7 @@
           </div>
         </div>
 
-
-
-
+        <hr class="hrpagin2">
 
         <div class="row q-col-gutter-md q-mt-md">
           <div class="col-12 col-md-6">
@@ -137,8 +136,8 @@
                 <tbody>
                   <tr v-for="item in listJk" :key="item.jk_pendonor"
                     :style="{ backgroundColor: listJk.indexOf(item) % 2 === 0 ? '#f9f9f9' : 'white' }">
-                    <td style="padding: 8px;">{{ item.jk_pendonor }}</td>
-                    <td style="padding: 8px; text-align:right;">{{ item.jumlah }}</td>
+                    <td width="80%" style="padding: 8px;">{{ item.jk_pendonor }}</td>
+                    <td width="20%" style="padding: 8px; text-align:right;">{{ item.jumlah }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -156,8 +155,9 @@
                 <table style="width:100%; border-collapse: collapse;">
                   <thead>
                     <tr style="background-color: #F87C7C;">
-                      <th style="text-align:left; padding: 8px; color: aliceblue;">Nama Ruangan</th>
-                      <th style="text-align:right; padding: 8px; color: aliceblue;">Jumlah Permintaan</th>
+                      <th width="70%" style="text-align:left; padding: 8px; color: aliceblue;">Nama Ruangan</th>
+                      <th width="30%" style="text-align:right; padding: 8px; color: aliceblue;">Jumlah Permintaan Darah
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -220,24 +220,45 @@ export default {
 
   methods: {
 
-    async loadWidgetAdmin() {
+
+
+    async loadWidgetDashboard() {
       try {
-        const res = await fetch(this.$store.state.url.DASHBOARD + "statusAdmin", {
-          headers: {
-            "authorization": "kikensbatara " + localStorage.token
+        const raw = JSON.parse(localStorage.profile);
+        const role = Number(raw.profile?.stokdarah_konut);
+        const ruangan_id = raw.profile?.ruangan_id;
+
+        let url = `statusDashboard?stokdarah_konut=${role}`;
+
+        // HANYA role ruangan
+        if (role === 3 && ruangan_id) {
+          url += `&ruangan_id=${ruangan_id}`;
+        }
+
+        const res = await fetch(
+          this.$store.state.url.DASHBOARD + url,
+          {
+            headers: {
+              authorization: 'kikensbatara ' + localStorage.token
+            }
           }
-        });
-        const data = await res.json();
-        if (data.data) this.widgetStatus = data.data;
+        );
+
+        const json = await res.json();
+        if (json.data) {
+          this.widgetStatus = json.data;
+        }
+
         this.$nextTick(() => {
           this.chartPie();
-          this.chartPermintaanDarahBulanan();
         });
-        console.log(data);
+
       } catch (err) {
-        console.error('Gagal ambil widget admin:', err);
+        console.error('Gagal load dashboard:', err);
       }
     },
+
+
 
     chartPie() {
       Highcharts.chart('chartPie', {
@@ -256,7 +277,7 @@ export default {
           name: 'Jumlah',
           colorByPoint: true,
           data: [
-            { name: 'Permintaan Biru', y: this.widgetStatus.permintaan_baru, color: '#1e88e5' },
+            { name: 'Permintaan Baru', y: this.widgetStatus.permintaan_baru, color: '#1e88e5' },
             { name: 'Ditolak', y: this.widgetStatus.ditolak, color: '#ffb300' },
             { name: 'Darah Siap Ambil', y: this.widgetStatus.siap_ambil, color: '#f57c00' },
             { name: 'Selesai', y: this.widgetStatus.selesai, color: '#43a047' }
@@ -299,7 +320,7 @@ export default {
           text: `Permintaan Darah Terpakai Tahun ${this.selectedYear}`
         },
         subtitle: {
-          text: 'Berdasarkan golongan darah (status selesai)'
+          text: 'Berdasarkan golongan darah'
         },
         xAxis: {
           categories: bulanLabel
@@ -528,7 +549,7 @@ export default {
 
     // this.getMitra(get_profile._id);
 
-    this.loadWidgetAdmin();
+    this.loadWidgetDashboard();
     this.loadPermintaanDarahByGolongan();
     this.loadPendonorByGender();
     this.loadPendonorGenderTable();

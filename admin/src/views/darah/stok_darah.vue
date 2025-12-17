@@ -7,6 +7,7 @@
                 <div class="row">
                     <div class="col-12 col-md-6">
                         <div class="text-h6 h_titleHead">Stok Darah</div>
+                        <div class="text-h8">Manajemen Darah</div>
                     </div>
                     <div class="col-12 col-md-2"></div>
 

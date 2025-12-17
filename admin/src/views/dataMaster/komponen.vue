@@ -5,15 +5,16 @@
                 <div class="row">
                     <div class="col-12 col-md-6">
                         <div class="text-h6 h_titleHead">Komponen Darah</div>
+                        <div class="text-h8 h_titleHead">Master Data</div>
                     </div>
                     <div class="col-12 col-md-2"></div>
                     <div class="col-12 col-md-4">
                         <div class="row">
                             <q-input v-model="cari_value" @keyup="cari_data()" outlined square :dense="true"
                                 class="bg-white" style="width:90%" />
-                            <q-btn glossy class="main1x" @click="mdl_add = true" dense flat icon="add"
+                            <q-btn glossy class="main4" @click="mdl_add = true" dense flat icon="add"
                                 style="width:10%">
-                                <q-tooltip content-class="bg-blue-9" content-style="font-size: 13px">
+                                <q-tooltip content-class="green-4" content-style="font-size: 13px">
                                     Click untuk menambah data
                                 </q-tooltip>
                             </q-btn>

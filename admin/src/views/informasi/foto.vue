@@ -5,6 +5,7 @@
                 <div class="row items-center q-col-gutter-md">
                     <div class="col-12 col-md-6">
                         <div class="text-h6 h_titleHead">Foto Kegiatan</div>
+                        <div class="text-h8">Informasi Pindara</div>
                     </div>
 
                     <!-- Cari + Tombol Add -->

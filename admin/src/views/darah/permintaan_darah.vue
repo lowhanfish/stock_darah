@@ -6,6 +6,7 @@
                 <div class="row">
                     <div class="col-12 col-md-6">
                         <div class="text-h6 h_titleHead">Permintaan Darah</div>
+                        <div class="text-h8">Manajemen Darah</div>
                     </div>
                     <div class="col-12 col-md-2"></div>
                     <div class="col-12 col-md-4">
@@ -13,9 +14,9 @@
                             <q-input v-model="cari_value" @keyup="cari_data()" outlined square :dense="true"
                                 class="bg-white" style="width:90%" />
                             <!-- Tombol tambah hanya untuk tipe = 3 (Admin Ruangan) -->
-                            <q-btn v-if="tipe === 3" glossy class="main1x" @click="mdl_add = true" dense flat icon="add"
+                            <q-btn v-if="tipe === 3" glossy class="main4" @click="mdl_add = true" dense flat icon="add"
                                 style="width:10%">
-                                <q-tooltip content-class="bg-blue-9" content-style="font-size: 13px">
+                                <q-tooltip content-class="bg-green-6" content-style="font-size: 13px">
                                     Tambah Permintaan
                                 </q-tooltip>
                             </q-btn>
@@ -61,11 +62,11 @@
                         <th width="5%" class="text-center">No</th>
                         <th width="10%" class="text-center">Status</th>
                         <th width="15%">Nama Pasien</th>
-                        <th width="10%">Tgl Lahir</th>
+                        <th width="15%">Tgl Lahir</th>
                         <th width="5%">Gol.Darah</th>
-                        <th width="15%">Komponen</th>
-                        <th width="10%" class="text-center">Jumlah Permintaan (Kantong)</th>
-                        <th width="10%" class="text-center">Jumlah diberikan (Kantong)</th>
+                        <th width="25%">Komponen</th>
+                        <th width="5%" class="text-center">Jumlah Permintaan (Kantong)</th>
+                        <th width="5%" class="text-center">Jumlah diberikan (Kantong)</th>
                         <th width="15%" class="text-center">Aksi</th>
                     </tr>
                 </thead>
@@ -87,11 +88,6 @@
                                     Diperiksa
                                 </q-badge>
 
-                                <!-- Siap Diambil (klik -> buka Stage2 untuk input pengambilan) -->
-                                <!-- <q-badge v-else-if="Number(data.status) === 3" color="secondary" text-color="white"
-                                    class="q-pa-xs status-badge text-bold cursor-pointer" @click.stop="openStage2(data)">
-                                    Darah Siap Diambil
-                                </q-badge> -->
                                 <template v-else-if="Number(data.status) === 3">
                                     <q-badge v-if="tipe === 1 || tipe === 2" color="secondary" text-color="white"
                                         class="q-pa-xs status-badge text-bold cursor-pointer" @click.stop="openStage2(data)">
