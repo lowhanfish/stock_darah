@@ -11,6 +11,67 @@ var uniqid = require('uniqid');
 const { log } = require('console');
 const router = express.Router();
 
+router.get('/statusDashboard', (req, res) => {
+  const { stokdarah_konut, ruangan_id } = req.query;
+
+  // ==========================
+  // VALIDASI
+  // ==========================
+  if (!stokdarah_konut) {
+    return res.status(400).json({
+      message: 'stokdarah_konut wajib'
+    });
+  }
+
+  const role = Number(stokdarah_konut);
+
+  // ==========================
+  // RUANGAN (HANYA role 3)
+  // ==========================
+  if (role === 3) {
+    if (!ruangan_id) {
+      return res.status(400).json({
+        message: 'ruangan_id wajib untuk role ruangan'
+      });
+    }
+
+    const sqlRuangan = `
+      SELECT 
+        COUNT(*) AS total_permintaan,
+        SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS permintaan_baru,
+        SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) AS ditolak,
+        SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS siap_ambil,
+        SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) AS selesai
+      FROM permintaan_darah
+      WHERE ruangan_id = ?
+    `;
+
+    return db.query(sqlRuangan, [ruangan_id], (err, rows) => {
+      if (err) return res.status(500).json(err);
+      return res.json({ data: rows[0] });
+    });
+  }
+
+  // ==========================
+  // ADMIN & UPD (role 1 & 2)
+  // ==========================
+  const sqlGlobal = `
+    SELECT 
+      COUNT(*) AS total_permintaan,
+      SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS permintaan_baru,
+      SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) AS ditolak,
+      SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS siap_ambil,
+      SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) AS selesai
+    FROM permintaan_darah
+  `;
+
+  db.query(sqlGlobal, (err, rows) => {
+    if (err) return res.status(500).json(err);
+    return res.json({ data: rows[0] });
+  });
+});
+
+
 
 
 router.post('/statusPengajuan', (req, res) => {
@@ -37,7 +98,6 @@ router.post('/statusPengajuan', (req, res) => {
     });
   });
 
-
   router.get('/statusAdmin', (req, res) => {
     const sql = `
         SELECT 
@@ -53,7 +113,6 @@ router.post('/statusPengajuan', (req, res) => {
         res.json({ data: result[0] });
     });
 });
-
 
 
 router.get('/permintaanDarahByGolongan', (req, res) => {
@@ -181,7 +240,6 @@ router.get('/permintaanByRuanganPie', (req, res) => {
     res.json({ data: rows });
   });
 });
-
 
 router.get('/permintaanByRuanganTable', (req, res) => {
   const sql = `
