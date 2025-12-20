@@ -114,6 +114,36 @@ router.post('/fotoHome', (req, res) => {
   });
 });
 
+router.post('/permintaanDarahSelesaiHome', (req, res) => {
+  const sql = `
+    SELECT
+      COUNT(*) AS total_permintaan,
+      SUM(IFNULL(jumlah_darah_diberikan, 0)) AS total_kantong
+    FROM permintaan_darah
+    WHERE status = 4
+  `;
+
+  db.query(sql, (err, rows) => {
+    if (err) {
+      console.error('❌ Error permintaanDarahSelesaiHome:', err);
+      return res.status(500).json({
+        success: false,
+        message: 'Gagal mengambil data permintaan darah selesai',
+        error: err
+      });
+    }
+
+    res.json({
+      success: true,
+      data: rows[0] || {
+        total_permintaan: 0,
+        total_kantong: 0
+      }
+    });
+  });
+});
+
+
 
 
 

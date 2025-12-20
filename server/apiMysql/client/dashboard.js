@@ -72,8 +72,6 @@ router.get('/statusDashboard', (req, res) => {
 });
 
 
-
-
 router.post('/statusPengajuan', (req, res) => {
     const users_id = req.body.users_id;
     if (!users_id) {

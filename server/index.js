@@ -4,6 +4,8 @@ const cors = require('cors');
 var path = require("path");
 
 require('dotenv').config();
+const http = require('http');
+const socketIO = require('socket.io');
 
 
 
@@ -140,7 +142,38 @@ function errorHandler(err, req, res, next) {
 app.use(notFound);
 app.use(errorHandler);
 
+// const port = process.env.PORT || 5088;
+// const server = app.listen(port, '0.0.0.0', () => {
+//   console.log('Listening on port', port);
+// });
 const port = process.env.PORT || 5088;
-const server = app.listen(port, '0.0.0.0', () => {
-  console.log('Listening on port', port);
+
+// buat http server dari express
+const server = http.createServer(app);
+
+// attach socket.io (v2)
+const io = socketIO(server);
+
+// simpan io ke app agar bisa dipakai di router
+app.set('io', io);
+
+// socket logic
+io.on('connection', (socket) => {
+  console.log('🔌 Socket connected:', socket.id);
+
+  socket.on('join_role', (role) => {
+    if (role) {
+      socket.join(role);
+      console.log(`👥 socket ${socket.id} join role: ${role}`);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('❌ socket disconnected:', socket.id);
+  });
+});
+
+// jalankan server
+server.listen(port, '0.0.0.0', () => {
+  console.log('🚀 Server + Socket.IO (v2.5.1) running on port', port);
 });
