@@ -1,6 +1,7 @@
 import { createStore } from 'vuex'
 
-var URL_APP = 'http://localhost:5088/'  
+// var URL_APP = 'http://localhost:5088/'  
+var URL_APP = 'https://server-pindara.bludrs-konut.id/'
 
 export default createStore({
   state: { 

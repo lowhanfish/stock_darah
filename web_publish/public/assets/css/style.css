@@ -403,13 +403,23 @@ p {
             box-shadow: 0 3px 4px rgb(0 0 0 / 8%);
 }
 .nav-bar .logo .logo-nav{
-    display: block;
+    /* display: block; */
+    margin-right: 250px!important;
 }
 .nav-bar .logo .logo-nav img{
     width: 180px!important;
     height: 50px!important;
 
 }
+
+.nav-bar .content-box {
+    display: flex;
+    align-items: center;
+  }
+  
+  .nav-bar-links {
+    margin-left: 10px;
+  }
 .nav-bar .nav-bar-links .level-1 .item-level-1{
     display: inline-block;
     position: relative;

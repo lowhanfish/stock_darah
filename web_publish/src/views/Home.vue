@@ -61,8 +61,12 @@
                         <div class="card-content">
                             <div class="card-left">
                                 <h4 class="card-title">Permintaan Darah</h4>
-                                <div class="card-number">150+</div>
-                                <div class="card-sub">Kantong Darah</div>
+                                <div class="card-number">
+                                    {{ kantongDarahSelesai }}
+                                </div>
+                                <div class="card-sub">
+                                    Kantong Darah
+                                </div>
                             </div>
 
                             <div class="card-illustration">
@@ -260,7 +264,9 @@
                         <h3>Galeri Donor & Kegiatan Sosial</h3>
                     </div>
                     <div class="col-lg-5">
-                        <p class="sec-explain">Kami mengabadikan berbagai momen penuh makna — dari kegiatan donor darah, edukasi kesehatan, hingga kolaborasi sosial yang menjadi bukti nyata semangat kemanusiaan di RSUD Konawe Utara.</p>
+                        <p class="sec-explain">Kami mengabadikan berbagai momen penuh makna — dari kegiatan donor darah,
+                            edukasi kesehatan, hingga kolaborasi sosial yang menjadi bukti nyata semangat kemanusiaan di
+                            RSUD Konawe Utara.</p>
                         <router-link class="btn-1 sec-btn" to="/gallery">Lihat Seluruh Galeri</router-link>
                     </div>
                 </div>
@@ -329,6 +335,8 @@ export default {
             loading: true,
             jumlahPendonor: 0,
             galleryImages: [],
+            permintaanSelesai: 0,
+            kantongDarahSelesai: 0,
 
         }
     },
@@ -382,6 +390,29 @@ export default {
                 this.loading = false;
             }
         },
+
+        async getPermintaanDarahSelesai() {
+            try {
+                const res = await fetch(this.$store.state.URL.HOME + "permintaanDarahSelesaiHome", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" }
+                });
+
+                if (!res.ok) throw new Error("Gagal mengambil permintaan darah");
+
+                const json = await res.json();
+
+                if (json.success) {
+                    this.permintaanSelesai = json.data.total_permintaan || 0;
+                    this.kantongDarahSelesai = json.data.total_kantong || 0;
+                }
+            } catch (err) {
+                console.error("❌ Error getPermintaanDarahSelesai:", err);
+                this.permintaanSelesai = 0;
+                this.kantongDarahSelesai = 0;
+            }
+        },
+
 
         getJumlahPendonor: function () {
             fetch(this.$store.state.URL.HOME + "jumlahPendonor", {
@@ -507,6 +538,7 @@ export default {
         this.getListBerita();
         this.loadJadwal();
         this.getFotoHome();
+        this.getPermintaanDarahSelesai();
         await nextTick()
         const el = this.$refs.heroCarousel
         if (!el) {
