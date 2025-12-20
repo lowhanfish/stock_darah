@@ -28,19 +28,32 @@
 
                             </div>
                             <div class="text-box">
-                                <span class="blog-date">{{ convert_tgl(form.createAt) }}</span>
+                                <span class="blog-date">
+                                    <i class="far fa-calendar-alt"></i>
+                                    {{ convert_tgl(form.createAt) }}
+                                </span>
+
                                 <h5>{{ form.judul }}</h5>
                                 <p v-html="form.isi"></p>
                                 <div class="share-post">
                                     <span>Share Post :</span>
                                     <ul>
-                                        <li><a href="#"><i class="fab fa-facebook-f"></i></a></li>
-                                        <li><a href="#"><i class="fab fa-twitter"></i></a></li>
-                                        <li><a href="#"><i class="fab fa-instagram"></i></a></li>
-                                        <li><a href="#"><i class="fab fa-dribbble"></i></a></li>
-                                        <li><a href="#"><i class="fab fa-behance"></i></a></li>
+                                        <!-- Facebook -->
+                                        <li>
+                                            <a :href="facebookLink" target="_blank" rel="noopener">
+                                                <i class="fab fa-facebook-f"></i>
+                                            </a>
+                                        </li>
+
+                                        <!-- WhatsApp -->
+                                        <li>
+                                            <a :href="whatsappLink" target="_blank" rel="noopener">
+                                                <i class="fab fa-whatsapp"></i>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -251,5 +264,27 @@ export default {
 .img_berita img {
     width: 100% !important;
     height: auto !important;
+}
+
+/* Jarak gambar ke tanggal (halaman detail) */
+.single-bolg .blog-item .text-box {
+    padding-top: 16px;
+}
+
+/* Style tanggal + ikon kalender */
+.single-bolg .blog-item .blog-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #13ADE5;
+    /* biru khas sidebar */
+    margin-bottom: 8px;
+}
+
+.single-bolg .blog-item .blog-date i {
+    font-size: 14px;
+    color: #13ADE5;
 }
 </style>

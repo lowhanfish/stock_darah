@@ -14,6 +14,7 @@ import kontak from "../views/kontak.vue";
 
 
 import login from "../views/login/login.vue";
+import regis from "../views/login/regis.vue";
 
 
 
@@ -29,6 +30,11 @@ const routes = [
     path: '/login',
     name: 'login',
     component: login
+  },
+  {
+    path: '/regis',
+    name: 'regis',
+    component: regis
   },
   {
     path: '/berita',

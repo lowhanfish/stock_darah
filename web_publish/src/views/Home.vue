@@ -267,7 +267,7 @@
                         <p class="sec-explain">Kami mengabadikan berbagai momen penuh makna — dari kegiatan donor darah,
                             edukasi kesehatan, hingga kolaborasi sosial yang menjadi bukti nyata semangat kemanusiaan di
                             RSUD Konawe Utara.</p>
-                        <router-link class="btn-1 sec-btn" to="/gallery">Lihat Seluruh Galeri</router-link>
+                        <router-link class="btn-1 sec-btn" to="/foto">Lihat Seluruh Galeri</router-link>
                     </div>
                 </div>
             </div>

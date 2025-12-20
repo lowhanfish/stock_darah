@@ -2806,7 +2806,7 @@ li.ui-timepicker-selected, .ui-timepicker-list li:hover, .ui-timepicker-list .ui
 
 /* :: Blog */
 .blog-item{
-    margin-bottom: 2px!important;
+    margin-bottom: 50px!important;
 }
 .blog-item .img-box{
     position: relative;
@@ -2842,19 +2842,20 @@ li.ui-timepicker-selected, .ui-timepicker-list li:hover, .ui-timepicker-list .ui
     color: #1A3D7D;
 }
 .blog-item .text-box{
-    padding: 00px 0px 0px 0px!important;
+    padding-top: 16px !important;
 }
 .blog-item .text-box .title-blog{
     display: block;
 }
 .blog-item .text-box .blog-date{
-    color: #141414;
+    color: #13ADE5;
+    margin-top: 15px;
 }
 .blog-item .text-box h5{
     position: relative;
     font-size: 24px;
     line-height: 35px;
-    margin: 15px 0;
+    margin: 6px 0;
     font-weight: 700;
     color: #1A3D7D;
 }

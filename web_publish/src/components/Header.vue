@@ -37,7 +37,7 @@
             <div class="container">
                 <div class="content-box d-flex align-items-center justify-content-start">
                     <div class="logo">
-                        <a href="index.html" class="logo-nav">
+                        <a href="#" class="logo-nav">
                             <img class="img-fluid one" src="/assets/images/logo.png" alt="01 Logo"
                                 style="height: 60px; width: 60px;">
                         </a>
@@ -100,19 +100,23 @@
                             </li>
                         </ul>
                     </div>
-                    <!-- <ul class="nav-bar-tools" style=" margin-right: 250px">
-                        <li class="item">
+                    <ul class="nav-bar-tools" style=" margin-left: 50px">
+                        <!-- <li class="item">
                             <span class="menu-icon" @click="showMenuBox = true">
                                 <i class="fas fa-list"></i>
                             </span>
                         </li> -->
-                        <!-- <li class="btn">
-                            <router-link to="/Login" class="btn-1">Masuk</router-link>
-                        </li>
                         <li class="btn">
-                            <a href="/register" class="btn-1">Registrasi</a>
-                        </li> -->
-                    <!-- </ul> -->
+                            <a href="https://admin-pindara.bludrs-konut.id" class="btn-1" target="_blank"
+                                rel="noopener">
+                                Masuk
+                            </a>
+                        </li>
+
+                        <li class="btn">
+                            <router-link to="/regis" class="btn-1">Registrasi</router-link>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </nav>
@@ -167,26 +171,26 @@
 import { ref } from 'vue'
 
 export default {
-  name: 'Header',
-  setup() {
-    // === STATE ===
-    const showMenuBox = ref(false)
-    const showMobileNav = ref(false)
-    const openSubmenu = ref(null)
+    name: 'Header',
+    setup() {
+        // === STATE ===
+        const showMenuBox = ref(false)
+        const showMobileNav = ref(false)
+        const openSubmenu = ref(null)
 
-    // === METHOD ===
-    const toggleSubmenu = (name) => {
-      openSubmenu.value = openSubmenu.value === name ? null : name
-    }
+        // === METHOD ===
+        const toggleSubmenu = (name) => {
+            openSubmenu.value = openSubmenu.value === name ? null : name
+        }
 
-    // === WAJIB RETURN SEMUA YANG DIPAKAI TEMPLATE ===
-    return {
-      showMenuBox,
-      showMobileNav,
-      openSubmenu,
-      toggleSubmenu
+        // === WAJIB RETURN SEMUA YANG DIPAKAI TEMPLATE ===
+        return {
+            showMenuBox,
+            showMobileNav,
+            openSubmenu,
+            toggleSubmenu
+        }
     }
-  }
 }
 </script>
 
@@ -202,17 +206,17 @@ export default {
     opacity: 1;
     visibility: visible;
 }
+
 /* SUBMENU MOBILE */
 .nav-bar-links .level-2 {
-  display: none;
+    display: none;
 }
 
-.nav-bar-links .has-menu.open > .level-2 {
-  display: block;
+.nav-bar-links .has-menu.open>.level-2 {
+    display: block;
 }
 
 .nav-bar-links {
-  margin-left: 1px;
+    margin-left: 1px;
 }
-
 </style>

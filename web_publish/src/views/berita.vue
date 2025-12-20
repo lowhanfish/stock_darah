@@ -1,6 +1,6 @@
 <template>
     <div>
-        
+
         <section class="breadcrumb-header" style="background-image: url(assets/images/header/bgheader.png)">
             <div class="overlay"></div>
             <div class="container">
@@ -9,7 +9,8 @@
                         <div class="banner">
                             <h1>Artikel / Edukasi</h1>
                             <ul>
-                                <li><a href="javascript:void(0);">Berita tentang kegiatan, kampanye kesehatan, dan tips dari tim kami</a></li>
+                                <li><a href="javascript:void(0);">Berita tentang kegiatan, kampanye kesehatan, dan tips
+                                        dari tim kami</a></li>
                             </ul>
                         </div>
                     </div>
@@ -37,10 +38,14 @@
                                     " :src="file_path + item.gambar" :alt="item.judul">
                                             <!-- <img v-else class="img-fluid" src="assets/images/blog/default.jpg" alt="Default Blog"> -->
                                         </a>
-                                        
+
                                     </div>
                                     <div class="text-box">
-                                        <span class="blog-date">{{ UMUM.tglConvert(item.tanggal).tgl }}</span>
+                                        <span class="blog-date">
+                                            <i class="far fa-calendar-alt"></i>
+                                            {{ UMUM.tglConvert(item.tanggal).tgl }}
+                                        </span>
+
                                         <a @click="pushKe(item.id)" class="title-blog">
                                             <h5>{{ item.judul }}</h5>
                                         </a>
@@ -62,10 +67,12 @@
                                 <div class="pagination-area">
                                     <ul class="pagination">
                                         <li @click="prevPage" :class="{ disabled: currentPage === 1 }">Prev</li>
-                                        <li v-for="page in totalPages" :key="page" @click="goToPage(page)" :class="{ active: page === currentPage }">
+                                        <li v-for="page in totalPages" :key="page" @click="goToPage(page)"
+                                            :class="{ active: page === currentPage }">
                                             {{ page }}
                                         </li>
-                                        <li @click="nextPage" :class="{ disabled: currentPage === totalPages }">Next</li>
+                                        <li @click="nextPage" :class="{ disabled: currentPage === totalPages }">Next
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -79,25 +86,27 @@
                                 </div>
                                 <div class="widget-body">
                                     <div class="search">
-                                        <input v-model="cari_value" type="search" name="search" placeholder="Search Your Keywords..." @keyup.enter="cari_data">
+                                        <input v-model="cari_value" type="search" name="search"
+                                            placeholder="Search Your Keywords..." @keyup.enter="cari_data">
                                         <button @click="cari_data" class="click">
                                             <i class="fas fa-search"></i>
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="widget">
                                 <div class="widget-title">
                                     <h3>Artikel, Tips &amp; Edukasi :</h3>
                                 </div>
                                 <div class="news-box" v-if="list_berita_side.length > 0">
                                     <div class="news-item" v-for="item in list_berita_side" :key="item.id">
-                                        <img v-if="item.file_name" class="img-fluid" :src="file_path + item.file_name" :alt="item.judul" style="height: 60px; width: 60px;">
+                                        <img v-if="item.file_name" class="img-fluid" :src="file_path + item.file_name"
+                                            :alt="item.judul" style="height: 60px; width: 60px;">
                                         <div class="item-content">
                                             <span><a>{{ UMUM.tglConvert(item.createAt).tgl }}</a></span>
                                             <a @click="pushKe(item.id)" class="title-blog">
-                                                <h5>{{ truncateText (item.judul,27) }}</h5>
+                                                <h5>{{ truncateText(item.judul, 27) }}</h5>
                                             </a>
                                         </div>
                                     </div>
@@ -239,7 +248,7 @@ export default {
         },
     },
     mounted() {
-        
+
         this.getListBerita();
         this.getListBeritaSide();
     },
