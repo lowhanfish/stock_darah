@@ -121,7 +121,7 @@ export default {
     if (!role) return
 
     // ================= SOCKET =================
-    this.socket = io('http://localhost:5088', {
+    this.socket = io('https://server-pindara.bludrs-konut.id/', {
       transports: ['websocket', 'polling']
     })
 

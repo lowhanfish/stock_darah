@@ -81,7 +81,9 @@
 
                                 <!-- Jika status = 'unduh' → tampilkan tombol unduh dokumen -->
                                 <q-btn v-else-if="data.status === 'unduh'" color="primary" icon="document_scanner"
-                                    class="main1x" @click="openLihatDokumen(data)">
+                                    class="main1x" :loading="loadingPdfId === data.id"
+                                    :disable="loadingPdfId === data.id" @click="openLihatDokumen(data)">
+
                                     <q-tooltip content-class="bg-blue-8">Unduh / Lihat Dokumen</q-tooltip>
                                 </q-btn>
 
@@ -117,16 +119,18 @@
                             <template v-if="Number(tipe) === 3">
                                 <q-btn dense round color="warning" icon="edit" :disable="data.status === 'terkirim'"
                                     @click="openEdit(data)">
-                                    <q-tooltip content-class="bg-yellow-9" v-if="data.status === 'terkirim'">Tidak bisa diedit setelah
+                                    <q-tooltip content-class="bg-yellow-9" v-if="data.status === 'terkirim'">Tidak bisa
+                                        diedit setelah
                                         dikirim</q-tooltip>
-                                    <q-tooltip v-else content-class="bg-yellow-9" >Edit</q-tooltip>
+                                    <q-tooltip v-else content-class="bg-yellow-9">Edit</q-tooltip>
                                 </q-btn>
 
                                 <q-btn dense round color="negative" icon="delete" :disable="data.status === 'terkirim'"
                                     @click="openDelete(data)">
-                                    <q-tooltip content-class="bg-red-8" v-if="data.status === 'terkirim'">Tidak bisa dihapus setelah
+                                    <q-tooltip content-class="bg-red-8" v-if="data.status === 'terkirim'">Tidak bisa
+                                        dihapus setelah
                                         dikirim</q-tooltip>
-                                    <q-tooltip v-else content-class="bg-red-8" >Hapus</q-tooltip>
+                                    <q-tooltip v-else content-class="bg-red-8">Hapus</q-tooltip>
                                 </q-btn>
 
                                 <q-btn dense round color="primary" icon="visibility" @click="openLihat(data)">
@@ -136,25 +140,17 @@
 
                             <template v-else>
                                 <q-btn disable dense round color="warning" icon="edit" @click="openEdit(data)">
-                                    <q-tooltip content-class="bg-yellow-8" >Edit (UPD)</q-tooltip>
+                                    <q-tooltip content-class="bg-yellow-8">Edit (UPD)</q-tooltip>
                                 </q-btn>
 
                                 <q-btn disable dense round color="negative" icon="delete" @click="openDelete(data)">
                                     <q-tooltip content-class="bg-red-8">Hapus (UPD)</q-tooltip>
                                 </q-btn>
 
-                                <q-btn 
-                                    dense 
-                                    round 
-                                    color="primary" 
-                                    icon="visibility" 
-                                    @click="openLihat(data)"
-                                    :disable="data.status === 'terkirim' && !data.pemeriksaan_id"
-                                >
-                                    <q-tooltip 
-                                        v-if="data.status === 'terkirim' && !data.pemeriksaan_id" 
-                                        content-class="bg-red-8"
-                                    >
+                                <q-btn dense round color="primary" icon="visibility" @click="openLihat(data)"
+                                    :disable="data.status === 'terkirim' && !data.pemeriksaan_id">
+                                    <q-tooltip v-if="data.status === 'terkirim' && !data.pemeriksaan_id"
+                                        content-class="bg-red-8">
                                         Menunggu data pemeriksaan diinput
                                     </q-tooltip>
                                     <q-tooltip v-else content-class="bg-blue-6">Lihat</q-tooltip>
@@ -293,10 +289,10 @@
                     <q-card-section class="q-pt-none">
 
                         <div class="col-12 col-md-12">
-                                <span class="h_lable">DPJP Labpratorium</span>
-                                <q-input v-model="pemeriksaanForm.dpjp_lab" outlined square dense
-                                    class="bg-white margin_btn" />
-                            </div>
+                            <span class="h_lable">DPJP Labpratorium</span>
+                            <q-input v-model="pemeriksaanForm.dpjp_lab" outlined square dense
+                                class="bg-white margin_btn" />
+                        </div>
 
                         <div class="text-subtitle1 q-mt-sm text-bold">Pemeriksaan Pretransfusi</div>
 
@@ -490,7 +486,8 @@
                             </div>
                             <div>
 
-                                <div class="text-subtitle1 text-bold">DPJP Laboratorium : {{viewPemeriksaan.dpjp_lab}}</div>
+                                <div class="text-subtitle1 text-bold">DPJP Laboratorium : {{ viewPemeriksaan.dpjp_lab }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -499,13 +496,9 @@
 
                 <q-card-actions class="bg-grey-4 mdl-footer" align="right">
                     <q-btn label="Tutup" color="negative" v-close-popup @click="mdl_view = false" />
-                    <q-btn
-                      v-if="viewPemeriksaan && (Number(tipe) === 1 || Number(tipe) === 2)"
-                      label="Edit Pemeriksaan"
-                      color="primary"
-                      @click="openEditPemeriksaan(viewPemeriksaan)"
-                  />
-                    
+                    <q-btn v-if="viewPemeriksaan && (Number(tipe) === 1 || Number(tipe) === 2)" label="Edit Pemeriksaan"
+                        color="primary" @click="openEditPemeriksaan(viewPemeriksaan)" />
+
                 </q-card-actions>
 
                 <!-- <q-card-actions class="bg-grey-4 mdl-footer" align="right">
@@ -637,13 +630,8 @@
 
                         <q-btn label="Batal" size="sm" color="primary" v-close-popup />
                         &nbsp;
-                        <q-btn 
-                            :label="btn_delete ? 'Menghapus...' : 'Ya, Hapus'" 
-                            size="sm" 
-                            color="negative"
-                            :loading="btn_delete" 
-                            type="submit" 
-                        />
+                        <q-btn :label="btn_delete ? 'Menghapus...' : 'Ya, Hapus'" size="sm" color="negative"
+                            :loading="btn_delete" type="submit" />
                     </form>
                 </q-card-section>
             </q-card>
@@ -730,7 +718,7 @@ export default {
             loadingPemeriksaan: false,
             pemeriksaanEditMode: false,
             pemeriksaanEditId: null,
-            
+
 
             STATUS_DRAFT: 'draft',
             STATUS_TERKIRIM: 'terkirim',
@@ -740,7 +728,7 @@ export default {
             viewPemeriksaan: null,
 
             mdl_pdf_view: false,
-            loadingPdf: false,
+            loadingPdfId: null,
             pdfUrl: null,
             pdfName: null,
 
@@ -772,8 +760,8 @@ export default {
             };
             this.mdl_pemeriksaan = true;
             this.pemeriksaanEditMode = false;
-           this.pemeriksaanEditId = null;
-             this.mdl_pemeriksaan = true;
+            this.pemeriksaanEditId = null;
+            this.mdl_pemeriksaan = true;
         },
 
         cancelPemeriksaan() {
@@ -841,7 +829,7 @@ export default {
             this.modalPemeriksaanOpen = true;
         },
 
-        
+
 
 
 
@@ -1196,6 +1184,8 @@ export default {
         },
 
         openLihatDokumen(item) {
+            this.loadingPdfId = item.id;
+
             if (!item || !item.id) {
                 this.$q.notify({ type: 'negative', message: 'Data tidak valid' });
                 return;
@@ -1233,6 +1223,9 @@ export default {
                 .catch(error => {
                     console.error('Error opening PDF:', error);
                     this.$q.notify({ type: 'negative', message: 'Gagal membuka dokumen. Periksa koneksi atau coba lagi.' });
+                })
+                .finally(() => {
+                    this.loadingPdfId = null;
                 });
         },
 
@@ -1365,54 +1358,54 @@ export default {
         },
 
         openDelete(data) {
-        // Simpan ID yang akan dihapus
-        this.delete_id = data.id;
-        // Buka modal konfirmasi
-        this.mdl_delete = true;
-    },
+            // Simpan ID yang akan dihapus
+            this.delete_id = data.id;
+            // Buka modal konfirmasi
+            this.mdl_delete = true;
+        },
 
-    deleteData() {
-        this.btn_delete = true;
-        
-        const baseURL = this.$store.state.url.REAKSI_TRANSFUSI 
-                     || (this.$store.state.url.BASE || '') + "api/v1/reaksi_transfusi/";
+        deleteData() {
+            this.btn_delete = true;
 
-        fetch(baseURL + "delete", {
-            method: "POST",
-            headers: {
-                "content-type": "application/json",
-                authorization: "kikensbatara " + localStorage.token
-            },
-            body: JSON.stringify({ id: this.delete_id }) // Kirim hanya ID
-        })
-        .then(res => res.json())
-        .then(res_data => {
-            if (res_data.success || res_data.status) {
-                this.$q.notify({
-                    type: "positive",
-                    message: res_data.message || "Data berhasil dihapus"
+            const baseURL = this.$store.state.url.REAKSI_TRANSFUSI
+                || (this.$store.state.url.BASE || '') + "api/v1/reaksi_transfusi/";
+
+            fetch(baseURL + "delete", {
+                method: "POST",
+                headers: {
+                    "content-type": "application/json",
+                    authorization: "kikensbatara " + localStorage.token
+                },
+                body: JSON.stringify({ id: this.delete_id }) // Kirim hanya ID
+            })
+                .then(res => res.json())
+                .then(res_data => {
+                    if (res_data.success || res_data.status) {
+                        this.$q.notify({
+                            type: "positive",
+                            message: res_data.message || "Data berhasil dihapus"
+                        });
+                        this.mdl_delete = false;
+                        this.getView(); // Refresh tabel
+                    } else {
+                        this.$q.notify({
+                            type: "negative",
+                            message: res_data.message || "Gagal menghapus data"
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error("Error deleteData:", err);
+                    this.$q.notify({
+                        type: "negative",
+                        message: "Terjadi kesalahan saat menghapus data"
+                    });
+                })
+                .finally(() => {
+                    this.btn_delete = false;
+                    this.delete_id = null; // Reset ID
                 });
-                this.mdl_delete = false;
-                this.getView(); // Refresh tabel
-            } else {
-                this.$q.notify({
-                    type: "negative",
-                    message: res_data.message || "Gagal menghapus data"
-                });
-            }
-        })
-        .catch(err => {
-            console.error("Error deleteData:", err);
-            this.$q.notify({
-                type: "negative",
-                message: "Terjadi kesalahan saat menghapus data"
-            });
-        })
-        .finally(() => {
-            this.btn_delete = false;
-            this.delete_id = null; // Reset ID
-        });
-    },
+        },
 
 
 

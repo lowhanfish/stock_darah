@@ -50,7 +50,15 @@
 
                         <td>{{ data.nama_lengkap }}</td>
                         <td>{{ data.nik }}</td>
-                        <td>{{ UMUM.tglConvert(data.tanggal_lahir) }}</td>
+                        <td>
+                           <div>
+                              {{ UMUM.tglConvert(data.tanggal_lahir) }}
+                           </div>
+                           <div class="text-blue text-bold" style="font-size: 12px;">
+                              Usia: {{ UMUM.hitungUsia(data.tanggal_lahir) }} Tahun
+                           </div>
+                           </td>
+
                         <td>{{ data.golongan_darah }} {{ data.rhesus }}</td>
                         <td>{{ data.no_hp }}</td>
                         <td>{{ data.jenis_kelamin }}</td>
@@ -109,17 +117,19 @@
 
                   <hr class="hrpagin2">
 
-                  <span class="h_lable">Nama Lengkap</span>
+                  <span class="h_lable">Nama Lengkap*</span>
                   <q-input v-model="form.nama_lengkap" outlined square required :dense="true"
                      class="bg-white margin_btn" />
 
-                  <span class="h_lable">NIK</span>
-                  <q-input v-model="form.nik" outlined square required :dense="true" class="bg-white margin_btn" />
+                  <span class="h_lable">NIK*</span>
+                  <q-input v-model="form.nik" type="text" outlined square required dense class="bg-white margin_btn"
+                     maxlength="16" inputmode="numeric" @input="form.nik = form.nik.replace(/\D/g, '').slice(0, 16)" />
+
 
                   <div class="row q-col-gutter-md">
                      <div class="col-6">
-                        <span class="h_lable">Tanggal Lahir</span>
-                        <q-input v-model="form.tanggal_lahir" type="date" outlined required square :dense="true"
+                        <span class="h_lable">Tanggal Lahir*</span>
+                        <q-input v-model="form.tanggal_lahir" type="date" outlined square required :dense="true"
                            class="bg-white margin_btn" />
                      </div>
 
@@ -141,20 +151,20 @@
 
                      <div class="col-6">
                         <span class="h_lable">No HP</span>
-                        <q-input v-model="form.no_hp" type="tel" outlined square :dense="true" required
+                        <q-input v-model="form.no_hp" type="tel" required outlined square :dense="true"
                            class="bg-white margin_btn" />
 
                      </div>
                   </div>
                   <div class="row q-col-gutter-md">
                      <div class="col-6">
-                        <span class="h_lable">Golongan Darah</span>
+                        <span class="h_lable">Golongan Darah *Kosongkan jika tidak tau</span>
                         <q-select v-model="form.golongan_darah" :options="[
                         { label: 'A', value: 'A' },
                         { label: 'B', value: 'B' },
                         { label: 'AB', value: 'AB' },
                         { label: 'O', value: 'O' }
-                     ]" outlined required square emit-value map-options :dense="true" class="bg-white margin_btn" />
+                     ]" outlined square emit-value map-options :dense="true" class="bg-white margin_btn" />
                      </div>
 
                      <div class="col-6">
@@ -214,7 +224,7 @@
                   <q-file v-model="form.dokumen_pendukung" label="Pilih Dokumen" accept=".pdf,application/pdf" outlined
                      square dense class="bg-white margin_btn" />
 
-                 
+
 
                </q-card-section>
 
@@ -282,7 +292,8 @@
                         { label: 'B', value: 'B' },
                         { label: 'AB', value: 'AB' },
                         { label: 'O', value: 'O' }
-                     ]" outlined square :dense="true" class="bg-white margin_btn" />
+                     ]" outlined square dense emit-value map-options class="bg-white margin_btn" />
+
                      </div>
 
                      <div class="col-6">
@@ -290,7 +301,8 @@
                         <q-select v-model="form.rhesus" :options="[
                         { label: '+', value: '+' },
                         { label: '-', value: '-' }
-                     ]" outlined square :dense="true" class="bg-white margin_btn" />
+                     ]" outlined square dense emit-value map-options class="bg-white margin_btn" />
+
                      </div>
                   </div>
 
@@ -339,7 +351,7 @@
                   <div v-if="form.dokumen_pendukung_url" class="q-mb-md">
                      <a :href="form.dokumen_pendukung_url" target="_blank" rel="noopener">Lihat Dokumen Saat Ini</a>
                   </div>
-               
+
                </q-card-section>
 
                <q-card-actions class="bg-grey-4 mdl-footer" align="right">
@@ -351,7 +363,7 @@
       </q-dialog>
 
 
-       <!-- ================================================ MODAL HAPUS ================================================ -->
+      <!-- ================================================ MODAL HAPUS ================================================ -->
       <q-dialog v-model="mdl_hapus" persistent>
          <q-card class="mdl-sm">
             <q-card-section class="q-pt-none text-center orageGrad">
@@ -786,8 +798,8 @@ export default {
       async addData() {
          try {
 
-           
-           
+
+
 
             this.btn_add = true;
 
@@ -892,7 +904,7 @@ export default {
             if (!this.form.nama_lengkap || !this.form.tanggal_lahir || !this.form.jenis_kelamin || !this.form.golongan_darah) {
                throw new Error('Field wajib (Nama, TTL, Jenis Kelamin, Golongan Darah) harus diisi!');
             }
-           
+
             if (this.form.nik && this.form.nik.length < 16) {
                throw new Error('NIK harus berjumlah 16 angka!');
             }
@@ -1003,7 +1015,7 @@ export default {
             stokdarah_konut: 4,
             bersedia_dipublikasikan: true,
          };
-       
+
          this.kecamatanOptions = [];
          this.deskelOptions = [];
          this.errorMessage = '';
@@ -1011,7 +1023,7 @@ export default {
 
       async hapusData() {
          // Validasi ID wajib
-         if (!this.form.id ) {
+         if (!this.form.id) {
             this.$q.notify({
                type: 'negative',
                message: 'Data tidak valid. Silakan pilih ulang.'
@@ -1024,7 +1036,7 @@ export default {
          try {
             const payload = {
                id: this.form.id,
-             
+
             };
 
             const response = await fetch(this.$store.state.url.REGIS_DONOR + "removePendonor", {
@@ -1061,13 +1073,13 @@ export default {
       },
 
 
-      
+
       selectData(data) {
-        
+
          this.errorMessage = '';
          this.form = {
             ...data,
-           
+
             id: data.id
          };
          this.lihatData = {
@@ -1082,12 +1094,12 @@ export default {
             alamat: data.alamat || '',
             riwayat_penyakit: data.riwayat_penyakit || '',
             terakhir_donor: data.terakhir_donor || '',
-            kabupaten_nama: data.kabupaten_nama || '',  
+            kabupaten_nama: data.kabupaten_nama || '',
             kecamatan_nama: data.kecamatan_nama || '',
             des_kel_nama: data.des_kel_nama || '',
             foto_profil: data.foto_profil || '',
             dokumen_pendukung: data.dokumen_pendukung || '',
-          
+
             id: data.id || '',
          };
       },

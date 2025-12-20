@@ -2238,7 +2238,7 @@ export default {
                     });
                 }
 
-                this.$q.notify({ type: 'positive', message: 'Simpan tahap 1 berhasil.' });
+                this.$q.notify({ type: 'positive', message: 'Darah Siap diambil.' });
                 this.mdl_periksa = false;
                 this.getView();
 

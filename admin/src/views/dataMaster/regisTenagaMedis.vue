@@ -35,10 +35,10 @@
                   <thead class="h_table_head main2x text-white">
                      <tr>
                         <th width="5%" class="text-center">No</th>
-                        <th width="20%">Nama Ruangan</th>
-                        <th width="15%">Nama Penanggung Jawab</th>
+                        <th width="40%">Nama Ruangan</th>
+                        <th width="40%">Nama Penanggung Jawab</th>
                         <th width="10%">username</th>
-                        <th width="10%">Aksi</th>
+                        <th width="5%">Aksi</th>
                      </tr>
                   </thead>
                   <tbody>
@@ -163,7 +163,7 @@
                   <span class="h_lable">Username</span>
                   <q-input v-model="dataku.username" outlined square :dense="true" class="bg-white margin_btn" />
 
-                  <div class="row q-col-gutter-md">
+                  <!-- <div class="row q-col-gutter-md">
                      <div class="col-6">
                         <span class="h_lable">Password (kosongkan jika tidak ingin ganti)</span>
                         <q-input type="password" v-model="dataku.password" outlined square :dense="true"
@@ -174,7 +174,7 @@
                         <q-input type="password" v-model="dataku.confirmPassword" outlined square :dense="true"
                            class="bg-white margin_btn" />
                      </div>
-                  </div>
+                  </div> -->
 
                   <div v-if="errorMessage" class="q-mt-md bg-red text-white q-pa-sm">
                      {{ errorMessage }}
