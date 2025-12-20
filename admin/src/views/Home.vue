@@ -3,9 +3,17 @@
     <q-card bordered class="my-card">
       <!-- Header -->
       <q-card-section class="main2 text-white">
-        <div class="text-h6 h_titleHead">HOME</div>
-        <div class="text-h8">DASHBOARD PINDARA</div>
+        <div class="row items-start justify-between">
+          <!-- KIRI: TITLE -->
+          <div>
+            <div class="text-h6 h_titleHead">HOME</div>
+            <div class="text-h8">DASHBOARD PINDARA</div>
+          </div>
+
+        
+        </div>
       </q-card-section>
+
 
       <q-separator dark inset />
 
@@ -35,7 +43,7 @@
                   </div>
                   <div class="col-8 frWidgetSub2 widgetdashboardCSRNilai">
                     <span class="frWidgetText1">Permintaan Baru</span><br>
-                    <span class="frWidgetText2">{{ widgetStatus.permintaan_baru }}</span>
+                    <span class="frWidgetText2">{{ widgetStatus.permintaan_baru || 0 }}</span>
                   </div>
                 </div>
               </div>
@@ -48,7 +56,7 @@
                   </div>
                   <div class="col-8 frWidgetSub2 widgetdashboardProsesNilai">
                     <span class="frWidgetText1">Ditolak</span><br>
-                    <span class="frWidgetText2">{{ widgetStatus.ditolak }}</span>
+                    <span class="frWidgetText2">{{ widgetStatus.ditolak || 0 }}</span>
                   </div>
                 </div>
               </div>
@@ -61,7 +69,7 @@
                   </div>
                   <div class="col-8 frWidgetSub2 widgetdashboardSebagianNilai">
                     <span class="frWidgetText1">Darah Siap diambil</span><br>
-                    <span class="frWidgetText2">{{ widgetStatus.siap_ambil }}</span>
+                    <span class="frWidgetText2">{{ widgetStatus.siap_ambil || 0 }}</span>
                   </div>
                 </div>
               </div>
@@ -74,7 +82,7 @@
                   </div>
                   <div class="col-8 frWidgetSub2 widgetdashboardTerimaNilai">
                     <span class="frWidgetText1">Selesai</span><br>
-                    <span class="frWidgetText2">{{ widgetStatus.selesai }}</span>
+                    <span class="frWidgetText2">{{ widgetStatus.selesai || 0 }}</span>
                   </div>
                 </div>
               </div>
@@ -185,6 +193,8 @@
 
       </q-card-section>
     </q-card>
+   
+
 
 
   </div>
@@ -194,6 +204,8 @@
 export default {
   data() {
     return {
+      notifUnread: 0,
+      socket: null,
       selectedYear: new Date().getFullYear(),
       yearOptions: [
         2025,
@@ -219,6 +231,7 @@ export default {
   },
 
   methods: {
+
 
 
 

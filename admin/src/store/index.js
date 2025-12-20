@@ -6,8 +6,9 @@ import { Notify } from 'quasar'
 
 Vue.use(Vuex)
 
-var URL = 'http://localhost:5088/'
+// var URL = 'http://localhost:5088/'
 // var URL = 'http://192.168.1.8:5028/'
+var URL = 'https://server-pindara.bludrs-konut.id/'
 
 export default new Vuex.Store({
   state: {

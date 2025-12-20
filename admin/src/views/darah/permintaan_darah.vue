@@ -140,7 +140,7 @@
 
                             </div>
                         </td>
-                        <td class="text-center">{{ data.golongan_darah }}{{ data.rhesus }}</td>
+                        <td class="text-center">{{ data.golongan_darah || '-' }}{{ data.rhesus }}</td>
                         <td>{{ data.nama_komponen || '-' }}</td>
                         <td class="text-center">{{ data.jumlah_kantong }}</td>
                         <td class="text-center">{{ data.jumlah_darah_diberikan || "-" }}</td>
@@ -478,11 +478,11 @@
                                         <div class="value text-bold">{{ lihat_target.nama_ruangan || '-' }}</div>
                                     </div>
                                     <div class="row-line">
-                                        <div class="label">Tanggal Permintaan</div>
+                                        <div class="label">Tanggal Diperlukan</div>
                                         <div class="colon">:</div>
                                         <div class="value text-bold">
-                                            {{ lihat_target.tanggal_permintaan ?
-                                UMUM.tglConvert(lihat_target.tanggal_permintaan) : '-' }}
+                                            {{ lihat_target.tanggal_diperlukan ?
+                                UMUM.tglConvert(lihat_target.tanggal_diperlukan) : '-' }}
                                         </div>
                                     </div>
                                     <div class="row-line">
@@ -882,7 +882,7 @@
                             <div class="col-12 col-md-4">
                                 <span class="h_lable">Nomor RM</span>
                                 <q-input v-model="form_edit.nomor_rm" outlined square :dense="true"
-                                    class="bg-white margin_btn" />
+                                    class="bg-white margin_btn" required/>
                             </div>
 
                             <div class="col-12 col-md-4">
@@ -938,18 +938,18 @@
                             <div class="col-12 col-md-4">
                                 <span class="h_lable">Golongan Darah</span>
                                 <q-select v-model="form_edit.golongan_darah" :options="['A', 'B', 'O', 'AB']" outlined
-                                    square :dense="true" class="bg-white margin_btn" required />
+                                    square :dense="true" class="bg-white margin_btn" />
                             </div>
                             <div class="col-12 col-md-4">
                                 <span class="h_lable">Rhesus</span>
                                 <q-select v-model="form_edit.rhesus" :options="['+', '-']" outlined square :dense="true"
-                                    class="bg-white margin_btn" required />
+                                    class="bg-white margin_btn" />
                             </div>
                             <div class="col-12 col-md-4">
                                 <span class="h_lable">Komponen</span>
                                 <q-select v-model="form_edit.komponen_id" :options="list_komponen" option-value="id"
                                     option-label="nama_komponen" emit-value map-options outlined dense
-                                    class="bg-white margin_btn" required />
+                                    class="bg-white margin_btn" />
                             </div>
                         </div>
 
@@ -972,11 +972,11 @@
 
                         <span class="h_lable">Diagnosis Klinis</span>
                         <q-input v-model="form_edit.diagnosis_klinis" type="textarea" outlined square :dense="true"
-                            autogrow class="bg-white margin_btn" required />
+                            autogrow class="bg-white margin_btn"  />
 
                         <span class="h_lable">Alasan Transfusi</span>
                         <q-input v-model="form_edit.alasan_transfusi" type="textarea" outlined square :dense="true"
-                            autogrow class="bg-white margin_btn" required />
+                            autogrow class="bg-white margin_btn" />
 
 
                         <hr class="hrpagin2" />
