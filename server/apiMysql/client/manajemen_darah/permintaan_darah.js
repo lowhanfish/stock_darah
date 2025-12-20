@@ -604,7 +604,7 @@ router.post('/updateStatus', (req, res) => {
 
               return res.json({
                 success: true,
-                message: 'Status permintaan berhasil diperbarui'
+                // message: 'Status permintaan berhasil diperbarui'
               });
 
             });
