@@ -773,4 +773,23 @@ export default {
 .gallery-item:hover .hover-box {
     opacity: 1;
 }
+
+/* ===============================
+   JARAK ANTAR FEATURES CARD (MOBILE)
+   =============================== */
+   @media (max-width: 768px) {
+
+/* jarak antar kolom */
+.features .all-features-item > div[class*="col-"] {
+  margin-bottom: 20px;   /* 🔥 INI JARAK ANTAR KOTAK */
+}
+
+/* pastikan card tidak nempel ke tepi */
+.features .features-item {
+  margin: 0;
+}
+}
+
+
+
 </style>

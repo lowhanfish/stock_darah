@@ -4237,5 +4237,185 @@ li.ui-timepicker-selected, .ui-timepicker-list li:hover, .ui-timepicker-list .ui
   @media (max-width: 576px){
     .decor-right, .decor-left { display: none; }
   }
+  @media (max-width: 768px) {
+    .nav-bar .logo {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
   
+    .nav-bar .logo .logo-nav img {
+      height: 36px;
+      width: auto;
+      max-width: 180px; /* logo panjang ke kanan */
+      object-fit: contain;
+    }
+  
+    .open-nav-bar {
+      margin-left: auto; /* burger FIX kanan */
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .nav-bar .logo .logo-nav {
+      margin-right: 0 !important;   /* 🔥 MATIKAN BIANG KELADI */
+    }
+  }
+
+  /* =====================================
+   FIX STOK DARAH (blood-card) MOBILE
+   ===================================== */
+@media (max-width: 768px) {
+
+    .blood-card {
+      padding: 18px 16px;
+      border-radius: 16px;
+    }
+  
+    /* Header jadi vertikal */
+    .blood-card-header {
+      display: flex;
+      justify-content: center;
+    }
+  
+    .blood-type {
+      display: flex;
+      flex-direction: column;   /* 🔥 UBAH KE KOLOM */
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+    }
+  
+    /* Icon darah */
+    .blood-icon {
+      width: 56px;
+      height: 56px;
+      margin-bottom: 4px;
+    }
+  
+    /* Angka */
+    .blood-stats {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+  
+    .blood-stats .count {
+      font-size: 42px;
+      line-height: 1.1;
+      font-weight: 700;
+    }
+  
+    .blood-stats .unit {
+      font-size: 13px;
+      color: #777;
+    }
+  
+    /* Golongan + badge */
+    .blood-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+  
+    .blood-label .type-text {
+      font-size: 18px;
+      font-weight: 600;
+    }
+  
+    .blood-label .badge {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 12px;
+    }
+  
+    /* Footer */
+    .blood-card-footer {
+      margin-top: 14px;
+      text-align: center;
+    }
+  
+    .blood-card-footer .meta {
+      font-size: 12px;
+      color: #888;
+    }
+  }
+/* =====================================
+   FIX TOTAL HERO MOBILE (PAKSA MENANG)
+   ===================================== */
+  /* =====================================
+   HERO MOBILE FIX (GAMBAR TIDAK HILANG)
+   ===================================== */
+@media (max-width: 768px) {
+
+    /* hero tetap punya tinggi */
+    .hero-header,
+    .header,
+    .header-carousel,
+    .header .header-carousel .sec-hero {
+      min-height: 320px !important; /* AMAN */
+    }
+  
+    /* background tampil normal */
+    .sec-hero {
+      background-size: cover !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+    }
+  
+    /* biarkan sistem template bekerja */
+    .display-table,
+    .table-cell {
+      display: table !important;
+      height: 100% !important;
+    }
+  
+    /* rapat ke section bawah */
+    section.header {
+      margin-bottom: 0 !important;
+      padding-bottom: 0 !important;
+    }
+  }
+  
+
+  /* =====================================
+   FIX FEATURES KETUTUP HEADER (MOBILE)
+   ===================================== */
+@media (max-width: 768px) {
+
+    /* kasih jarak aman dari header */
+    section.features {
+      padding-top: 20px !important;
+      margin-top: 0 !important;
+    }
+  
+    /* pastikan card utuh */
+    .features .features-item {
+      overflow: visible;
+    }
+  
+    /* cegah ketimpa navbar */
+    .features .card-style {
+      margin-top: 0;
+    }
+  }
+  
+  /* =====================================
+   JARAK ANTAR BLOOD CARD (MOBILE)
+   ===================================== */
+@media (max-width: 768px) {
+
+    /* jarak antar card */
+    .blood-card {
+      margin-bottom: 20px;   /* 🔥 JARAK VERTIKAL */
+    }
+  
+    /* pastikan kolom tidak nambah jarak aneh */
+    .provide-content .col-md-6,
+    .provide-content .col-lg-3 {
+      margin-bottom: 0;
+    }
+  }
   
