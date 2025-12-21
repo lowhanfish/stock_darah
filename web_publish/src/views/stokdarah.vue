@@ -191,4 +191,56 @@ export default {
     height: auto;
     margin-bottom: 10px;
 }
+/* ================================
+   FORCE FULL TABLE ON MOBILE
+   ================================ */
+   @media (max-width: 768px) {
+
+/* paksa container tidak scroll */
+.box-appointment-doctors {
+  overflow-x: hidden !important;
+}
+
+table {
+  width: 100% !important;
+  table-layout: fixed !important;
+}
+
+thead th,
+tbody td {
+  padding: 4px 3px !important;
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+  text-align: center;
+  white-space: normal !important;
+  word-break: break-word;
+}
+
+/* kolom komponen */
+thead th:first-child,
+tbody td:first-child {
+  width: 34% !important;
+  font-size: 9.5px !important;
+  text-align: left;
+}
+
+/* kolom A B O AB TOTAL */
+thead th:not(:first-child),
+tbody td:not(:first-child) {
+  width: 13% !important;
+}
+
+/* header */
+thead th {
+  font-size: 10px !important;
+  font-weight: 600;
+}
+
+/* baris JUMLAH */
+tbody tr:last-child td {
+  font-weight: bold;
+  background: #f3f6fb;
+}
+}
+
 </style>
