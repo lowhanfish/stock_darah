@@ -2,30 +2,68 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../../db/MySql/umum'); // koneksi database
 
-function mapTargetRoleByStatus(status) {
-  switch (Number(status)) {
+function mapTargetRoomByStatus(status, ruanganId = null) {
+  const statusNum = Number(status);
+  
+  switch (statusNum) {
     case 1: // pengajuan baru → UPD
-      return 'admin_upd'
-
-    case 2: // diperiksa → tidak bunyi ke siapa pun
-      return null
+    case 4: // selesai → UPD
+      return 'upd';
 
     case 3: // siap diambil → RUANGAN
-      return 'admin_ruangan'
-
-    case 4: // selesai → UPD
-      return 'admin_upd'
-
     case 5: // ditolak → RUANGAN
-      return 'admin_ruangan'
-
     case 6: // telah diambil → RUANGAN
-      return 'admin_ruangan'
+      return ruanganId ? `ruangan:${ruanganId}` : null;
 
+    case 2: // sedang diperiksa → mungkin tidak perlu notifikasi
     default:
-      return null
+      return null;
   }
 }
+
+function emitStatusUpdate(req, status, permintaanId, ruanganId = null) {
+  const io = req.app.get('io');
+  
+  // Jika ruanganId sudah diberikan, gunakan langsung
+  if (ruanganId !== null) {
+    const room = mapTargetRoomByStatus(status, ruanganId);
+    if (room) {
+      io.to(room).emit('permintaan_status_update', {
+        id: permintaanId,
+        status,
+        pesan: statusText(status),
+        timestamp: new Date().toISOString()
+      });
+    }
+    return;
+  }
+  
+  // Jika ruanganId tidak diberikan, query dari database
+  db.query(
+    'SELECT ruangan_id FROM permintaan_darah WHERE id = ? LIMIT 1',
+    [permintaanId],
+    (err, rows) => {
+      if (err || !rows.length) {
+        console.error('Error getting ruangan_id for notification:', err);
+        return;
+      }
+
+      const ruanganId = rows[0].ruangan_id;
+      const room = mapTargetRoomByStatus(status, ruanganId);
+
+      if (room) {
+        io.to(room).emit('permintaan_status_update', {
+          id: permintaanId,
+          status,
+          pesan: statusText(status),
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+  );
+}
+
+
 
 
 function statusText(status) {
@@ -354,25 +392,33 @@ router.post('/addData', (req, res) => {
         message: 'Gagal menambah permintaan darah'
       });
     }
-  
-    /* ===== SOCKET NOTIFICATION (STATUS = 1) ===== */
-    const targetRole = mapTargetRoleByStatus(1) // status awal = 1
-    if (targetRole && req.app.get('io')) {
-      req.app.get('io').to(targetRole).emit('permintaan_status_update', {
-        id: result.insertId,
-        status: 1,
-        pesan: statusText(1)
-      })
-    }
-    /* =========================================== */
-  
-    return res.json({
-      success: true,
-      message: 'Permintaan darah berhasil diajukan',
-      id: result.insertId
-    });
+
+    const insertedId = result.insertId;
+    db.query(
+      'SELECT ruangan_id FROM permintaan_darah WHERE id = ? LIMIT 1',
+      [insertedId],
+      (err, rows) => {
+        if (err || !rows.length) {
+          console.error('Gagal mendapatkan data ruangan setelah insert:', err);
+          // Tetap berikan response sukses meskipun notifikasi gagal
+          return res.json({
+            success: true,
+            message: 'Permintaan darah berhasil diajukan (notifikasi gagal)',
+            id: insertedId
+          });
+        }
+
+        const ruanganId = rows[0].ruangan_id;
+        emitStatusUpdate(req, 1, insertedId, ruanganId); // Kirim ruanganId sebagai parameter
+
+        return res.json({
+          success: true,
+          message: 'Permintaan darah berhasil diajukan',
+          id: insertedId
+        });
+      }
+    );
   });
-  
 });
 
 
@@ -591,16 +637,7 @@ router.post('/updateStatus', (req, res) => {
               }
               connection.release();
 
-              /* ===== SOCKET NOTIFICATION ===== */
-              const targetRole = mapTargetRoleByStatus(status);
-              if (targetRole && req.app.get('io')) {
-                req.app.get('io').to(targetRole).emit('permintaan_status_update', {
-                  id,
-                  status,
-                  pesan: statusText(status)
-                });
-              }
-              /* =============================== */
+              emitStatusUpdate(req, status, id)
 
               return res.json({
                 success: true,
@@ -731,21 +768,14 @@ router.post('/updateStatus', (req, res) => {
                     }
                     connection.release();
 
-                    /* ===== SOCKET NOTIFICATION ===== */
-                    const targetRole = mapTargetRoleByStatus(status);
-                    if (targetRole && req.app.get('io')) {
-                      req.app.get('io').to(targetRole).emit('permintaan_status_update', {
-                        id,
-                        status,
-                        pesan: statusText(status)
-                      });
-                    }
-                    /* =============================== */
+                   
+                    emitStatusUpdate(req, status, id)
 
                     return res.json({
                       success: true,
                       message: 'Status permintaan diperbarui dan transaksi darah keluar tercatat.'
                     });
+
 
                   });
                 });
@@ -918,7 +948,7 @@ router.post('/delete', (req, res) => {
 
     const statusNow = Number(rows[0].status || 1);
     // hanya izinkan hapus bila Diajukan(1) atau Ditolak(4)
-    if (![1, 4].includes(statusNow)) {
+    if (![1, 5].includes(statusNow)) {
       return res.status(409).json({ success: false, message: 'Tidak bisa menghapus permintaan yang sedang diproses atau sudah disetujui' });
     }
 
