@@ -8,7 +8,6 @@ const { checkTokenSeetUser, isLoggedIn } = require('../../../auth/middlewares');
 const fs = require('fs'); // Tambahkan di atas file jika belum ada
 // const pdf = require('html-pdf');
 
-const qrcode = require('qrcode');
 
 let sharedBrowser = null;
 
@@ -613,18 +612,19 @@ router.get('/pemeriksaan/pdf', checkTokenSeetUser, isLoggedIn, (req, res) => {
     const data = rows[0];
 
     // Generate QR Code
-    let qrcodeUrl = '';
-    try {
-      const qrData = `http://localhost:5088/api/v1/reaksi_transfusi/validate/${reaksiId}`;
-      qrcodeUrl = await qrcode.toDataURL(qrData, {
-        width: 80,
-        margin: 1,
-        color: { dark: '#000000', light: '#FFFFFF' }
-      });
-    } catch (qrErr) {
-      qrcodeUrl = '';
-    }
-    data.qrcode_url = qrcodeUrl;
+    // let qrcodeUrl = '';
+    // try {
+    //   const qrData = `https://admin-pindara.bludrs-konut.id/api/v1/qrcode_reaksi/${reaksiId}`;
+
+    //   qrcodeUrl = await qrcode.toDataURL(qrData, {
+    //     width: 80,
+    //     margin: 1,
+    //     color: { dark: '#000000', light: '#FFFFFF' }
+    //   });
+    // } catch (qrErr) {
+    //   qrcodeUrl = '';
+    // }
+    // data.qrcode_url = qrcodeUrl;
 
     try {
       const templatePath = path.join(__dirname, '../../../services/reaksiTransfusiTemplate.ejs');
@@ -841,6 +841,41 @@ router.post('/pemeriksaan/edit', (req, res) => {
   }
 });
 
+// GET /api/v1/reaksi_transfusi/validate/:id
+// router.get('/validate/:id', async (req, res) => {
+//   const reaksiId = req.params.id;
+
+//   const sql = `
+//     SELECT 
+//       r.id,
+//       r.jenis_reaksi,
+//       r.jam_terjadi,
+//       r.created_at,
+//       p.nama_pasien,
+//       p.nomor_rm,
+//       pr.dpjp_lab
+//     FROM reaksi_transfusi r
+//     LEFT JOIN permintaan_darah p ON p.id = r.permintaan_id
+//     LEFT JOIN pemeriksaan_pretransfusi pr ON pr.reaksi_id = r.id
+//     WHERE r.id = ?
+//     LIMIT 1
+//   `;
+
+//   db.query(sql, [reaksiId], (err, rows) => {
+//     if (err) {
+//       return res.status(500).send('Server error');
+//     }
+
+//     if (!rows || rows.length === 0) {
+//       return res.status(404).send('Dokumen tidak ditemukan');
+//     }
+
+//     // Render halaman VALIDASI (HTML biasa)
+//     res.render('validasiReaksiTransfusi.ejs', {
+//       data: rows[0]
+//     });
+//   });
+// });
 
 
 
