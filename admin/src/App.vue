@@ -34,8 +34,6 @@
 
 <script>
 
-
-import { AppFullscreen } from 'quasar'
 import HelloWorld from './components/HelloWorld.vue'
 import io from 'socket.io-client'
 
@@ -59,40 +57,43 @@ export default {
     }
   },
   methods: {
+    unlockAudio() {
+      if (this.audioUnlocked) return
 
-    unlockAudio () {
-    if (this.audioUnlocked) return
+      const audio = this.$refs.notifSound
+      if (!audio) return
 
-    const audio = this.$refs.notifSound
-    if (!audio) return
+      audio.volume = 0
+      audio.play().then(() => {
+        audio.pause()
+        audio.currentTime = 0
+        audio.volume = 1
 
-    audio.volume = 0
-    audio.play().then(() => {
-      audio.pause()
+        this.audioUnlocked = true
+        localStorage.setItem('audioUnlocked', '1')
+
+        this.$q.notify({
+          type: 'positive',
+          message: 'Notifikasi suara aktif'
+        })
+      }).catch(() => { })
+    },
+
+    playNotifSound() {
+      if (!this.audioUnlocked) return
+
+      const audio = this.$refs.notifSound
+      if (!audio) return
+
       audio.currentTime = 0
-      audio.volume = 1
-
-      this.audioUnlocked = true
-      localStorage.setItem('audioUnlocked', '1')
-
-      this.$q.notify({
-        type: 'positive',
-        message: 'Notifikasi suara aktif'
+      audio.play().catch(() => {
+        // ❗ browser blokir = NORMAL
+        // ❗ jangan dimatikan manual
       })
-    }).catch(() => {})
-  },
-
-    playNotifSound () {
-  if (!this.audioUnlocked) return
-
-  const audio = this.$refs.notifSound
-  audio.currentTime = 0
-  audio.play().catch(() => {})
-}
-
-
+    },
 
   },
+
   computed: {
     checkLogin() {
       if (this.$route.name === 'login') {
@@ -104,10 +105,8 @@ export default {
   },
 
   mounted() {
+
     var get_profile = JSON.parse(localStorage.profile);
-
-    // console.log(get_profile.profile)
-
     this.$store.state.unit_kerja = get_profile.profile.unit_kerja
     this.$store.state.unit_kerja_nama = get_profile.profile.unit_kerja_nama
     // ================= ROLE =================
@@ -119,27 +118,57 @@ export default {
           null
 
     if (!role) return
-
     // ================= SOCKET =================
     this.socket = io('https://server-pindara.bludrs-konut.id/', {
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
+      query: {
+        token: localStorage.token
+      }
     })
 
-    // PENTING: tunggu connect dulu
     this.socket.on('connect', () => {
       console.log('✅ SOCKET CONNECTED:', this.socket.id)
 
-      // join room SETELAH connect
-      this.socket.emit('join_role', role)
+      // ===== JOIN ROOM SOCKET =====
+      // if (tipe === 1 || tipe === 2) {
+      //   this.socket.emit('join_room', 'upd')
+      //   console.log('🔔 JOIN ROOM: upd')
+      // }
+
+      if (tipe === 3 && get_profile.profile.ruangan_id) {
+        this.socket.emit(
+          'join_room',
+          `ruangan:${get_profile.profile.ruangan_id}`
+        )
+        console.log(
+          '🔔 JOIN ROOM: ruangan:',
+          get_profile.profile.ruangan_id
+        )
+      }
     })
 
-    // ================= LISTENER NOTIFIKASI =================
+
+
     this.socket.on('permintaan_status_update', (payload) => {
       console.log('🔔 NOTIF DITERIMA:', payload)
 
       this.notifUnread++
-      this.playNotifSound()
 
+      if (this.audioUnlocked) {
+        this.playNotifSound()
+      } else {
+        this.$q.notify({
+          type: 'warning',
+          message: 'Klik ikon lonceng untuk mengaktifkan suara notifikasi',
+          position: 'top-right',
+          timeout: 3000
+        })
+      }
+
+      // 🔄 BERITAHU HALAMAN AKTIF
+  this.$root.$emit('permintaan-updated', payload)
+
+      // Notif visual SELALU tampil
       this.$q.notify({
         type: 'info',
         message: payload.pesan,
@@ -148,7 +177,13 @@ export default {
       })
     })
 
-    this.audioUnlocked = localStorage.getItem('audioUnlocked') === '1'
+    this.audioUnlocked = false
+    localStorage.removeItem('audioUnlocked')
+
+
+    console.log('TOKEN FRONTEND:', localStorage.getItem('token'))
+
+
 
   },
 }

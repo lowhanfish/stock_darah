@@ -78,31 +78,36 @@
                             <div class="removeTextDecoration">
                                 <!-- Pengajuan (bisa buka keterangan) -->
                                 <q-badge v-if="Number(data.status) === 1" color="orange" text-color="white"
-                                    class="q-pa-xs status-badge text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                    class="q-pa-xs status-badge text-bold cursor-pointer"
+                                    @click="lihatKeterangan(data)">
                                     Pengajuan
                                 </q-badge>
 
                                 <!-- Diperiksa (bisa buka keterangan) -->
                                 <q-badge v-else-if="Number(data.status) === 2" color="info" text-color="white"
-                                    class="q-pa-xs status-badge text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                    class="q-pa-xs status-badge text-bold cursor-pointer"
+                                    @click="lihatKeterangan(data)">
                                     Diperiksa
                                 </q-badge>
 
                                 <template v-else-if="Number(data.status) === 3">
                                     <q-badge v-if="tipe === 1 || tipe === 2" color="secondary" text-color="white"
-                                        class="q-pa-xs status-badge text-bold cursor-pointer" @click.stop="openStage2(data)">
+                                        class="q-pa-xs status-badge text-bold cursor-pointer"
+                                        @click.stop="openStage2(data)">
                                         Darah Siap Diambil
                                     </q-badge>
 
                                     <q-badge v-else-if="tipe === 3" color="secondary" text-color="white"
-                                        class="q-pa-xs status-badge text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                        class="q-pa-xs status-badge text-bold cursor-pointer"
+                                        @click="lihatKeterangan(data)">
                                         Darah Siap Diambil
                                     </q-badge>
                                 </template>
 
                                 <!-- Telah Diambil (klik -> buka modal view read-only) -->
                                 <q-badge v-else-if="Number(data.status) === 6" color="accent" text-color="white"
-                                    class="q-pa-xs status-badge text-bold cursor-pointer" @click.stop="openStage2(data)">
+                                    class="q-pa-xs status-badge text-bold cursor-pointer"
+                                    @click.stop="openStage2(data)">
                                     Darah Telah Diambil
                                 </q-badge>
 
@@ -114,7 +119,8 @@
 
                                 <!-- Ditolak (bisa buka keterangan) -->
                                 <q-badge v-else-if="Number(data.status) === 5" color="negative" text-color="white"
-                                    class="q-pa-xs status-badge text-bold cursor-pointer" @click="lihatKeterangan(data)">
+                                    class="q-pa-xs status-badge text-bold cursor-pointer"
+                                    @click="lihatKeterangan(data)">
                                     Permintaan Ditolak
                                 </q-badge>
                             </div>
@@ -204,12 +210,12 @@
                         <hr class="hrpagin2" />
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-6">
-                                <span class="h_lable">Nama Dokter</span>
+                                <span class="h_lable">Nama Dokter*</span>
                                 <q-input v-model="form.nama_dokter" outlined square :dense="true"
                                     class="bg-white margin_btn" required />
                             </div>
                             <div class="col-12 col-md-6">
-                                <span class="h_lable">Nama Pasien</span>
+                                <span class="h_lable">Nama Pasien*</span>
                                 <q-input v-model="form.nama_pasien" outlined square :dense="true"
                                     class="bg-white margin_btn" required />
                             </div>
@@ -217,7 +223,7 @@
 
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-4">
-                                <span class="h_lable">Jenis Kelamin</span>
+                                <span class="h_lable">Jenis Kelamin*</span>
                                 <q-select v-model="form.jenis_kelamin"
                                     :options="[{ label: 'Laki-laki', value: 'L' }, { label: 'Perempuan', value: 'P' }]"
                                     option-value="value" option-label="label" emit-value map-options outlined square
@@ -227,13 +233,13 @@
 
 
                             <div class="col-12 col-md-4">
-                                <span class="h_lable">Nomor RM</span>
+                                <span class="h_lable">Nomor RM*</span>
                                 <q-input v-model="form.nomor_rm" outlined square :dense="true"
                                     class="bg-white margin_btn" />
                             </div>
 
                             <div class="col-12 col-md-4">
-                                <span class="h_lable">Tanggal Lahir</span>
+                                <span class="h_lable">Tanggal Lahir*</span>
                                 <q-input v-model="form.tanggal_lahir" type="date" outlined square :dense="true"
                                     class="bg-white margin_btn" />
                             </div>
@@ -269,13 +275,13 @@
                         </div>
 
 
-                        <span class="h_lable">Alamat</span>
+                        <span class="h_lable">Alamat*</span>
                         <q-input v-model="form.alamat" type="textarea" autogrow outlined square :dense="true"
                             class="bg-white margin_btn" />
 
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-6">
-                                <span class="h_lable">Nama Wali</span>
+                                <span class="h_lable">Nama Wali*</span>
                                 <q-input v-model="form.nama_wali" outlined square :dense="true"
                                     class="bg-white margin_btn" />
                             </div>
@@ -311,12 +317,12 @@
 
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-6">
-                                <span class="h_lable">Jumlah (Kantong)</span>
+                                <span class="h_lable">Jumlah (Kantong)*</span>
                                 <q-input v-model.number="form.jumlah_kantong" type="number" outlined square
                                     :dense="true" class="bg-white margin_btn" required />
                             </div>
                             <div class="col-12 col-md-6">
-                                <span class="h_lable">Jumlah (cc)</span>
+                                <span class="h_lable">Jumlah (cc)*</span>
                                 <q-input v-model.number="form.jumlah_cc" type="number" outlined square :dense="true"
                                     class="bg-white margin_btn" required />
                             </div>
@@ -324,12 +330,12 @@
 
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-6">
-                                <span class="h_lable">Tanggal Permintaan</span>
+                                <span class="h_lable">Tanggal Permintaan*</span>
                                 <q-input v-model="form.tanggal_permintaan" type="date" outlined square :dense="true"
                                     class="bg-white margin_btn" required />
                             </div>
                             <div class="col-12 col-md-6">
-                                <span class="h_lable">Tanggal Diperlukan</span>
+                                <span class="h_lable">Tanggal Diperlukan*</span>
                                 <q-input v-model="form.tanggal_diperlukan" type="date" outlined square :dense="true"
                                     class="bg-white margin_btn" />
                             </div>
@@ -882,7 +888,7 @@
                             <div class="col-12 col-md-4">
                                 <span class="h_lable">Nomor RM</span>
                                 <q-input v-model="form_edit.nomor_rm" outlined square :dense="true"
-                                    class="bg-white margin_btn" required/>
+                                    class="bg-white margin_btn" required />
                             </div>
 
                             <div class="col-12 col-md-4">
@@ -972,7 +978,7 @@
 
                         <span class="h_lable">Diagnosis Klinis</span>
                         <q-input v-model="form_edit.diagnosis_klinis" type="textarea" outlined square :dense="true"
-                            autogrow class="bg-white margin_btn"  />
+                            autogrow class="bg-white margin_btn" />
 
                         <span class="h_lable">Alasan Transfusi</span>
                         <q-input v-model="form_edit.alasan_transfusi" type="textarea" outlined square :dense="true"
@@ -1941,9 +1947,21 @@ export default {
         },
 
         resetForm() {
+            let ruanganId = null
+            let rumahSakitId = 1
+
+            try {
+                const p = JSON.parse(localStorage.profile || '{}')
+                if (p?.profile?.ruangan_id) {
+                    ruanganId = Number(p.profile.ruangan_id)
+                }
+                if (p?.profile?.rumah_sakit_id) {
+                    rumahSakitId = Number(p.profile.rumah_sakit_id)
+                }
+            } catch (e) { }
             this.form = {
                 rumah_sakit_id: 1,
-                ruangan_id: null,
+                ruangan_id: ruanganId,
                 nama_dokter: '',
                 tanggal_permintaan: '',
                 tanggal_diperlukan: '',
