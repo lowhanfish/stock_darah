@@ -6,10 +6,25 @@ var path = require("path");
 require('dotenv').config();
 const http = require('http');
 const socketIO = require('socket.io');
-
-
-
 const app = express();
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'services')); 
+app.get('/lihat', (req, res) => {
+  res.render('permintaan_darah_preview', {
+    data: {
+      nama_rs: 'RS Konawe Utara',
+      ruangan: 'Rawat Inap',
+      nama_dokter: 'dr. Andi',
+      nama_pasien: 'Budi Santoso',
+      no_rm: 'RM-00123',
+      diagnosis: 'Anemia Berat'
+    }
+  });
+});
+
+
+
+
 
 const middleware = require('./auth/middlewares');
 const auth = require('./auth');

@@ -141,4 +141,25 @@ router.post("/beritaHome", (req, res) => {
   }
 });
 
+router.get('/share/:id', (req, res) => {
+  const { id } = req.params;
+
+  res.send(`
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta property="og:title" content="Berita ${id}">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://pindara.bludrs-konut.id/api/v1/publish/beritaPublish/share/${id}">
+<script>
+  window.location.replace("/#/beritaisi/${id}");
+</script>
+</head>
+<body></body>
+</html>
+  `);
+});
+
+
 module.exports = router;

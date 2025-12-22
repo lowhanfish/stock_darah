@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Permintaan Darah Untuk Transfusi</title>
+
+<style>
+/* ================= PAGE ================= */
+@page {
+  size: A4 portrait;
+  margin: 1.2cm;
+}
+
+body {
+  font-family: "Times New Roman", Times, serif;
+  font-size: 11pt;
+  color: #000;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ================= GLOBAL TABLE ================= */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.outer {
+  border: 2px solid #000;
+}
+
+.outer td {
+  border: 1px solid #000;
+  vertical-align: top;
+  padding: 4px;
+}
+
+/* ================= HEADER ================= */
+.header {
+  text-align: center;
+  line-height: 1.2;
+}
+
+.header .title {
+  font-weight: bold;
+}
+
+.header .alamat {
+  font-size: 9pt;
+}
+
+.line-bold {
+  border-top: 3px solid #000;
+  margin-top: 4px;
+}
+
+.line-thin {
+  border-top: 1px solid #000;
+  margin-top: 2px;
+}
+
+/* ================= SECTION TITLE ================= */
+.section-title {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+/* ================= FORM LEFT ================= */
+.form td {
+  border: none;
+  padding: 2px 0;
+}
+
+.label {
+  width: 160px;
+}
+
+.colon {
+  width: 10px;
+}
+
+.value {
+  border-bottom: 1px dotted #000;
+}
+
+/* ================= CHECKBOX ================= */
+.checkbox {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 1px solid #000;
+  margin-right: 5px;
+}
+
+/* ================= SMALL TEXT ================= */
+.small {
+  font-size: 10pt;
+}
+
+/* ================= CENTER ================= */
+.center {
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<table class="outer">
+  <!-- ================= HEADER ================= -->
+  <tr>
+    <td colspan="2">
+      <div class="header">
+        <div class="title">PEMERINTAH KABUPATEN KONAWE UTARA</div>
+        <div class="title">BADAN LAYANAN UMUM DAERAH</div>
+        <div class="title">RUMAH SAKIT KONAWE UTARA</div>
+        <div class="alamat">
+          Jl. Poros Kendari–Asera, Desa Lahimbua Kec. Andowia 93353<br>
+          No. Telp. 085345432016, e-mail: blud.rskonut99@gmail.com
+        </div>
+      </div>
+      <div class="line-bold"></div>
+      <div class="line-thin"></div>
+    </td>
+  </tr>
+
+  <!-- ================= TITLE ================= -->
+  <tr>
+    <td colspan="2" class="center"><b>PERMINTAAN DARAH UNTUK TRANSFUSI</b></td>
+  </tr>
+
+  <!-- ================= MAIN 2 COLUMN ================= -->
+  <tr>
+    <!-- ================= LEFT ================= -->
+    <td width="50%">
+      <table class="form">
+        <tr><td class="label">Rumah Sakit</td><td class="colon">:</td><td class="value"><%= data.nama_rs || '' %></td></tr>
+        <tr><td class="label">Ruangan</td><td class="colon">:</td><td class="value"><%= data.ruangan || '' %></td></tr>
+        <tr><td class="label">Dokter yang meminta</td><td class="colon">:</td><td class="value"><%= data.nama_dokter || '' %></td></tr>
+        <tr><td class="label">Nama Pasien</td><td class="colon">:</td><td class="value"><%= data.nama_pasien || '' %></td></tr>
+        <tr><td class="label">No. RM</td><td class="colon">:</td><td class="value"><%= data.no_rm || '' %></td></tr>
+        <tr><td class="label">Nama Suami/Istri/Ayah</td><td class="colon">:</td><td class="value"></td></tr>
+        <tr><td class="label">Tgl. Lahir</td><td class="colon">:</td><td class="value"></td></tr>
+        <tr><td class="label">Alamat Rumah</td><td class="colon">:</td><td class="value"></td></tr>
+        <tr><td class="label">Tgl. Permintaan</td><td class="colon">:</td><td class="value"></td></tr>
+        <tr><td class="label">Tgl. Diperlukan</td><td class="colon">:</td><td class="value"></td></tr>
+      </table>
+
+      <br>
+      <b>Diagnosis klinis</b> : <span style="border-bottom:1px dotted #000; display:inline-block; width:70%"><%= data.diagnosis || '' %></span><br>
+      <b>Alasan transfusi</b> : <span style="border-bottom:1px dotted #000; display:inline-block; width:70%"></span><br>
+      <b>Transfusi sebelumnya</b> :
+      <span class="checkbox"></span>Ya
+      <span class="checkbox"></span>Tidak
+    </td>
+
+    <!-- ================= RIGHT ================= -->
+    <td width="50%">
+      <div class="section-title">PERHATIAN !</div>
+      <ul class="small">
+        <li>Beri tanda centang pada kotak yang dimaksud.</li>
+        <li>Setiap permintaan darah, harap disertai contoh darah beku minimal 2 cc.</li>
+        <li>Identitas pasien harus sama antara formulir dan contoh darah.</li>
+        <li>Sebelum transfusi, cocokkan etiket kantong darah.</li>
+      </ul>
+
+      <div class="section-title">HARAP DIBERIKAN</div>
+      <div><span class="checkbox"></span> Darah Lengkap</div>
+      <div><span class="checkbox"></span> Red Cells Concentrate (PRC)</div>
+      <div><span class="checkbox"></span> Fresh Frozen Plasma</div>
+      <div><span class="checkbox"></span> Thrombocyte Concentrate</div>
+    </td>
+  </tr>
+
+  <!-- ================= SIGN ================= -->
+  <tr>
+    <td class="center">
+      Nama dan tanda tangan Petugas<br><br><br>
+      ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )
+    </td>
+    <td class="center">
+      Nama dan tanda tangan Dokter yang meminta<br><br><br>
+      ( <%= data.nama_dokter || '' %> )
+    </td>
+  </tr>
+
+  <!-- ================= FOOTER ================= -->
+  <tr>
+    <td colspan="2" class="small">
+      * Lembar 1 (Putih) : Untuk UPDRS BLUD RS Konawe Utara<br>
+      * Lembar 2 (Merah) : Untuk Rumah Sakit<br>
+      * Lembar 3 (Biru) : Untuk Laboratorium RS / UPDRS<br>
+      * Lembar 4 (Hijau) : Untuk Unit Transfusi Darah
+    </td>
+  </tr>
+
+</table>
+
+</body>
+</html>

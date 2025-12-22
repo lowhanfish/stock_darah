@@ -6,9 +6,21 @@ const ejs = require('ejs');
 const puppeteer = require('puppeteer')
 const { checkTokenSeetUser, isLoggedIn } = require('../../../auth/middlewares');
 const fs = require('fs'); // Tambahkan di atas file jika belum ada
-const pdf = require('html-pdf');
+// const pdf = require('html-pdf');
 
 const qrcode = require('qrcode');
+
+let sharedBrowser = null;
+
+async function getBrowser() {
+  if (!sharedBrowser) {
+    sharedBrowser = await puppeteer.launch({
+      headless: 'new',
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+  }
+  return sharedBrowser;
+}
 
 
 
@@ -260,7 +272,7 @@ router.post('/editData', (req, res) => {
     const vJamTransfusi = toSqlDatetime(jam_transfusi);
     const vJamTerjadi = toSqlDatetime(jam_terjadi);
     const vJamDilaporkan = toSqlDatetime(jam_dilaporkan);
-    
+
     const sql = `
       UPDATE reaksi_transfusi 
       SET 
@@ -557,7 +569,7 @@ router.get('/pemeriksaan/view', (req, res) => {
 
 
 router.get('/pemeriksaan/pdf', checkTokenSeetUser, isLoggedIn, (req, res) => {
-  
+
   const profile = req.user && req.user.profile ? req.user.profile : null;
   const role = Number(profile?.stokdarah_konut || 0);
 
@@ -641,32 +653,92 @@ router.get('/pemeriksaan/pdf', checkTokenSeetUser, isLoggedIn, (req, res) => {
         return res.status(500).json({ success: false, message: 'HTML kosong, gagal generate PDF' });
       }
 
-      const options = {
-        format: 'A4',
-        border: { 
-            top: '10mm',     
-            bottom: '10mm',  
-            left: '10mm',    
-            right: '10mm'    
-        },
-        type: 'pdf'
-    };
+      //   const options = {
+      //     format: 'A4',
+      //     border: { 
+      //         top: '10mm',     
+      //         bottom: '10mm',  
+      //         left: '10mm',    
+      //         right: '10mm'    
+      //     },
+      //     type: 'pdf'
+      // };
 
-      pdf.create(html, options).toBuffer((err, pdfBuffer) => {
-        if (err) {
-          return res.status(500).json({ success: false, message: 'Gagal generate PDF' });
-        }
+      //   pdf.create(html, options).toBuffer((err, pdfBuffer) => {
+      //     if (err) {
+      //       return res.status(500).json({ success: false, message: 'Gagal generate PDF' });
+      //     }
+
+      //     if (!pdfBuffer || pdfBuffer.length === 0) {
+      //       return res.status(500).json({ success: false, message: 'PDF kosong' });
+      //     }
+
+      //     // Kirim PDF langsung sebagai buffer
+      //     res.setHeader('Content-Type', 'application/pdf');
+      //     res.setHeader('Content-Disposition', `inline; filename=reaksi_transfusi_${reaksiId}.pdf`);
+
+      //     return res.send(pdfBuffer);
+      //   });
+      // ===== TAMBAHKAN INI (tepat sebelum generate PDF) =====
+      res.on('close', () => {
+        console.warn('Client closed connection before PDF sent');
+      });
+
+      res.on('error', (err) => {
+        console.error('Response error:', err);
+      });
+
+      // ===== GENERATE PDF DENGAN PUPPETEER =====
+      let browser;
+      try {
+        // browser = await puppeteer.launch({
+        //   headless: 'new',
+        //   args: ['--no-sandbox', '--disable-setuid-sandbox']
+        // });
+        const browser = await getBrowser();
+        const page = await browser.newPage();
+
+        await page.setContent(html, {
+          // waitUntil: 'networkidle0'
+          waitUntil: 'load'
+        });
+
+        const pdfBuffer = await page.pdf({
+          format: 'A4',
+          margin: {
+            top: '10mm',
+            bottom: '10mm',
+            left: '10mm',
+            right: '10mm'
+          },
+          printBackground: true
+        });
 
         if (!pdfBuffer || pdfBuffer.length === 0) {
-          return res.status(500).json({ success: false, message: 'PDF kosong' });
+          throw new Error('PDF kosong');
         }
 
-        // Kirim PDF langsung sebagai buffer
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `inline; filename=reaksi_transfusi_${reaksiId}.pdf`);
+        res.setHeader(
+          'Content-Disposition',
+          `inline; filename=reaksi_transfusi_${reaksiId}.pdf`
+        );
 
-        return res.send(pdfBuffer);
-      });
+        return res.end(pdfBuffer);
+
+      } catch (err) {
+        console.error('PDF generation error:', err);
+        if (!res.headersSent) {
+          return res.status(500).json({
+            success: false,
+            message: 'Gagal generate PDF'
+          });
+        }
+      }
+      //  finally {
+      //   if (browser) await browser.close();
+      // }
+
 
     } catch (ex) {
       return res.status(500).json({ success: false, message: 'Gagal generate PDF: ' + ex.message });
