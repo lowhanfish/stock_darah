@@ -7,25 +7,6 @@ require('dotenv').config();
 const http = require('http');
 const socketIO = require('socket.io');
 const app = express();
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'services')); 
-app.get('/lihat', (req, res) => {
-  res.render('permintaan_darah_preview', {
-    data: {
-      nama_rs: 'RS Konawe Utara',
-      ruangan: 'Rawat Inap',
-      nama_dokter: 'dr. Andi',
-      nama_pasien: 'Budi Santoso',
-      no_rm: 'RM-00123',
-      diagnosis: 'Anemia Berat'
-    }
-  });
-});
-
-
-
-
-
 const middleware = require('./auth/middlewares');
 const auth = require('./auth');
 
@@ -38,12 +19,15 @@ app.use(cors({
 }));
 app.use(express.json());
 
+const permintaanDarahPdf = require('./apiMysql/client/manajemen_darah/permintaan_darah_pdf');
+app.use('/api/v1/permintaan_darah/pdf', permintaanDarahPdf);
+
 app.use(middleware.checkTokenSeetUser);
 
 
 app.get('/', (req, res) => {
   res.json({
-    message: '🦄🌈✨Hello pengunjung,,, Anda mengunjugi alamat yg salah... mungkin maksud anda http://konaweselatankab.go.id ! 🌈✨🦄',
+    message: '🦄🌈✨Hello pengunjung! 🌈✨🦄',
     user: req.user
   });
 });
@@ -172,21 +156,62 @@ const io = socketIO(server);
 // simpan io ke app agar bisa dipakai di router
 app.set('io', io);
 
-// socket logic
-io.on('connection', (socket) => {
-  console.log('🔌 Socket connected:', socket.id);
+// // socket logic
+// io.on('connection', (socket) => {
+//   console.log('🔌 Socket connected:', socket.id);
 
-  socket.on('join_role', (role) => {
-    if (role) {
-      socket.join(role);
-      console.log(`👥 socket ${socket.id} join role: ${role}`);
+//   socket.on('join_role', (role) => {
+//     if (role) {
+//       socket.join(role);
+//       console.log(`👥 socket ${socket.id} join role: ${role}`);
+//     }
+//   });
+
+//   socket.on('disconnect', () => {
+//     console.log('❌ socket disconnected:', socket.id);
+//   });
+// });
+
+const jwt = require('jsonwebtoken')
+
+io.on('connection', (socket) => {
+  // console.log('🔌 SOCKET CONNECTED:', socket.id)
+
+  try {
+    // 🔑 AMBIL TOKEN DARI QUERY (Socket.IO v2)
+    const token = socket.handshake.query?.token
+    // console.log('🧾 TOKEN SOCKET:', token)
+
+    if (!token) return
+
+    const decoded = jwt.verify(token, process.env.TOKEN_SECRET)
+    const profile = decoded?.profile || {}
+
+    const role = String(profile.stokdarah_konut || '')
+    const ruanganId = Number(profile.ruangan_id || 0)
+
+    // ✅ ADMIN UPD
+    if (['1', '2'].includes(role)) {
+      socket.join('upd')
+      // console.log('👥 JOIN ROOM: upd')
     }
-  });
+
+    // ✅ ADMIN RUANGAN
+    if (role === '3' && ruanganId) {
+      socket.join(`ruangan:${ruanganId}`)
+      // console.log(`👥 JOIN ROOM: ruangan:${ruanganId}`)
+    }
+
+  } catch (err) {
+    console.error('❌ Socket auth error:', err.message)
+  }
 
   socket.on('disconnect', () => {
-    console.log('❌ socket disconnected:', socket.id);
-  });
-});
+    console.log('❌ socket disconnected:', socket.id)
+  })
+})
+
+
 
 // jalankan server
 server.listen(port, '0.0.0.0', () => {

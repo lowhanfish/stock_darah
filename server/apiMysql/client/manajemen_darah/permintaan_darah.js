@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../../../db/MySql/umum'); // koneksi database
+const generatePermintaanPdf = require('../../../utils/generatePermintaanPdf');
+const fs = require('fs');
+const path = require('path');
+
 
 function mapTargetRoomByStatus(status, ruanganId = null) {
   const statusNum = Number(status);
@@ -637,6 +641,44 @@ router.post('/updateStatus', (req, res) => {
               }
               connection.release();
 
+              if (status === 4) {
+                // ambil data dulu
+                db.query(
+                  `SELECT p.*
+                   FROM permintaan_darah p
+                   WHERE p.id = ? LIMIT 1`,
+                  [id],
+                  async (err, rows) => {
+                    if (err || !rows.length) {
+                      console.error('Gagal ambil data untuk PDF:', err);
+                      return;
+                    }
+              
+                    // CEK: jangan buat ulang kalau sudah ada file
+                    if (rows[0].file) {
+                      return;
+                    }
+              
+                    try {
+                      // 🔥 BUAT PDF
+                      const pdfResult = await generatePermintaanPdf(id);
+              
+                      // 🔥 SIMPAN NAMA FILE KE DATABASE
+                      db.query(
+                        `UPDATE permintaan_darah
+                         SET file = ?, file_type = 'application/pdf'
+                         WHERE id = ?`,
+                        [pdfResult.filename, id]
+                      );
+                    } catch (e) {
+                      console.error('Gagal generate PDF:', e);
+                    }
+                  }
+                );
+              }
+              
+
+        
               emitStatusUpdate(req, status, id)
 
               return res.json({
@@ -962,5 +1004,81 @@ router.post('/delete', (req, res) => {
     });
   });
 });
+
+// router.get('/pdf/:id', (req, res) => {
+//   const { id } = req.params;
+
+//   db.query(
+//     'SELECT file, file_type FROM permintaan_darah WHERE id = ? LIMIT 1',
+//     [id],
+//     (err, rows) => {
+//       if (err || !rows.length || !rows[0].file) {
+//         return res.status(404).json({ message: 'File PDF tidak ditemukan' });
+//       }
+
+//       const filePath = path.join(process.cwd(), 'uploads', rows[0].file);
+
+//       if (!fs.existsSync(filePath)) {
+//         return res.status(404).json({ message: 'File fisik tidak ditemukan' });
+//       }
+
+//       res.setHeader('Content-Type', rows[0].file_type);
+//       res.sendFile(filePath);
+//     }
+//   );
+// });
+router.get('/pdf/:id', (req, res) => {
+  const { id } = req.params
+  const { key } = req.query   // ← pakai key, BUKAN token
+
+  if (!key) {
+    return res.status(401).json({ message: 'Key PDF tidak ditemukan' })
+  }
+
+  db.query(
+    `SELECT file, file_type, pdf_key, pdf_key_expired
+     FROM permintaan_darah
+     WHERE id = ?
+     LIMIT 1`,
+    [id],
+    (err, rows) => {
+      if (err) {
+        console.error('DB error pdf:', err)
+        return res.status(500).json({ message: 'DB error' })
+      }
+
+      if (!rows.length) {
+        return res.status(404).json({ message: 'Data tidak ditemukan' })
+      }
+
+      const row = rows[0]
+
+      // validasi key
+      if (
+        row.pdf_key !== key ||
+        !row.pdf_key_expired ||
+        new Date(row.pdf_key_expired) < new Date()
+      ) {
+        return res.status(403).json({ message: 'Link PDF tidak valid / expired' })
+      }
+
+      const filePath = path.join(process.cwd(), 'uploads', row.file)
+
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: 'File PDF tidak ditemukan' })
+      }
+
+      res.setHeader('Content-Type', 'application/pdf')
+      res.setHeader(
+        'Content-Disposition',
+        `inline; filename="${row.file}"`
+      )
+
+      return res.sendFile(filePath)
+    }
+  )
+})
+
+
 
 module.exports = router;

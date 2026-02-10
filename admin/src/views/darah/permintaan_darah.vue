@@ -833,10 +833,24 @@
                             <q-tooltip content-class="bg-red-8">Tolak permintaan (wajib isi alasan)</q-tooltip>
                         </q-btn>
                     </div>
-                    <!-- Jika status 3 atau 4 -->
-                    <div v-else>
-                        <q-btn label="Tutup" color="negative" v-close-popup @click="lihat_target = null" />
+            
+                    <div v-else class="row items-center q-gutter-sm">
+                        <q-btn
+                            label="Tutup"
+                            color="negative"
+                            v-close-popup
+                            @click="lihat_target = null"
+                        />
+
+                        <q-btn
+                            v-if="lihat_target && Number(lihat_target.status) === 4 && lihat_target.file"
+                            color="red-6"
+                            icon="picture_as_pdf"
+                            label="Buka PDF"
+                            @click="bukaPdf(lihat_target.id)"
+                        />
                     </div>
+
 
                     <!-- Tambahkan ini di q-card-actions modal detail (di sebelah tombol Tutup) -->
 
@@ -1073,12 +1087,12 @@
                         <!-- Ringkasan singkat -->
                         <div class="row q-col-gutter-md">
                             <div class="col-12 col-md-6">
-                                <div class="text-subtitle2">Nama Pasien</div>
+                                <div class="text-subtitle2">Nama Pasien*</div>
                                 <div class="text-body1 text-bold text-grey">{{ periksa_target.nama_pasien || '-' }}
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
-                                <div class="text-subtitle2">Komponen</div>
+                                <div class="text-subtitle2">Komponen*</div>
                                 <div class="text-body1 text-bold text-grey">{{ periksa_target.nama_komponen || '-' }}
                                 </div>
                             </div>
@@ -1090,13 +1104,13 @@
                         <q-form @submit.prevent="saveStage1" ref="formStage1">
                             <div class="row q-col-gutter-md">
                                 <div class="col-12 col-md-6">
-                                    <span class="h_lable">Petugas Pemeriksa</span>
+                                    <span class="h_lable">Petugas Pemeriksa*</span>
                                     <q-input v-model="form1.petugas_pemeriksa" outlined square :dense="true" required
                                         class="bg-white" :rules="[v => !!v || 'Petugas harus diisi']" />
                                 </div>
 
                                 <div class="col-12 col-md-6">
-                                    <span class="h_lable">Tanggal Pemeriksaan</span>
+                                    <span class="h_lable">Tanggal Pemeriksaan*</span>
                                     <!-- tampilkan tanggal yang di-format dari timestamp (read-only) -->
                                     <q-input outlined square :dense="true" class="bg-white" readonly
                                         :value="form1.tanggal_pemeriksaan ? formatDateFromTimestamp(form1.tanggal_pemeriksaan) : ''" />
@@ -1111,19 +1125,19 @@
                                         class="bg-white" hint="Opsional (diisi jika tersedia)" />
                                 </div>
                                 <div class="col-12 col-md-6">
-                                    <span class="h_lable">Komponen Darah</span>
+                                    <span class="h_lable">Komponen Darah*</span>
                                     <q-select v-model="form1.komponen_id" :options="list_komponen"
                                         option-label="nama_komponen" option-value="id" emit-value map-options outlined
                                         square :dense="true" class="bg-white" required />
                                 </div>
                                 <div class="col-12 col-md-6">
-                                    <span class="h_lable">Golongan Darah</span>
+                                    <span class="h_lable">Golongan Darah*</span>
                                     <q-select v-model="form1.golongan_darah" :options="['A', 'B', 'O', 'AB']" outlined
                                         square dense class="bg-white" required />
                                 </div>
 
                                 <div class="col-12 col-md-6">
-                                    <span class="h_lable">Rhesus</span>
+                                    <span class="h_lable">Rhesus*</span>
                                     <q-select v-model="form1.rhesus" :options="['+', '-']" outlined square dense
                                         class="bg-white" required />
                                 </div>
@@ -1135,23 +1149,23 @@
                             <!-- Nomor Kantong + Exp berdampingan -->
                             <div class="row q-col-gutter-md q-mt-sm">
                                 <div class="col-12 col-md-6">
-                                    <span class="h_lable">Jumlah Diberikan (Kantong)</span>
+                                    <span class="h_lable">Jumlah Diberikan (Kantong)*</span>
                                     <q-input v-model.number="form1.jumlah_darah_diberikan" type="number" outlined square
                                         :dense="true" class="bg-white" required />
                                 </div>
                                 <div class="col-12 col-md-6">
-                                    <span class="h_lable">Jumlah Diberikan (cc)</span>
+                                    <span class="h_lable">Jumlah Diberikan (cc)*</span>
                                     <q-input v-model.number="form1.jumlah_darah_diberikan_cc" type="number" outlined
                                         square :dense="true" class="bg-white" required />
                                 </div>
 
                                 <div class="col-12 col-md-6">
-                                    <span class="h_lable">Nomor Kantong</span>
+                                    <span class="h_lable">Nomor Kantong*</span>
                                     <q-input v-model.number="form1.nomor_kantong" outlined square :dense="true"
                                         class="bg-white" required />
                                 </div>
                                 <div class="col-12 col-md-6">
-                                    <span class="h_lable">Expired (exp)</span>
+                                    <span class="h_lable">Expired (exp)*</span>
                                     <q-input v-model="form1.exp" required type="date" outlined square :dense="true"
                                         class="bg-white" />
                                 </div>
@@ -1178,7 +1192,7 @@
                             </div>
 
                             <div class="col-12 q-mt-sm">
-                                <span class="h_lable">Catatan Tambahan Pemeriksa</span>
+                                <span class="h_lable">Catatan Tambahan Pemeriksa*</span>
                                 <q-input outlined dense type="textarea" autogrow v-model="form1.catatan_tambahan"
                                     class="bg-white" required />
                             </div>
@@ -1673,6 +1687,26 @@ export default {
 
     methods: {
 
+        bukaPdf() {
+            if (!this.lihat_target?.id || !this.lihat_target?.pdf_key) {
+                this.$q.notify({
+                type: 'negative',
+                message: 'PDF belum tersedia'
+                })
+                return
+            }
+           
+
+            window.open(
+                `https://server-pindara.bludrs-konut.id/api/v1/permintaan_darah/pdf/${this.lihat_target.id}?key=${this.lihat_target.pdf_key}`,
+                '_blank'
+            )
+            // window.open(
+            //     `http://localhost:5088/api/v1/permintaan_darah/pdf/${this.lihat_target.id}?key=${this.lihat_target.pdf_key}`,
+            //     '_blank'
+            // )
+        },
+
         openRevertModal(row) {
             this.revert_target = row;
             this.mdl_revert = true;
@@ -2119,10 +2153,42 @@ export default {
 
 
 
-        openLihat(data) {
-            this.lihat_target = data
-            this.mdl_lihat = true
+        async openLihat(row) {
+            this.mdl_lihat = true;
+            this.lihat_target = null;
+
+            const URL =
+                (this.$store.state.url.PERMINTAAN ||
+                    this.$store.state.url.BASE + 'permintaan_darah/') +
+                'detail/' + row.id;
+
+            try {
+                const res = await fetch(URL, {
+                    headers: {
+                        authorization: 'kikensbatara ' + localStorage.token
+                    }
+                });
+                const json = await res.json();
+
+                if (json.success) {
+                    this.lihat_target = json.data;
+                } else {
+                    this.$q.notify({
+                        type: 'negative',
+                        message: 'Gagal memuat detail permintaan'
+                    });
+                    this.mdl_lihat = false;
+                }
+            } catch (e) {
+                console.error(e);
+                this.$q.notify({
+                    type: 'negative',
+                    message: 'Error ambil detail permintaan'
+                });
+                this.mdl_lihat = false;
+            }
         },
+
 
         updateStatusRequest(payload) {
             const URL = this.$store.state.url.PERMINTAAN || (this.$store.state.url.BASE || '') + "permintaan_darah/";

@@ -774,21 +774,168 @@ export default {
     opacity: 1;
 }
 
-/* ===============================
-   JARAK ANTAR FEATURES CARD (MOBILE)
-   =============================== */
+/* =====================================
+   FEATURES – MOBILE FINAL VERSION
+   1 BARIS 1 CARD (LEBIH BESAR & RAPI)
+   ===================================== */
    @media (max-width: 768px) {
 
-/* jarak antar kolom */
+/* 1 card per baris */
 .features .all-features-item > div[class*="col-"] {
-  margin-bottom: 20px;   /* 🔥 INI JARAK ANTAR KOTAK */
+  flex: 0 0 100%;
+  max-width: 100%;
+  margin-bottom: 20px;
 }
 
-/* pastikan card tidak nempel ke tepi */
-.features .features-item {
-  margin: 0;
+/* Card lebih besar & empuk */
+.features .features-item.card-style {
+  padding: 20px 22px;
+  border-radius: 16px;
+}
+
+/* Paksa layout tetap horizontal */
+.features .features-item.card-style .card-content {
+  display: flex;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between;
+}
+
+/* Text kiri */
+.features .card-title {
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.features .card-number {
+  font-size: 32px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.features .card-sub {
+  font-size: 13px;
+}
+
+/* Ilustrasi kanan */
+.features .card-illustration {
+  flex: 0 0 110px;
+  text-align: right;
+}
+
+.features .features-icon {
+  width: 110px;
+  height: auto;
 }
 }
+
+/* Extra kecil (HP kecil) */
+@media (max-width: 480px) {
+
+.features .features-item.card-style {
+  padding: 18px;
+}
+
+.features .card-number {
+  font-size: 28px;
+}
+
+.features .features-icon {
+  width: 95px;
+}
+}
+
+/* =====================================
+   STOK DARAH – LOCK DESKTOP LAYOUT
+   MOBILE = DESKTOP STYLE
+   ===================================== */
+   @media (max-width: 768px) {
+
+/* 1 card per baris */
+.doctors .provide-content .col-md-6.col-lg-3 {
+  flex: 0 0 100%;
+  max-width: 100%;
+  margin-bottom: 20px;
+}
+
+/* HEADER CARD */
+.doctors .blood-card-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between;
+}
+
+/* BLOOD TYPE (ICON + STATS) */
+.doctors .blood-type {
+  display: flex !important;
+  flex-direction: row !important;   /* 🔥 PAKSA ROW */
+  align-items: center !important;
+  text-align: left !important;
+}
+
+/* ICON DARAH – BESAR & DI KIRI */
+.doctors .blood-icon {
+  width: 72px !important;           /* 🔥 BESAR */
+  height: auto;
+  margin-right: 16px;
+  flex-shrink: 0;
+}
+
+/* ANGKA + KETERANGAN */
+.doctors .blood-stats {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+}
+
+.doctors .blood-stats .count {
+  font-size: 34px !important;       /* 🔥 DOMINAN */
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.doctors .blood-stats .unit {
+  font-size: 14px;
+}
+
+/* GOLONGAN A / B / O / AB */
+.doctors .blood-label {
+  margin-left: 14px;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+}
+
+.doctors .blood-label .type-text {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* BADGE STATUS */
+.doctors .badge {
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 14px;
+}
+
+/* FOOTER */
+.doctors .blood-card-footer {
+  text-align: left !important;
+}
+}
+
+/* HP kecil */
+@media (max-width: 480px) {
+
+.doctors .blood-icon {
+  width: 64px !important;
+}
+
+.doctors .blood-stats .count {
+  font-size: 30px !important;
+}
+}
+
 
 
 

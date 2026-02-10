@@ -36,7 +36,7 @@
               <div class="contact-box">
                 <i class="flaticon-email"></i>
                 <div class="box">
-                  <a class="mail" href="mailto:pindara@konaweutarkab.go.id">pindara@konaweutarkab.go.id</a>
+                  <a class="mail" href="mailto:pindara@konaweutarakab.go.id">pindara@konaweutarkab.go.id</a>
                   <a class="mail" href="mailto:rsudkonaweutara@gmail.com">rsudkonaweutara@gmail.com</a>
                 </div>
               </div>

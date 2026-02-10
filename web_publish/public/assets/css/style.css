@@ -3042,12 +3042,18 @@ li.ui-timepicker-selected, .ui-timepicker-list li:hover, .ui-timepicker-list .ui
 .copyright{
     padding: 40px 0;
     background-color: #e93636;
-    overflow: hidden
+
+    /* 🔥 KUNCI CENTER */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
+
 .copyright p{
     margin: 0;
     color: #F4F4F4;
-    float: left;
+    float: none;          /* 🔥 MATIKAN FLOAT */
     font-family: 'Rajdhani', sans-serif;
     font-size: 18px;
     font-weight: 600;
@@ -3055,8 +3061,10 @@ li.ui-timepicker-selected, .ui-timepicker-list li:hover, .ui-timepicker-list .ui
 .copyright p a{
     color: #13ADE5;
 }
+
 .copyright ul{
-    float: right;
+    float: none;          /* 🔥 MATIKAN FLOAT */
+    margin-left: 10px;
 }
 .copyright ul li{
     display: inline-block;

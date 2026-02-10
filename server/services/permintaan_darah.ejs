@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Permintaan Darah Untuk Transfusi</title>
+
+  <style>
+    @page {
+      size: 21.59cm 35.56cm; /* 8.5 x 14 inch (LEGAL) */
+      margin: 0.6cm;
+    }
+
+    body {
+      font-family: "Times New Roman", Times, serif;
+      font-size: 9pt;
+      color: #000;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    .outer {
+      border: 2px solid #000;
+    }
+
+    .outer td {
+      border: 1px solid #000;
+      vertical-align: top;
+      padding: 4px;
+    }
+
+    .header {
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .header .title {
+      font-weight: bold;
+    }
+
+    .header .alamat {
+      font-size: 9pt;
+    }
+
+    .line-bold {
+      border-top: 3px solid #000;
+      margin-top: 4px;
+    }
+
+    .line-thin {
+      border-top: 1px solid #000;
+      margin-top: 2px;
+    }
+
+    .section-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .form td {
+      border: none;
+      padding: 2px 0;
+    }
+
+    .label {
+      width: 220px;
+    }
+
+    .colon {
+      width: 10px;
+    }
+
+    .value {
+      border-bottom: 1px dotted #000;
+    }
+
+    .checkbox {
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+      border: 1px solid #000;
+      text-align: center;
+      font-size: 11px;
+      line-height: 11px;
+      margin-right: 5px;
+    }
+
+    .small {
+      font-size: 10pt;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .form-line {
+      margin: 4px 0;
+    }
+
+    .form-line .label {
+      display: inline-block;
+      width: 180px;
+    }
+
+    .form-line .dots {
+      display: inline-block;
+      border-bottom: 1px dotted #000;
+      width: calc(100% - 190px);
+      min-height: 14px;
+    }
+
+    .form-line .dots.short {
+      width: 55%;
+    }
+
+    .form-line .checkbox-group {
+      display: inline-block;
+      margin-left: 20px;
+    }
+
+    .form-line .checkbox {
+      margin-left: 10px;
+    }
+
+    .harapkan-wrapper {
+      margin-top: 6px;
+    }
+
+    .harapkan-title {
+      font-weight: bold;
+      font-size: 9pt;
+      margin-bottom: 4px;
+    }
+
+    .harapkan-cols {
+      display: flex;
+      gap: 20px;
+    }
+
+    .harapkan-col {
+      width: 50%;
+    }
+
+    .harapkan-col .col-title {
+      font-size: 8pt;
+      text-decoration: underline;
+      margin-bottom: 6px;
+    }
+
+    .harapkan-line {
+      margin: 6px 0;
+    }
+
+    .harapkan-line .checkbox {
+      margin-right: 6px;
+    }
+
+    .harapkan-line .dots {
+      display: inline-block;
+      border-bottom: 1px dotted #000;
+      min-width: 70px;
+      height: 12px;
+      vertical-align: bottom;
+    }
+
+    .harapkan-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 24px;
+    }
+    
+    .harapkan-box {
+      padding-right: 6px;
+    }
+    
+    .harapkan-head {
+      font-size: smaller;
+      text-decoration: underline;
+      margin-bottom: 6px;
+    }
+    
+    .harapkan-sub {
+      margin-bottom: 6px;
+    }
+    
+    .harapkan-row {
+      display: grid;
+      grid-template-columns: 18px auto 1fr 22px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .plasma-wrapper {
+      margin-top: 6px;
+    }
+    
+    .plasma-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      column-gap: 12px;
+      align-items: start;
+    }
+    
+    .plasma-left {
+      font-weight: bold;
+    }
+    
+    .plasma-left .title {
+      text-decoration: underline;
+      margin-bottom: 4px;
+    }
+    
+    .plasma-right .row {
+      display: grid;
+      grid-template-columns: 18px auto 1fr 22px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .faktor-wrapper {
+      margin-top: 6px;
+    }
+    
+    .faktor-title {
+      font-weight: bold;
+      text-decoration: underline;
+      margin-bottom: 6px;
+    }
+    
+    .faktor-row {
+      display: grid;
+      grid-template-columns: 18px auto 1fr 60px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    
+    
+    
+  </style>
+</head>
+
+<body>
+
+  <table class="outer">
+
+    <!-- HEADER -->
+    <tr>
+      <td colspan="2">
+        <table width="100%">
+          <tr>
+            <!-- LOGO -->
+            <td width="90" style="vertical-align:top;">
+              <% if (kopImageUrl) { %>
+                <img src="<%= kopImageUrl %>" style="width:90px;" />
+                <% } %>
+            </td>
+
+            <!-- TEXT -->
+            <td class="header">
+              <div class="title">PEMERINTAH KABUPATEN KONAWE UTARA</div>
+              <div class="title">BADAN LAYANAN UMUM DAERAH</div>
+              <div class="title">RUMAH SAKIT KONAWE UTARA</div>
+              <div class="alamat">
+                Jl. Poros Kendari–Asera, Desa Lahimbua Kec. Andowia 93353<br>
+                Telp. 0853-4543-2016 • Email: blud.rskonut99@gmail.com
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        <div class="line-bold"></div>
+        <div class="line-thin"></div>
+      </td>
+    </tr>
+
+
+    <!-- TITLE -->
+    <tr>
+      <td colspan="2" class="center"><b>PERMINTAAN DARAH UNTUK TRANSFUSI</b></td>
+    </tr>
+
+    <!-- MAIN -->
+    <tr>
+      <!-- LEFT -->
+      <td width="50%">
+        <table class="form">
+          <tr>
+            <td class="label">Rumah Sakit</td>
+            <td class="colon">:</td>
+            <td class="value">BLUD RS KONUT</td>
+          </tr>
+          <tr>
+            <td class="label">Ruangan</td>
+            <td class="colon">:</td>
+            <td class="value">
+              <%= data.nama_ruangan || '-' %>
+            </td>
+          </tr>
+          <tr>
+            <td class="label">Dokter yang meminta</td>
+            <td class="colon">:</td>
+            <td class="value">
+              <%= data.nama_dokter || '-' %>
+            </td>
+          </tr>
+          <tr>
+            <td class="label">Nama Pasien</td>
+            <td class="colon">:</td>
+            <td class="value">
+              <%= data.nama_pasien || '-' %>
+            </td>
+          </tr>
+          <tr>
+            <td class="label">No. RM</td>
+            <td class="colon">:</td>
+            <td class="value">
+              <%= data.nomor_rm || '-' %>
+            </td>
+          </tr>
+          <tr>
+            <td class="label">Nama Wali</td>
+            <td class="colon">:</td>
+            <td class="value">
+              <%= data.nama_wali || '-' %>
+            </td>
+          </tr>
+          <tr>
+            <td class="label">Tgl. Lahir</td>
+            <td class="colon">:</td>
+            <td class="value">
+              <%= data.tanggal_lahir || '-' %>
+            </td>
+          </tr>
+          <tr>
+            <td class="label">Alamat Rumah</td>
+            <td class="colon">:</td>
+            <td class="value">
+              <%= data.alamat || '-' %>
+            </td>
+          </tr>
+          <tr>
+            <td class="label">Tgl. Permintaan</td>
+            <td class="colon">:</td>
+            <td class="value">
+              <% const tglPermintaan=data.tanggal_permintaan; if (tglPermintaan) { const d=new Date(tglPermintaan);
+                const hari=d.toLocaleDateString('id-ID', { weekday: 'long' }); const
+                tanggal=d.toLocaleDateString('id-ID', { day: '2-digit' , month: '2-digit' , year: 'numeric' }); %>
+                <%= hari %>, <%= tanggal %>
+                    <% } else { %>
+                      -
+                      <% } %>
+            </td>
+      </td>
+    </tr>
+    <tr>
+      <td class="label">Tgl. Diperlukan</td>
+      <td class="colon">:</td>
+      <td class="value">
+        <% const tglDiperlukan=data.tanggal_diperlukan; if (tglDiperlukan) { const d=new Date(tglDiperlukan); const
+          hari=d.toLocaleDateString('id-ID', { weekday: 'long' }); const tanggal=d.toLocaleDateString('id-ID', {
+          day: '2-digit' , month: '2-digit' , year: 'numeric' }); %>
+          <%= hari %>, <%= tanggal %>
+              <% } else { %>
+                -
+                <% } %>
+      </td>
+      </td>
+    </tr>
+  </table>
+
+  <!-- GARIS PEMISAH (SATU GARIS SAJA) -->
+  <div style="border-top:1px solid #000; margin:6px 0;"></div>
+  <table class="form" width="100%">
+    <tr>
+      <td class="label">Diagnosis klinis</td>
+      <td class="colon">:</td>
+      <td>
+        <%= data.diagnosis_klinis || '-' %>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="label">Alasan transfusi</td>
+      <td class="colon">:</td>
+      <td>
+        <%= data.alasan_transfusi || '-' %>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="label">Transfusi sebelumnya *</td>
+      <td class="colon">:</td>
+      <td>
+        <span class="checkbox">
+          <%= data.transfusi_sebelumnya==='Ya' ? '✓' : '' %>
+        </span> Ya
+        &nbsp;&nbsp;
+        <span class="checkbox">
+          <%= data.transfusi_sebelumnya==='Tidak' ? '✓' : '' %>
+        </span> Tidak
+      </td>
+    </tr>
+
+    <tr>
+      <td class="label">Kapan</td>
+      <td class="colon">:</td>
+      <td>
+        <%= data.transfusi_kapan || '-' %>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="label">Reaksi transfusi</td>
+      <td class="colon">:</td>
+      <td>
+        <span class="checkbox">
+          <%= data.reaksi_transfusi==='Ya' ? '✓' : '' %>
+        </span> Ya
+        &nbsp;&nbsp;
+        <span class="checkbox">
+          <%= data.reaksi_transfusi==='Tidak' ? '✓' : '' %>
+        </span> Tidak
+      </td>
+    </tr>
+
+    <tr>
+      <td class="label">Gejala</td>
+      <td class="colon">:</td>
+      <td>
+        <%= data.gejala_transfusi || '-' %>
+      </td>
+    </tr>
+  </table>
+
+  <div style="border-top:1px solid #000; margin:6px 0;"></div>
+  <table class="form" width="100%">
+    <tr>
+      <td class="label">
+        Apakah pernah diperiksa serologi golongan darah<br>
+        (Coomb’s test)?
+      </td>
+      <td class="colon">:</td>
+      <td>
+        <span class="checkbox">
+          <%= data.coomb_test==='Ya' ? '✓' : '' %>
+        </span> Ya
+        &nbsp;&nbsp;
+        <span class="checkbox">
+          <%= data.coomb_test==='Tidak' ? '✓' : '' %>
+        </span> Tidak
+      </td>
+    </tr>
+
+    <tr>
+      <td class="label">Dimana, Kapan</td>
+      <td class="colon">:</td>
+      <td>
+        <%= data.coomb_tempat || '-' %>
+          <% if (data.coomb_kapan) { const d=new Date(data.coomb_kapan); const tgl=d.toLocaleDateString('id-ID', {
+            day: '2-digit' , month: '2-digit' , year: 'numeric' }); %>
+            , <%= tgl %>
+              <% } %>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="label">Hasil</td>
+      <td class="colon">:</td>
+      <td>
+        <%= data.coomb_hasil || '-' %>
+      </td>
+    </tr>
+  </table>
+  <div style="border-top:1px solid #000; margin:6px 0;"></div>
+  <div style="font-weight:bold; margin-bottom:4px;">
+    Khusus untuk pasien wanita
+  </div>
+
+  <table class="form" width="100%">
+    <tr>
+      <td class="label">1. Jumlah kehamilan sebelumnya</td>
+      <td class="colon">:</td>
+      <td>
+        <%= data.jumlah_kehamilan || '-' %>
+      </td>
+    </tr>
+
+    <tr>
+      <td class="label">2. Pernah abortus</td>
+      <td class="colon">:</td>
+      <td>
+        <span class="checkbox">
+          <%= data.abortus==='Ya' ? '✓' : '' %>
+        </span> Ya
+        &nbsp;&nbsp;
+        <span class="checkbox">
+          <%= data.abortus==='Tidak' ? '✓' : '' %>
+        </span> Tidak
+      </td>
+    </tr>
+
+    <tr>
+      <td class="label">
+        3. Adakah sebelumnya penyakit hemolitik<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;pada bayi (HDN)
+      </td>
+      <td class="colon">:</td>
+      <td>
+        <span class="checkbox">
+          <%= data.hdn==='Ya' ? '✓' : '' %>
+        </span> Ya
+        &nbsp;&nbsp;
+        <span class="checkbox">
+          <%= data.hdn==='Tidak' ? '✓' : '' %>
+        </span> Tidak
+      </td>
+    </tr>
+  </table>
+
+  <!-- GARIS PEMISAH (SATU GARIS SAJA) -->
+  <div style="border-top:1px solid #000; margin:6px 0;"></div>
+  <div style="font-weight:bold; margin-bottom:4px;">
+    DISI OLEH PETUGAS UPD BLUD RS Konawe Utara
+  </div>
+  <table width="100%" style="border-collapse:collapse;">
+    <tr>
+      <!-- KIRI -->
+      <td style="vertical-align:top; width:60%;">
+        <table class="form" width="100%">
+          <tr>
+            <td class="label">Contoh darah pasien</td>
+            <td class="colon">:</td>
+            <td>
+              <%= data.contoh_darah_pasien || '-' %>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="label">Diterima tanggal</td>
+            <td class="colon">:</td>
+            <td>
+              <% if (data.updated_at) { const d=new Date(data.updated_at); const tgl=d.toLocaleDateString('id-ID', {
+                day:'2-digit', month:'2-digit', year:'numeric' }); %>
+                <%= tgl %>
+                  <% } else { %>
+                    -
+                    <% } %>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="label">Jam</td>
+            <td class="colon">:</td>
+            <td>
+              <%= data.jam_diterima || '-' %>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="label">Analis / PTTD Penerima</td>
+            <td class="colon">:</td>
+            <td>
+              <%= data.petugas_pengeluar || '-' %>
+            </td>
+          </tr>
+        </table>
+      </td>
+
+      <!-- KANAN (KOTAK ABO) -->
+      <td style="vertical-align:top; width:40%;">
+        <table width="100%" style="border-collapse:collapse; text-align:center;">
+          <tr>
+            <td style="border:1px solid #000; font-weight:bold;font-size:smaller">ABO</td>
+            <td style="border:1px solid #000; font-weight:bold;font-size:smaller">RHESUS</td>
+            <td style="border:1px solid #000; font-weight:bold;font-size:smaller">LAIN-LAIN</td>
+          </tr>
+          <tr style="height:50px;">
+            <td style="border:1px solid #000;">
+              <%= data.golongan_darah || '' %>
+            </td>
+            <td style="border:1px solid #000;">
+              <%= data.rhesus || '' %>
+            </td>
+            <td style="border:1px solid #000;">
+              <%= data.lain_lain || '' %>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+
+
+
+  </td>
+
+  <!-- RIGHT -->
+  <!-- RIGHT -->
+  <td width="50%" style="font-size:9pt;">
+    <div class="section-title">PERHATIAN !</div>
+    <ul class="small">
+      <li>Beri tanda centang pada kotak yang dimaksud.</li>
+      <li>Setiap permintaan darah, harap disertai contoh darah beku minimal 2 cc.</li>
+      <li>Identitas pasien harus sama antara formulir dan contoh darah.</li>
+      <li>Sebelum transfusi, cocokkan etiket kantong darah.</li>
+    </ul>
+
+
+    <div class="harapkan-wrapper">
+      <div class="harapkan-title">HARAP DIBERIKAN</div>
+  
+      <div class="harapkan-grid">
+  
+        <!-- KIRI : DARAH LENGKAP -->
+        <div class="harapkan-box">
+          <div class="harapkan-head">DARAH LENGKAP*) ICD-9,99.02</div>
+  
+          <div class="harapkan-row">
+            <span class="checkbox"></span>
+            <span>Segar (&lt;48 jam)</span>
+            <span> .............</span>
+            <span>cc</span>
+          </div>
+  
+          <div class="harapkan-row">
+            <span class="checkbox"></span>
+            <span>Baru (&lt;6 hari)</span>
+            <span> .................</span>
+            <span>cc</span>
+          </div>
+  
+          <div class="harapkan-row">
+            <span class="checkbox"></span>
+            <span>Biasa</span>
+            <span> ..............................</span>
+            <span>cc</span>
+          </div>
+        </div>
+  
+        <!-- KANAN : PRC -->
+        <div class="harapkan-box">
+          <div class="harapkan-head">RED CELLS CONCENTRATE*)</div>
+          <div class="harapkan-sub">(Packedcells) ICD-9.99.04</div>
+  
+          <div class="harapkan-row">
+            <span class="checkbox"></span>
+            <span>Biasa</span>
+            <span> ..........................</span>
+            <span>cc</span>
+          </div>
+  
+          <div class="harapkan-row">
+            <span class="checkbox">
+              <%= data.jumlah_cc ? '✓' : '' %>
+            </span>
+          
+            <span>Cuci</span>
+          
+            <span style="text-align:center;">
+              <%= data.jumlah_cc || '-' %>
+            </span>
+          
+            <span>cc</span>
+          </div>
+          
+        </div>
+  
+      </div>
+    </div>
+
+
+    <br>
+
+    <!-- PLASMA -->
+    <div class="plasma-wrapper">
+
+      <div class="plasma-grid">
+    
+        <!-- KIRI -->
+        <div class="plasma-left">
+          <div class="title">PLASMA*)</div>
+          <div>ICD-9.99.07</div>
+        </div>
+    
+        <!-- KANAN -->
+        <div class="plasma-right">
+    
+          <div class="row">
+            <span class="checkbox"></span>
+            <span>Plasma biasa</span>
+            <span></span>
+            <span>cc</span>
+          </div>
+    
+          <div class="row">
+            <span class="checkbox"></span>
+            <span><i>Fresh Frozen Plasma</i></span>
+            <span></span>
+            <span>cc</span>
+          </div>
+    
+        </div>
+    
+      </div>
+    
+    </div>
+    
+
+    <br>
+
+    <!-- FAKTOR PEMBEKUAN -->
+    <div class="faktor-wrapper">
+
+      <div class="faktor-title">FAKTOR PEMBEKUAN*)</div>
+    
+      <div class="faktor-row">
+        <span class="checkbox"></span>
+        <span>Thrombocyte Concentrate (TC) ICD-9.99.05</span>
+        <span>....................</span>
+        <span>kantong</span>
+      </div>
+    
+      <div class="faktor-row">
+        <span class="checkbox"></span>
+        <span>Cryoprecipitate ICD-9.99.06</span>
+        <span>.............................................</span>
+        <span>kantong</span>
+      </div>
+    
+      <div class="faktor-row">
+        <span class="checkbox"></span>
+        <span>Buffycoat-granulocyte Concentrate ICD-9.99.09</span>
+        <span>.............</span>
+        <span>kantong</span>
+      </div>
+    
+      <div class="faktor-row">
+        <span class="checkbox"></span>
+        <span>Lain</span>
+        <span></span>
+        <span></span>
+      </div>
+    
+    </div>
+
+    <table width="100%" style="border-collapse:collapse; margin-top:8px;">
+      <tr>
+        <!-- KIRI -->
+        <td style="
+          border:1px solid #000;
+          width:50%;
+          text-align:center;
+          padding:6px;
+          font-weight:bold;
+          vertical-align:top;
+          font-size:smaller;
+        ">
+          Nama dan tanda tangan Petugas<br>
+          yang mengambil contoh darah pasien
+        </td>
+    
+        <!-- KANAN -->
+        <td style="
+          border:1px solid #000;
+          width:50%;
+          text-align:center;
+          padding:6px;
+          font-weight:bold;
+          vertical-align:top;
+          font-size:smaller;
+        ">
+          Nama dan tanda tangan Dokter yang<br>
+          meminta darah & cap Rumah Sakit
+        </td>
+      </tr>
+    
+      <tr>
+        <!-- AREA TTD KIRI -->
+        <td style="
+          border:1px solid #000;
+          height:60px;
+          vertical-align:bottom;
+          text-align:center;
+          padding-bottom:8px;
+        ">
+          ( <%= data.petugas_pemeriksa || '...............................' %> )
+        </td>
+    
+        <!-- AREA TTD KANAN -->
+        <td style="
+          border:1px solid #000;
+          height:60px;
+          vertical-align:bottom;
+          text-align:center;
+          padding-bottom:8px;
+        ">
+          ( <%= data.nama_dokter || '...............................' %> )
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" style="border-collapse:collapse; margin-top:8px;">
+
+      <!-- HEADER -->
+      <tr>
+        <td rowspan="2" style="border:1px solid #000; width:65%; text-align:center; font-weight:bold;">
+          Hasil <i>Crossmatching</i>*)
+        </td>
+        <td colspan="3"  style="border:1px solid #000; text-align:center; font-weight:bold; font-size:smaller">
+          Analis / PTTD Pemeriksa
+        </td>
+      </tr>
+    
+      <!-- SUB HEADER KANAN -->
+      <tr>
+        <!-- <td style="border:1px solid #000;"></td> -->
+        <td style="border:1px solid #000; text-align:center; font-weight:bold;font-size:smaller">Nama</td>
+        <td style="border:1px solid #000; text-align:center; font-weight:bold;font-size:smaller">Tanggal</td>
+        <td style="border:1px solid #000; text-align:center; font-weight:bold;font-size:smaller">Jam</td>
+      </tr>
+    
+      <!-- ROW 1 -->
+      <tr>
+        <td style="border:1px solid #000; padding-left:6px;font-size:smaller">
+          Cocok / tidak cocok / tanpa <i>cross</i> / <i>emergency</i>
+        </td>
+        <td style="border:1px solid #000; height:28px;"></td>
+        <td style="border:1px solid #000;"></td>
+        <td style="border:1px solid #000;"></td>
+      </tr>
+    
+      <!-- ROW 2 -->
+      <tr>
+        <td style="border:1px solid #000; padding-left:6px;font-size:smaller">
+          Cocok / tidak cocok / tanpa <i>cross</i> / <i>emergency</i>
+        </td>
+        <td style="border:1px solid #000; height:28px;"></td>
+        <td style="border:1px solid #000;"></td>
+        <td style="border:1px solid #000;"></td>
+      </tr>
+    
+      <!-- ROW 3 -->
+      <tr>
+        <td style="border:1px solid #000; padding-left:6px;font-size:smaller">
+          Cocok / tidak cocok / tanpa <i>cross</i> / <i>emergency</i>
+        </td>
+        <td style="border:1px solid #000; height:28px;"></td>
+        <td style="border:1px solid #000;"></td>
+        <td style="border:1px solid #000;"></td>
+      </tr>
+    
+    </table>
+    
+
+
+
+
+    
+    <!-- batas -->
+
+  </td>
+
+  </tr>
+
+  <!-- SIGN -->
+
+<!--   
+  <tr>
+    <td class="center">
+      Nama dan tanda tangan Petugas<br><br><br>
+      ( ____________________ )
+    </td>
+    <td class="center">
+      Nama dan tanda tangan Dokter yang meminta<br><br><br>
+      ( <%= data.nama_dokter || '-' %> )
+    </td>
+  </tr> -->
+
+  <tr>
+    <td colspan="2" style="padding:0;">
+      <table width="100%" style="border-collapse:collapse; font-size:9pt;">
+  
+        <!-- HEADER ATAS -->
+        <tr>
+          <td rowspan="3"
+    style="
+      border:1px solid #000;
+      width:30px;
+      text-align:center;
+      font-weight:bold;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      vertical-align: middle;
+    ">
+  Nomor
+</td>
+
+  
+          <td rowspan="2" style="border:1px solid #000; text-align:center; font-weight:bold;">
+            Telah diberikan darah<br>
+            Dengan perincian
+          </td>
+  
+          <td style="border:1px solid #000; text-align:center; font-weight:bold;">
+            ABO
+          </td>
+          <td style="border:1px solid #000; text-align:center; font-weight:bold;">
+            RHESUS 
+          </td>
+          <td style="border:1px solid #000; text-align:center; font-weight:bold;">
+            LAIN-LAIN
+          </td>
+  
+          <td colspan="3" rowspan="2" style="border:1px solid #000; text-align:center; font-weight:bold; width:220px;">
+            Analis / PTTD yang mengeluarkan darah
+          </td>
+  
+          <td style="border:1px solid #000; text-align:center; font-weight:bold; font-size:smaller">
+            Keluarga petugas yang mengambil darah<br>
+            
+          </td>
+          
+        </tr>
+  
+        <!-- SUB HEADER -->
+        <tr>
+          <td style="border:1px solid #000; text-align:center; font-weight:bold;"><%= data.golongan_darah || '' %></td>
+          <td style="border:1px solid #000; text-align:center; font-weight:bold;"><%= data.rhesus || '' %></td>
+          <td style="border:1px solid #000; text-align:center; font-weight:bold;"></td>
+          <td style="border:1px solid #000; text-align:center; font-weight:bold; font-size:smaller">
+        
+            Nama / alamat / tanda tangan<br>
+            penerima darah
+          </td>
+  
+         
+        </tr>
+  
+        <!-- HEADER DETAIL -->
+        <tr>
+          <td style="border:1px solid #000; text-align:center; font-weight:bold;">
+            Jumlah yang dikeluarkan<br>(cc / kantong)
+          </td>
+          <td style="border:1px solid #000; text-align:center; font-weight:bold;">
+            Jenis darah
+          </td>
+          <td style="border:1px solid #000; text-align:center; font-weight:bold;">
+            Tanggal<br>Pengambilan
+          </td>
+          <td style="border:1px solid #000; text-align:center; font-weight:bold;">
+            No. Kantong
+          </td>
+  
+          <!-- <td style="border:1px solid #000; text-align:center; font-weight:bold;"></td> -->
+          <td style="border:1px solid #000; text-align:center; font-weight:bold;">Nama</td>
+          <td style="border:1px solid #000; text-align:center; font-weight:bold;">Tanggal</td>
+          <td style="border:1px solid #000; text-align:center; font-weight:bold;">Jam</td>
+          <td rowspan="5" style="border:1px solid #000; text-align:center; font-weight:bold;"></td>
+        </tr>
+  
+        <!-- ROW DATA (1–10) -->
+        <tr>
+          <td style="border:1px solid #000; text-align:center;">1</td>
+          <td style="border:1px solid #000;"><%= data.jumlah_darah_diberikan || '' %> Kantong/<%= data.jumlah_cc || '' %> c</td>
+          <td style="border:1px solid #000;"><%= data.komponen_id || '' %></td>
+          <td style="border:1px solid #000;"><% const tglPengambilan=data.tanggal_pengambilan; if (tglPengambilan) { const d=new Date(tglPengambilan);
+            const hari=d.toLocaleDateString('id-ID', { weekday: 'long' }); const
+            tanggal=d.toLocaleDateString('id-ID', { day: '2-digit' , month: '2-digit' , year: 'numeric' }); %>
+            <%= hari %>, <%= tanggal %>
+                <% } else { %>
+                  -
+                  <% } %></td>
+          <td style="border:1px solid #000;"><%= data.nomor_kantong || '' %></td>
+        
+          <td style="border:1px solid #000;"><%= data.petugas_pengeluar || '' %></td>
+          <td style="border:1px solid #000;">
+            <% if (data.updated_at) { 
+                 const d = new Date(data.updated_at);
+                 const tanggal = d.toLocaleDateString('id-ID', {
+                   day: '2-digit',
+                   month: '2-digit',
+                   year: 'numeric'
+                 });
+            %>
+              <%= tanggal %>
+            <% } else { %>
+              -
+            <% } %>
+          </td>
+          
+          <td style="border:1px solid #000; text-align:center;">
+            <% if (data.updated_at) { 
+                 const d = new Date(data.updated_at);
+                 const jam = d.toLocaleTimeString('id-ID', {
+                   hour: '2-digit',
+                   minute: '2-digit'
+                 });
+            %>
+              <%= jam %>
+            <% } else { %>
+              -
+            <% } %>
+          </td>
+          
+        </tr>
+        <tr>
+          <td style="border:1px solid #000; text-align:center;">2</td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #000; text-align:center;">3</td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #000; text-align:center;">4</td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #000; text-align:center;">5</td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #000; text-align:center;">6</td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #000; text-align:center;">7</td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #000; text-align:center;">8</td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #000; text-align:center;">9</td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        </tr>
+        <tr>
+          <td style="border:1px solid #000; text-align:center;">10</td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+          <td style="border:1px solid #000;"></td>
+        </tr>
+        
+  
+      </table>
+    </td>
+  </tr>
+  
+
+  <!-- FOOTER -->
+  <tr>
+    <td colspan="2" class="small">
+      * Lembar 1 (Putih) : Untuk UPDRS BLUD RS Konawe Utara<br>
+      * Lembar 2 (Merah) : Untuk Rumah Sakit<br>
+      * Lembar 3 (Biru) : Untuk Laboratorium RS / UPDRS<br>
+      * Lembar 4 (Hijau) : Untuk Unit Transfusi Darah
+    </td>
+  </tr>
+
+  </table>
+
+</body>
+
+</html>
