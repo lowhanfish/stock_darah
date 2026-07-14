@@ -134,7 +134,8 @@ function errorHandler(err, req, res, next) {
   res.status(res.statusCode || 500);
   res.json({
     message: err.message,
-    stack: err.stack
+    // Jangan tampilkan stack trace di production untuk keamanan
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 }
 
