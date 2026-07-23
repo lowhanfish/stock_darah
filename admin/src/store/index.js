@@ -1,83 +1,84 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import { Loading,  QSpinnerFacebook,  } from 'quasar'
+import { Loading, QSpinnerFacebook, } from 'quasar'
 import { Notify } from 'quasar'
 
 Vue.use(Vuex)
 
-var URL = 'http://localhost:5090/'
-// var URL = 'http://192.168.1.8:5028/'
-// var URL = 'https://server-pindara.bludrs-konut.id/'
+// var URL = 'http://localhost:5088/'
+var URL = 'https://server-pindara.bludrs-konut.id/'
 
 export default new Vuex.Store({
   state: {
-    coordinat : {
-      lat:-4.034694, 
+    coordinat: {
+      lat: -4.034694,
       lng: 122.484263
     },
-    btn : {
-      add : false,
-      edit : false,
-      remove : false,
+    btn: {
+      add: false,
+      edit: false,
+      remove: false,
     },
-    url : {
-      URL_APP : URL,
+    url: {
+      URL_APP: URL,
 
-      URL_simpeg_biodata : URL+'api/v1/dm_biodata/',
-      URL_simpeg_unit_kerja: URL+'api/v1/dm_unitKerja/',
-      URL_simpeg_instansi : URL+'api/v1/dm_instansi/',
+      URL_simpeg_biodata: URL + 'api/v1/dm_biodata/',
+      URL_simpeg_unit_kerja: URL + 'api/v1/dm_unitKerja/',
+      URL_simpeg_instansi: URL + 'api/v1/dm_instansi/',
 
-      URL_DM_REGISTER : URL+'api/v1/dm_registrasi/',
-      URL_DM_MENU : URL+'api/v1/dm_menuList/',
-      URL_DM_KLP_USERS : URL+'api/v1/dm_kelompokUsers/',
-      checkAuth : URL + 'api/v1/checkAuth/',
-
-
-      
-      DASHBOARD : URL + 'api/v1/dashboard/',
-      
-      BERITA : URL + 'api/v1/berita/',
-      STOK : URL + 'api/v1/stok_darah/',
-      REGIS_MEDIS : URL + 'api/v1/reg_tenagamedis/',
-      REGIS_DONOR : URL + 'api/v1/reg_pendonor/',
-      REGIS_MASYARAKAT : URL + 'api/v1/reg_masyarakat/',
-      REGIS_ADMIN_BDRS : URL + 'api/v1/reg_admin/',
-      KOMPONEN : URL + 'api/v1/komponen/',
-      PERMINTAAN : URL + 'api/v1/permintaan_darah/',
-      TRANSAKSI : URL + 'api/v1/transaksi_darah/',
-      REAKSI_TRANSFUSI : URL + 'api/v1/reaksi_transfusi/',
-
-      JADWAL_DONOR : URL + 'api/v1/jadwal_donor/',
-      FOTO : URL + 'api/v1/foto/'
+      URL_DM_REGISTER: URL + 'api/v1/dm_registrasi/',
+      URL_DM_MENU: URL + 'api/v1/dm_menuList/',
+      URL_DM_KLP_USERS: URL + 'api/v1/dm_kelompokUsers/',
+      checkAuth: URL + 'api/v1/checkAuth/',
 
 
-      
+
+      DASHBOARD: URL + 'api/v1/dashboard/',
+
+      BERITA: URL + 'api/v1/berita/',
+      STOK: URL + 'api/v1/stok_darah/',
+      REGIS_MEDIS: URL + 'api/v1/reg_tenagamedis/',
+      REGIS_DONOR: URL + 'api/v1/reg_pendonor/',
+      REGIS_MASYARAKAT: URL + 'api/v1/reg_masyarakat/',
+      REGIS_ADMIN_BDRS: URL + 'api/v1/reg_admin/',
+      KOMPONEN: URL + 'api/v1/komponen/',
+      PERMINTAAN: URL + 'api/v1/permintaan_darah/',
+      TRANSAKSI: URL + 'api/v1/transaksi_darah/',
+      REAKSI_TRANSFUSI: URL + 'api/v1/reaksi_transfusi/',
+      RENCANA_KEBUTUHAN: URL + 'api/v1/rencana_kebutuhan_darah/',
+      DARAH_KELUAR: URL + 'api/v1/darah_keluar/',
+
+      JADWAL_DONOR: URL + 'api/v1/jadwal_donor/',
+      FOTO: URL + 'api/v1/foto/'
+
+
+
     },
 
     // ====================================== CONTOH AUTOCOMPLETE ====================================
-    list_contoh_autocomplete : [],
+    list_contoh_autocomplete: [],
     list_unit_kerja: [],
     list_instansi: [],
     // ====================================== CONTOH AUTOCOMPLETE ====================================
 
-    list_menu : null,
-    aksesMenu : {},
+    list_menu: null,
+    aksesMenu: {},
 
     page_first: 1,
     page_last: 0,
     cari_value: "",
-    cek_load_data : true,
+    cek_load_data: true,
 
-    type : [
-      {id : 0, uraian : 'Single Menu'},
-      {id : 1, uraian : 'Multy Menu'}
+    type: [
+      { id: 0, uraian: 'Single Menu' },
+      { id: 1, uraian: 'Multy Menu' }
     ],
 
-    
+
   },
   mutations: {
-    listJeniskategorilokasi(state){
+    listJeniskategorilokasi(state) {
 
       fetch(state.url.URL_MasterKategoriLokasi, {
         method: "GET",
@@ -89,11 +90,11 @@ export default new Vuex.Store({
         .then(res => res.json())
         .then(res_data => {
           state.list_MasterKategoriLokasi = res_data;
-      });
+        });
 
     },
 
-    listApelJenis(state){
+    listApelJenis(state) {
 
       fetch(state.url.URL_apelJenis, {
         method: "GET",
@@ -106,15 +107,15 @@ export default new Vuex.Store({
         .then(res_data => {
           // console.log(res_data)
           state.list_ApleJenis = res_data;
-      });
+        });
 
     },
 
-    getStorage(state){
+    getStorage(state) {
       var get_profile = JSON.parse(localStorage.profile);
-      state.unit_kerja = get_profile.profile.unit_kerja; 
+      state.unit_kerja = get_profile.profile.unit_kerja;
     },
-    shoWLoading(){
+    shoWLoading() {
       const spinner = typeof QSpinnerFacebook !== 'undefined'
         ? QSpinnerFacebook // Non-UMD, imported above
         : Quasar.components.QSpinnerFacebook // eslint-disable-line
@@ -129,15 +130,15 @@ export default new Vuex.Store({
         // messageColor: 'blue'
       })
     },
-    hideLoading(){
+    hideLoading() {
       Loading.hide()
     },
-    shoWNotify(state, message, color, icon){
+    shoWNotify(state, message, color, icon) {
       Notify.create({
         message: message,
         color: color,
-        position : 'top-right',
-        icon:icon
+        position: 'top-right',
+        icon: icon
       })
     },
   },

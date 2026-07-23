@@ -76,6 +76,18 @@ const routes = [
     component: () => import('../views/darah/transaksi_darah.vue'),
     beforeEnter: isLoggedIn,
   },
+  {
+    path: '/rencana_kebutuhan_darah',
+    name: 'Rencana Kebutuhan Darah',
+    component: () => import('../views/darah/rencana_kebutuhan_darah.vue'),
+    beforeEnter: isLoggedIn,
+  },
+  {
+    path: '/darah_keluar',
+    name: 'Darah Keluar',
+    component: () => import('../views/darah/darah_keluar.vue'),
+    beforeEnter: isLoggedIn,
+  },
 
 
   {

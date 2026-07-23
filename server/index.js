@@ -1,3 +1,11 @@
+if (typeof global.ReadableStream === 'undefined') {
+  try {
+    global.ReadableStream = require('stream/web').ReadableStream;
+  } catch (e) {
+    console.warn('⚠️ Gagal memuat ReadableStream polyfill:', e.message);
+  }
+}
+
 const express = require('express');
 // const volleyball = require('volleyball');
 const cors = require('cors');
@@ -84,6 +92,10 @@ const permintaan_darah = require('./apiMysql/client/manajemen_darah/permintaan_d
 app.use('/api/v1/permintaan_darah', middleware.isLoggedIn, permintaan_darah);
 const reaksi_transfusi = require('./apiMysql/client/manajemen_darah/reaksi_transfusi');
 app.use('/api/v1/reaksi_transfusi', middleware.isLoggedIn, reaksi_transfusi);
+const rencana_kebutuhan_darah = require('./apiMysql/client/rencana_kebutuhan_darah');
+app.use('/api/v1/rencana_kebutuhan_darah', middleware.isLoggedIn, rencana_kebutuhan_darah);
+const darah_keluar = require('./apiMysql/client/darah_keluar');
+app.use('/api/v1/darah_keluar', middleware.isLoggedIn, darah_keluar);
 
 // =================== CLIENT =====================
 
