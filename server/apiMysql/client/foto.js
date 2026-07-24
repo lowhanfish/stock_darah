@@ -10,7 +10,7 @@ var upload = require('../../db/multer/image');
 var uniqid = require('uniqid');
 const { log } = require('console');
 const router = express.Router();
-const UPLOADS_DIR = path.join(__dirname, '..', '..', 'public', 'uploads');
+const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads');
 
 // ---------- GETVIEW (POST) ----------
 router.post('/getview', (req, res) => {

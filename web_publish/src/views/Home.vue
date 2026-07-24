@@ -173,7 +173,7 @@
 
 
                             <div class="content-row" v-if="loading">Memuat jadwal...</div>
-                            <div class="content-row" v-else>
+                            <div class="content-row" v-else-if="jadwal">
 
                                 <div class="schedule">
                                     <p><strong>Nama Kegiatan:</strong><br> {{ jadwal.nama_kegiatan || '—' }}</p>
@@ -182,9 +182,9 @@
                                             v-if="jadwal.tanggal_mulai && jadwal.tanggal_selesai && jadwal.tanggal_mulai !== jadwal.tanggal_selesai">
                                             {{ (UMUM.tglConvert(jadwal.tanggal_mulai)?.tgl) ||
                                     UMUM.tglConvert(jadwal.tanggal_mulai) || '' }}
-                                            –
-                                            {{ (UMUM.tglConvert(jadwal.tanggal_selesai)?.tgl) ||
-                                    UMUM.tglConvert(jadwal.tanggal_selesai) || '' }}
+                                             –
+                                             {{ (UMUM.tglConvert(jadwal.tanggal_selesai)?.tgl) ||
+                                     UMUM.tglConvert(jadwal.tanggal_selesai) || '' }}
                                         </span>
                                         <span v-else-if="jadwal.tanggal_mulai">
                                             {{ (UMUM.tglConvert(jadwal.tanggal_mulai)?.tgl) ||
@@ -204,8 +204,9 @@
                                     <div v-else class="no-poster">Tidak ada poster</div>
                                 </div>
 
-
-
+                            </div>
+                            <div class="content-row" v-else>
+                                <div class="no-schedule">Belum ada jadwal donor darah saat ini.</div>
                             </div>
                         </div>
                     </div>
@@ -337,7 +338,7 @@ export default {
             galleryImages: [],
             permintaanSelesai: 0,
             kantongDarahSelesai: 0,
-
+            totalStockDarah: 0,
         }
     },
     name: 'Home',
@@ -402,7 +403,7 @@ export default {
 
                 const json = await res.json();
 
-                if (json.success) {
+                if (json.success && json.data) {
                     this.permintaanSelesai = json.data.total_permintaan || 0;
                     this.kantongDarahSelesai = json.data.total_kantong || 0;
                 }

@@ -7,14 +7,15 @@
 
   <style>
     @page {
-      size: 21.59cm 35.56cm; /* 8.5 x 14 inch (LEGAL) */
-      margin: 0.6cm;
+      size: A4;
+      margin: 0.4cm;
     }
 
     body {
       font-family: "Times New Roman", Times, serif;
-      font-size: 9pt;
+      font-size: 8.5pt;
       color: #000;
+      line-height: 1.25;
     }
 
     * {
@@ -33,7 +34,7 @@
     .outer td {
       border: 1px solid #000;
       vertical-align: top;
-      padding: 4px;
+      padding: 2.5px 4px;
     }
 
     .header {
@@ -66,7 +67,7 @@
 
     .form td {
       border: none;
-      padding: 2px 0;
+      padding: 1px 0;
     }
 
     .label {
@@ -93,7 +94,7 @@
     }
 
     .small {
-      font-size: 10pt;
+      font-size: 8.5pt;
     }
 
     .center {
@@ -101,7 +102,7 @@
     }
 
     .form-line {
-      margin: 4px 0;
+      margin: 2px 0;
     }
 
     .form-line .label {
@@ -127,6 +128,12 @@
 
     .form-line .checkbox {
       margin-left: 10px;
+    }
+
+    .compact-table td {
+      padding: 1.5px 3px !important;
+      font-size: 7.5pt;
+      height: 15px;
     }
 
     .harapkan-wrapper {
@@ -194,11 +201,11 @@
       display: grid;
       grid-template-columns: 18px auto 1fr 22px;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 2.5px;
     }
 
     .plasma-wrapper {
-      margin-top: 6px;
+      margin-top: 3px;
     }
     
     .plasma-grid {
@@ -214,31 +221,31 @@
     
     .plasma-left .title {
       text-decoration: underline;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
     }
     
     .plasma-right .row {
       display: grid;
       grid-template-columns: 18px auto 1fr 22px;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 2.5px;
     }
 
     .faktor-wrapper {
-      margin-top: 6px;
+      margin-top: 3px;
     }
     
     .faktor-title {
       font-weight: bold;
       text-decoration: underline;
-      margin-bottom: 6px;
+      margin-bottom: 3px;
     }
     
     .faktor-row {
       display: grid;
       grid-template-columns: 18px auto 1fr 60px;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 2.5px;
     }
     
     
@@ -252,31 +259,34 @@
 
     <!-- HEADER -->
     <tr>
-      <td colspan="2">
-        <table width="100%">
-          <tr>
+      <td colspan="2" style="padding: 6px 12px 2px 12px;">
+        <table width="100%" style="border-collapse: collapse; border: none;">
+          <tr style="border: none;">
             <!-- LOGO -->
-            <td width="90" style="vertical-align:top;">
+            <td width="80" style="vertical-align: middle; text-align: center; border: none; padding: 0;">
               <% if (kopImageUrl) { %>
-                <img src="<%= kopImageUrl %>" style="width:90px;" />
-                <% } %>
+                <img src="<%= kopImageUrl %>" style="max-height: 70px; width: auto; display: block; margin: 0 auto;" />
+              <% } %>
             </td>
 
             <!-- TEXT -->
-            <td class="header">
-              <div class="title">PEMERINTAH KABUPATEN KONAWE UTARA</div>
-              <div class="title">BADAN LAYANAN UMUM DAERAH</div>
-              <div class="title">RUMAH SAKIT KONAWE UTARA</div>
-              <div class="alamat">
+            <td class="header" style="vertical-align: middle; text-align: center; border: none; padding: 0 10px;">
+              <div class="title" style="font-size: 11pt; font-weight: bold; letter-spacing: 0.5px; margin: 0; line-height: 1.2;">PEMERINTAH KABUPATEN KONAWE UTARA</div>
+              <div class="title" style="font-size: 10pt; font-weight: bold; margin: 2px 0 0 0; line-height: 1.2;">BADAN LAYANAN UMUM DAERAH</div>
+              <div class="title" style="font-size: 10pt; font-weight: bold; margin: 2px 0 4px 0; line-height: 1.2;">RUMAH SAKIT KONAWE UTARA</div>
+              <div class="alamat" style="font-size: 7.5pt; font-weight: normal; line-height: 1.3; margin: 0;">
                 Jl. Poros Kendari–Asera, Desa Lahimbua Kec. Andowia 93353<br>
                 Telp. 0853-4543-2016 • Email: blud.rskonut99@gmail.com
               </div>
             </td>
+
+            <!-- BALANCE SPACE FOR SYMMETRY -->
+            <td width="80" style="border: none; padding: 0;"></td>
           </tr>
         </table>
 
-        <div class="line-bold"></div>
-        <div class="line-thin"></div>
+        <div class="line-bold" style="border-top: 3px solid #000; margin-top: 6px;"></div>
+        <div class="line-thin" style="border-top: 1px solid #000; margin-top: 2px;"></div>
       </td>
     </tr>
 
@@ -335,7 +345,11 @@
             <td class="label">Tgl. Lahir</td>
             <td class="colon">:</td>
             <td class="value">
-              <%= data.tanggal_lahir || '-' %>
+              <% if (data.tanggal_lahir) { %>
+                <%= new Date(data.tanggal_lahir).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) %>
+              <% } else { %>
+                -
+              <% } %>
             </td>
           </tr>
           <tr>
@@ -750,14 +764,14 @@
     
     </div>
 
-    <table width="100%" style="border-collapse:collapse; margin-top:8px;">
+    <table width="100%" style="border-collapse:collapse; margin-top:4px;">
       <tr>
         <!-- KIRI -->
         <td style="
           border:1px solid #000;
           width:50%;
           text-align:center;
-          padding:6px;
+          padding:3px;
           font-weight:bold;
           vertical-align:top;
           font-size:smaller;
@@ -771,7 +785,7 @@
           border:1px solid #000;
           width:50%;
           text-align:center;
-          padding:6px;
+          padding:3px;
           font-weight:bold;
           vertical-align:top;
           font-size:smaller;
@@ -785,10 +799,10 @@
         <!-- AREA TTD KIRI -->
         <td style="
           border:1px solid #000;
-          height:60px;
+          height:45px;
           vertical-align:bottom;
           text-align:center;
-          padding-bottom:8px;
+          padding-bottom:4px;
         ">
           ( <%= data.petugas_pemeriksa || '...............................' %> )
         </td>
@@ -796,17 +810,17 @@
         <!-- AREA TTD KANAN -->
         <td style="
           border:1px solid #000;
-          height:60px;
+          height:45px;
           vertical-align:bottom;
           text-align:center;
-          padding-bottom:8px;
+          padding-bottom:4px;
         ">
           ( <%= data.nama_dokter || '...............................' %> )
         </td>
       </tr>
     </table>
 
-    <table width="100%" style="border-collapse:collapse; margin-top:8px;">
+    <table width="100%" style="border-collapse:collapse; margin-top:4px;">
 
       <!-- HEADER -->
       <tr>
@@ -831,7 +845,7 @@
         <td style="border:1px solid #000; padding-left:6px;font-size:smaller">
           Cocok / tidak cocok / tanpa <i>cross</i> / <i>emergency</i>
         </td>
-        <td style="border:1px solid #000; height:28px;"></td>
+        <td style="border:1px solid #000; height:20px;"></td>
         <td style="border:1px solid #000;"></td>
         <td style="border:1px solid #000;"></td>
       </tr>
@@ -841,7 +855,7 @@
         <td style="border:1px solid #000; padding-left:6px;font-size:smaller">
           Cocok / tidak cocok / tanpa <i>cross</i> / <i>emergency</i>
         </td>
-        <td style="border:1px solid #000; height:28px;"></td>
+        <td style="border:1px solid #000; height:20px;"></td>
         <td style="border:1px solid #000;"></td>
         <td style="border:1px solid #000;"></td>
       </tr>
@@ -851,7 +865,7 @@
         <td style="border:1px solid #000; padding-left:6px;font-size:smaller">
           Cocok / tidak cocok / tanpa <i>cross</i> / <i>emergency</i>
         </td>
-        <td style="border:1px solid #000; height:28px;"></td>
+        <td style="border:1px solid #000; height:20px;"></td>
         <td style="border:1px solid #000;"></td>
         <td style="border:1px solid #000;"></td>
       </tr>
@@ -885,7 +899,7 @@
 
   <tr>
     <td colspan="2" style="padding:0;">
-      <table width="100%" style="border-collapse:collapse; font-size:9pt;">
+      <table class="compact-table" width="100%" style="border-collapse:collapse; font-size:8pt;">
   
         <!-- HEADER ATAS -->
         <tr>
@@ -1121,7 +1135,7 @@
     <td colspan="2" class="small">
       * Lembar 1 (Putih) : Untuk UPDRS BLUD RS Konawe Utara<br>
       * Lembar 2 (Merah) : Untuk Rumah Sakit<br>
-      * Lembar 3 (Biru) : Untuk Laboratorium RS / UPDRS<br>
+      * Lembar 3 (Biru) : Untuk UPD RS<br>
       * Lembar 4 (Hijau) : Untuk Unit Transfusi Darah
     </td>
   </tr>

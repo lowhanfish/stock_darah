@@ -843,11 +843,11 @@
                         />
 
                         <q-btn
-                            v-if="lihat_target && Number(lihat_target.status) === 4 && lihat_target.file"
+                            v-if="lihat_target && [4, 6].includes(Number(lihat_target.status))"
                             color="red-6"
                             icon="picture_as_pdf"
                             label="Buka PDF"
-                            @click="bukaPdf(lihat_target.id)"
+                            @click="bukaPdf"
                         />
                     </div>
 
@@ -1688,23 +1688,19 @@ export default {
     methods: {
 
         bukaPdf() {
-            if (!this.lihat_target?.id || !this.lihat_target?.pdf_key) {
+            if (!this.lihat_target?.id) {
                 this.$q.notify({
                 type: 'negative',
-                message: 'PDF belum tersedia'
+                message: 'Data tidak valid'
                 })
                 return
             }
            
-
+            const key = this.lihat_target.pdf_key || 'pindara';
             window.open(
-                `https://server-pindara.bludrs-konut.id/api/v1/permintaan_darah/pdf/${this.lihat_target.id}?key=${this.lihat_target.pdf_key}`,
+                `https://server-pindara.bludrs-konut.id/api/v1/permintaan_darah/pdf/${this.lihat_target.id}?key=${key}`,
                 '_blank'
             )
-            // window.open(
-            //     `http://localhost:5088/api/v1/permintaan_darah/pdf/${this.lihat_target.id}?key=${this.lihat_target.pdf_key}`,
-            //     '_blank'
-            // )
         },
 
         openRevertModal(row) {

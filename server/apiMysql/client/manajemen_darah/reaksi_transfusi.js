@@ -6,6 +6,7 @@ const ejs = require('ejs');
 const puppeteer = require('puppeteer')
 const { checkTokenSeetUser, isLoggedIn } = require('../../../auth/middlewares');
 const fs = require('fs'); // Tambahkan di atas file jika belum ada
+const qrcode = require('qrcode');
 // const pdf = require('html-pdf');
 
 
@@ -57,6 +58,16 @@ function toSqlDatetime(v) {
   return String(v).replace('T', ' ');
 }
 
+// Auto-migration for pesan_kesan_dokter column
+db.query("SHOW COLUMNS FROM reaksi_transfusi LIKE 'pesan_kesan_dokter'", (err, rows) => {
+  if (!err && rows && rows.length === 0) {
+    db.query("ALTER TABLE reaksi_transfusi ADD COLUMN pesan_kesan_dokter TEXT NULL AFTER tindakan", (errAlt) => {
+      if (errAlt) console.error("Error adding column pesan_kesan_dokter:", errAlt.message);
+      else console.log("✅ Column pesan_kesan_dokter added to table reaksi_transfusi");
+    });
+  }
+});
+
 router.post('/addData', (req, res) => {
   try {
     const {
@@ -67,6 +78,7 @@ router.post('/addData', (req, res) => {
       jam_dilaporkan,
       petugas_pelapor,
       tindakan,
+      pesan_kesan_dokter,
       ruangan_id,
       rumah_sakit_id
     } = req.body || {};
@@ -96,11 +108,12 @@ router.post('/addData', (req, res) => {
       const vJamDilaporkan = toSqlDatetime(jam_dilaporkan) || null; // DB has default CURRENT_TIMESTAMP
       const vPetugas = petugas_pelapor || (req.user && req.user.name) || null;
       const vTindakan = tindakan || null;
+      const vPesanKesan = pesan_kesan_dokter || null;
 
       const insertSql = `
         INSERT INTO reaksi_transfusi
-          (permintaan_id, jam_transfusi, jenis_reaksi, jam_terjadi, jam_dilaporkan, petugas_pelapor, tindakan, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+          (permintaan_id, jam_transfusi, jenis_reaksi, jam_terjadi, jam_dilaporkan, petugas_pelapor, tindakan, pesan_kesan_dokter, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
       `;
 
       const params = [
@@ -110,7 +123,8 @@ router.post('/addData', (req, res) => {
         vJamTerjadi,
         vJamDilaporkan,
         vPetugas,
-        vTindakan
+        vTindakan,
+        vPesanKesan
       ];
 
       db.query(insertSql, params, (err2, result) => {
@@ -197,6 +211,7 @@ router.get('/view', (req, res) => {
       r.jam_dilaporkan,
       r.petugas_pelapor,
       r.tindakan,
+      r.pesan_kesan_dokter,
       r.status,
       p.nama_pasien,
       p.tanggal_lahir,
@@ -260,7 +275,8 @@ router.post('/editData', (req, res) => {
       jam_terjadi,
       jam_dilaporkan,
       petugas_pelapor,
-      tindakan
+      tindakan,
+      pesan_kesan_dokter
     } = req.body || {};
 
     if (!id) {
@@ -282,6 +298,7 @@ router.post('/editData', (req, res) => {
         jam_dilaporkan = ?,
         petugas_pelapor = ?,
         tindakan = ?,
+        pesan_kesan_dokter = ?,
         updated_at = NOW()
       WHERE id = ?
     `;
@@ -294,6 +311,7 @@ router.post('/editData', (req, res) => {
       vJamDilaporkan,
       petugas_pelapor,
       tindakan,
+      pesan_kesan_dokter || null,
       id
     ];
 
@@ -466,15 +484,16 @@ router.post('/pemeriksaan/add', (req, res) => {
 
       const newId = result.insertId || null;
 
-      // Setelah insert sukses -> update status reaksi_transfusi menjadi 'unduh'
-      const updateSql = `UPDATE reaksi_transfusi SET status = 'unduh', updated_at = NOW() WHERE id = ? LIMIT 1`;
-      db.query(updateSql, [reaksi_id], (errUp, upRes) => {
+      // Setelah insert sukses -> update status & pesan_kesan_dokter pada reaksi_transfusi
+      const pesanKesanDokter = body.pesan_kesan_dokter || null;
+      const updateSql = `UPDATE reaksi_transfusi SET status = 'unduh', pesan_kesan_dokter = ?, updated_at = NOW() WHERE id = ? LIMIT 1`;
+      db.query(updateSql, [pesanKesanDokter, reaksi_id], (errUp, upRes) => {
         if (errUp) {
           console.error('DB error update reaksi_transfusi status:', errUp);
           // walaupun update gagal, kita tetap kembalikan success untuk insert, tapi informasikan masalah update
           // lalu ambil row pemeriksaan yang baru untuk dikembalikan
           const sel = `
-            SELECT p.*, r.jenis_reaksi, r.petugas_pelapor
+            SELECT p.*, r.jenis_reaksi, r.petugas_pelapor, r.pesan_kesan_dokter
             FROM pemeriksaan_pretransfusi p
             LEFT JOIN reaksi_transfusi r ON r.id = p.reaksi_id
             WHERE p.id = ? LIMIT 1
@@ -500,7 +519,7 @@ router.post('/pemeriksaan/add', (req, res) => {
 
         // kalau update berhasil, ambil row pemeriksaan dan juga status reaksi terkini untuk dikembalikan
         const sel2 = `
-          SELECT p.*, r.jenis_reaksi, r.petugas_pelapor, r.status AS reaksi_status
+          SELECT p.*, r.jenis_reaksi, r.petugas_pelapor, r.pesan_kesan_dokter, r.status AS reaksi_status
           FROM pemeriksaan_pretransfusi p
           LEFT JOIN reaksi_transfusi r ON r.id = p.reaksi_id
           WHERE p.id = ? LIMIT 1
@@ -542,7 +561,7 @@ router.get('/pemeriksaan/view', (req, res) => {
 
     // ambil pemeriksaan terbaru untuk reaksi_id
     const sql = `
-      SELECT p.*, r.jenis_reaksi, r.petugas_pelapor, r.status AS reaksi_status, p.created_at AS pemeriksaan_created
+      SELECT p.*, r.jenis_reaksi, r.petugas_pelapor, r.pesan_kesan_dokter, r.status AS reaksi_status, p.created_at AS pemeriksaan_created
       FROM pemeriksaan_pretransfusi p
       LEFT JOIN reaksi_transfusi r ON r.id = p.reaksi_id
       WHERE p.reaksi_id = ?
@@ -612,19 +631,20 @@ router.get('/pemeriksaan/pdf', checkTokenSeetUser, isLoggedIn, (req, res) => {
     const data = rows[0];
 
     // Generate QR Code
-    // let qrcodeUrl = '';
-    // try {
-    //   const qrData = `https://admin-pindara.bludrs-konut.id/api/v1/qrcode_reaksi/${reaksiId}`;
+    let qrcodeUrl = '';
+    try {
+      const qrData = `https://admin-pindara.bludrs-konut.id/api/v1/qrcode_reaksi/${reaksiId}`;
 
-    //   qrcodeUrl = await qrcode.toDataURL(qrData, {
-    //     width: 80,
-    //     margin: 1,
-    //     color: { dark: '#000000', light: '#FFFFFF' }
-    //   });
-    // } catch (qrErr) {
-    //   qrcodeUrl = '';
-    // }
-    // data.qrcode_url = qrcodeUrl;
+      qrcodeUrl = await qrcode.toDataURL(qrData, {
+        width: 80,
+        margin: 1,
+        color: { dark: '#000000', light: '#FFFFFF' }
+      });
+    } catch (qrErr) {
+      console.error('❌ Error generating QR Code:', qrErr);
+      qrcodeUrl = '';
+    }
+    data.qrcode_url = qrcodeUrl;
 
     try {
       const templatePath = path.join(__dirname, '../../../services/reaksiTransfusiTemplate.ejs');
@@ -809,8 +829,15 @@ router.post('/pemeriksaan/edit', (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error saat mengupdate pemeriksaan' });
       }
 
+      if (body.pesan_kesan_dokter !== undefined) {
+        db.query(
+          "UPDATE reaksi_transfusi r JOIN pemeriksaan_pretransfusi p ON p.reaksi_id = r.id SET r.pesan_kesan_dokter = ? WHERE p.id = ?",
+          [body.pesan_kesan_dokter || null, id]
+        );
+      }
+
       const sel = `
-        SELECT p.*, r.jenis_reaksi, r.petugas_pelapor, r.status AS reaksi_status
+        SELECT p.*, r.jenis_reaksi, r.petugas_pelapor, r.pesan_kesan_dokter, r.status AS reaksi_status
         FROM pemeriksaan_pretransfusi p
         LEFT JOIN reaksi_transfusi r ON r.id = p.reaksi_id
         WHERE p.id = ? LIMIT 1

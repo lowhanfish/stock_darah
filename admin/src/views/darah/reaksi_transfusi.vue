@@ -44,8 +44,9 @@
                         <th width="10%" class="text-center">Waktu Terjadi Reaksi</th>
                         <th width="10%" class="text-center">Waktu dilaporkan</th>
                         <th width="10%">Petugas Pelapor</th>
-                        <th width="15%" class="text-center">Tindakan</th>
-                        <th width="15%" class="text-center">Aksi</th>
+                        <th width="12%" class="text-center">Tindakan</th>
+                        <th width="12%" class="text-center">Pesan & Kesan Dokter</th>
+                        <th width="12%" class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -114,6 +115,7 @@
                         <td class="text-center">{{ UMUM.tglConvertx(data.jam_dilaporkan, true) }}</td>
                         <td class="text-center">{{ data.petugas_pelapor }}</td>
                         <td class="text-center">{{ data.tindakan }}</td>
+                        <td class="text-center">{{ data.pesan_kesan_dokter || '-' }}</td>
                         <!-- KOLom Aksi (ganti yang lama) -->
                         <td class="text-center q-gutter-sm">
                             <template v-if="Number(tipe) === 3">
@@ -240,6 +242,11 @@
                         <q-input v-model="form.tindakan" type="textarea" outlined square :dense="true"
                             class="bg-white margin_btn" required />
 
+                        <!-- Pesan dan Kesan Dokter -->
+                        <span class="h_lable">Pesan dan Kesan Dokter</span>
+                        <q-input v-model="form.pesan_kesan_dokter" type="textarea" outlined square :dense="true"
+                            class="bg-white margin_btn" placeholder="Pesan dan kesan dokter..." />
+
                     </q-card-section>
 
                     <!-- Footer -->
@@ -289,7 +296,7 @@
                     <q-card-section class="q-pt-none">
 
                         <div class="col-12 col-md-12">
-                            <span class="h_lable">DPJP Labpratorium</span>
+                            <span class="h_lable">DPJP UPD RS</span>
                             <q-input v-model="pemeriksaanForm.dpjp_lab" outlined square dense
                                 class="bg-white margin_btn" />
                         </div>
@@ -374,6 +381,12 @@
                                 <span class="h_lable">Waktu Pemeriksaan</span>
                                 <q-input v-model="pemeriksaanForm.pemeriksaan_at" type="datetime-local" outlined square
                                     dense class="bg-white margin_btn" />
+                            </div>
+
+                            <div class="col-12">
+                                <span class="h_lable">Pesan & Kesan Dokter</span>
+                                <q-input v-model="pemeriksaanForm.pesan_kesan_dokter" type="textarea" outlined square
+                                    dense class="bg-white margin_btn" placeholder="Pesan dan kesan dokter..." />
                             </div>
                         </div>
 
@@ -484,9 +497,19 @@
                                     </div> -->
                                 </div>
                             </div>
-                            <div>
 
-                                <div class="text-subtitle1 text-bold">DPJP Laboratorium : {{ viewPemeriksaan.dpjp_lab }}
+                            <!-- Bagian: Pesan dan Kesan Dokter (Terpisah di bagian bawah sebelum DPJP) -->
+                            <div class="q-mb-md">
+                                <div class="text-subtitle1 text-bold">Pesan dan Kesan Dokter</div>
+                                <div class="detail-table q-mt-sm">
+                                    <div class="row detail-row">
+                                        <div class="col-12 detail-value">{{ viewPemeriksaan.pesan_kesan_dokter || '-' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="text-subtitle1 text-bold">DPJP UPD RS : {{ viewPemeriksaan.dpjp_lab }}
                                 </div>
                             </div>
                         </div>
@@ -589,6 +612,10 @@
                         <q-input v-model="form_edit.tindakan" type="textarea" outlined square :dense="true"
                             class="bg-white margin_btn" required />
 
+                        <span class="h_lable">Pesan dan Kesan Dokter</span>
+                        <q-input v-model="form_edit.pesan_kesan_dokter" type="textarea" outlined square :dense="true"
+                            class="bg-white margin_btn" placeholder="Pesan dan kesan dokter..." />
+
                     </q-card-section>
 
                     <q-card-actions class="bg-grey-4 mdl-footer" align="right">
@@ -663,7 +690,8 @@ export default {
                 jam_terjadi: null,
                 jam_dilaporkan: null,
                 petugas_pelapor: '',
-                tindakan: ''
+                tindakan: '',
+                pesan_kesan_dokter: ''
             },
 
             list_data: [],
@@ -686,7 +714,8 @@ export default {
                 jam_terjadi: null,
                 jam_dilaporkan: null,
                 petugas_pelapor: '',
-                tindakan: ''
+                tindakan: '',
+                pesan_kesan_dokter: ''
             },
 
             mdl_delete: false,
@@ -713,6 +742,7 @@ export default {
                 konfirm_gol_donor: '',
                 konfirm_rhesus_donor: '',
                 uji_silang_konfirmasi: '',
+                pesan_kesan_dokter: '',
                 pemeriksaan_at: ''
             },
             loadingPemeriksaan: false,
@@ -756,6 +786,7 @@ export default {
                 konfirm_gol_donor: '',
                 konfirm_rhesus_donor: '',
                 uji_silang_konfirmasi: '',
+                pesan_kesan_dokter: item.pesan_kesan_dokter || '',
                 pemeriksaan_at: ''
             };
             this.mdl_pemeriksaan = true;
@@ -948,6 +979,7 @@ export default {
                 jam_dilaporkan: "",
                 petugas_pelapor: "",
                 tindakan: "",
+                pesan_kesan_dokter: "",
 
                 ruangan_id: this.form?.ruangan_id || null,
                 rumah_sakit_id: this.form?.rumah_sakit_id || null
@@ -1082,6 +1114,7 @@ export default {
                 konfirm_gol_donor: dataPemeriksaan.konfirm_gol_donor || '',
                 konfirm_rhesus_donor: dataPemeriksaan.konfirm_rhesus_donor || '',
                 uji_silang_konfirmasi: dataPemeriksaan.uji_silang_konfirmasi || '',
+                pesan_kesan_dokter: dataPemeriksaan.pesan_kesan_dokter || '',
                 // format untuk datetime-local
                 pemeriksaan_at: this.formatDatetimeLocal(dataPemeriksaan.pemeriksaan_at || dataPemeriksaan.pemeriksaan_created || '')
             };
@@ -1310,7 +1343,8 @@ export default {
                 jam_terjadi: this.formatDatetimeLocal(data.jam_terjadi),
                 jam_dilaporkan: this.formatDatetimeLocal(data.jam_dilaporkan),
                 petugas_pelapor: data.petugas_pelapor,
-                tindakan: data.tindakan
+                tindakan: data.tindakan,
+                pesan_kesan_dokter: data.pesan_kesan_dokter || ''
             };
 
             this.mdl_edit = true;

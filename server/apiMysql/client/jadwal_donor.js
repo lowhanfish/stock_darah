@@ -121,7 +121,7 @@ router.post('/editData', upload.single('file_name'), (req, res) => {
         file_name = req.file.filename; // sesuaikan jika Anda menyimpan dengan req.file.originalname
         // opsional: hapus file lama dari storage jika ada dan file lama berbeda
         if (existingFile && existingFile !== file_name) {
-            const uploadsDir = path.join(__dirname, '..', 'public', 'uploads'); // sesuaikan path sesuai project Anda
+            const uploadsDir = path.join(__dirname, '../../uploads');
             const oldPath = path.join(uploadsDir, existingFile);
             fs.unlink(oldPath, (err) => {
                 if (err) {

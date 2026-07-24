@@ -389,7 +389,7 @@
                     <td class="label">Petugas Yang Melaporkan</td><td class="colon">:</td><td class="value"><%= data.petugas_pelapor || '-' %></td>
                 </tr>
                 <tr>
-                    <td class="label">Tiindakan Yang Dilakukan</td><td class="colon">:</td><td class="value"><%= data.tindakan_dilakukan || '-' %></td>
+                    <td class="label">Tindakan Yang Dilakukan</td><td class="colon">:</td><td class="value"><%= data.tindakan || data.tindakan_dilakukan || '-' %></td>
                 </tr>
             </table>
 
@@ -431,7 +431,7 @@
             
             <table class="info-table-reaksi" role="table" aria-label="data detail reaksi">
                 <tr>
-                    <td class="label">Golonga Darah Pasien</td><td class="colon">:</td><td class="value">
+                    <td class="label">Golongan Darah Pasien</td><td class="colon">:</td><td class="value">
                         <%= data.konfirm_gol_pasien || '-' %><%= data.konfirm_rhesus_pasien || '-' %>
                         
                     </td>
@@ -449,11 +449,20 @@
                     </td>
                 </tr>
             </table>
+
+            <div class="ruangan-wrapper">
+                Pesan dan Kesan Dokter
+            </div>
+            <table class="info-table-reaksi" role="table" aria-label="pesan kesan dokter">
+                <tr>
+                    <td class="value" style="padding: 4px 0;"><%= data.pesan_kesan_dokter || '-' %></td>
+                </tr>
+            </table>
         
     </div>
     <div class="ttd-wrapper">
         <div class="ttd-block">
-            <p class="ttd-title"><u>DPJP LABORATORIUM</u></p>
+            <p class="ttd-title"><u>DPJP UPD RS</u></p>
             
             <img 
                 src="<%= data.qrcode_url %>" 

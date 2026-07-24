@@ -221,8 +221,8 @@ router.get('/permintaanByRuanganPie', (req, res) => {
       COUNT(pd.id) AS y
     FROM tenaga_medis tm
     LEFT JOIN permintaan_darah pd
-      ON pd.ruangan_id = tm.id
-    GROUP BY tm.nama_ruangan
+      ON pd.ruangan_id = tm.id AND pd.status IN (4, 6)
+    GROUP BY tm.nama_ruangan, tm.id
     ORDER BY y DESC
   `;
 
@@ -246,8 +246,8 @@ router.get('/permintaanByRuanganTable', (req, res) => {
       COUNT(pd.id) AS jumlah
     FROM tenaga_medis tm
     LEFT JOIN permintaan_darah pd
-      ON pd.ruangan_id = tm.id
-    GROUP BY tm.nama_ruangan
+      ON pd.ruangan_id = tm.id AND pd.status IN (4, 6)
+    GROUP BY tm.nama_ruangan, tm.id
     ORDER BY jumlah DESC
   `;
 

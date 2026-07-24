@@ -28,7 +28,7 @@ export default {
     fetch('https://server-pindara.bludrs-konut.id/api/v1/publish/visitor/total')
       .then(res => res.json())
       .then(data => {
-        this.totalVisitor = data.total
+        this.totalVisitor = (data && typeof data.total === 'number') ? data.total : null
       })
       .catch(() => {
         this.totalVisitor = null

@@ -132,7 +132,7 @@ router.post("/updateData", upload.single("file"), (req, res) => {
 
       // Jika ada file baru → hapus file lama
       if (newFile && oldFile && oldFile !== finalFile) {
-        const oldPath = path.join(__dirname, "../uploads/berita", oldFile);
+        const oldPath = path.join(__dirname, "../../uploads", oldFile);
         if (fs.existsSync(oldPath)) {
           fs.unlink(oldPath, (err3) => {
             if (err3) console.error("⚠️ Gagal hapus file lama:", err3);
